@@ -45,6 +45,10 @@ Expected platform class for closest parity:
 
 ## 3) Dataset Contract (HF-ready)
 
+Dataset source (HF):
+
+- `https://huggingface.co/datasets/georvn7/super-debug-v1`
+
 Expected local file path during training:
 
 - `qwen35_9b_fullft/data/all_1109_rows_no_assistant_thinking.jsonl`

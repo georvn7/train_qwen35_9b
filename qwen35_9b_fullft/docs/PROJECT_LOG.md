@@ -14,6 +14,8 @@ Train `Qwen3.5 9B` with full-weight fine-tuning using the same session/manifest/
 
 ## Fixed Dataset Convention
 
+- Public HF dataset:
+  - `https://huggingface.co/datasets/georvn7/super-debug-v1`
 - Source dataset selected by user:
   - `/home/georvn/final_archive-20260305T073201Z-3-001/final_archive/datasets_views/all_1109_rows_no_assistant_thinking.jsonl`
 - Local copied dataset used for training:

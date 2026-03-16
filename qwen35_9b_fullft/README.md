@@ -13,6 +13,10 @@ This folder adapts your proven `gpt-oss-120b` session workflow to **Qwen3.5 9B f
 
 ## Dataset (fixed target)
 
+Published dataset on Hugging Face:
+
+`https://huggingface.co/datasets/georvn7/super-debug-v1`
+
 Default training dataset is copied locally to:
 
 `/home/georvn/train_qwen35_9b/qwen35_9b_fullft/data/all_1109_rows_no_assistant_thinking.jsonl`
