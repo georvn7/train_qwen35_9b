@@ -49,6 +49,11 @@ Dataset source (HF):
 
 - `https://huggingface.co/datasets/georvn7/super-debug-v1`
 
+Important:
+
+- HF source contains assistant `thinking`.
+- This training recipe uses a derived dataset with assistant `thinking` removed.
+
 Expected local file path during training:
 
 - `qwen35_9b_fullft/data/all_1109_rows_no_assistant_thinking.jsonl`
@@ -65,6 +70,22 @@ sha256sum qwen35_9b_fullft/data/all_1109_rows_no_assistant_thinking.jsonl
 ```
 
 The hash must match before training.
+
+If starting from HF dataset (with thinking), create the no-thinking training file first:
+
+```bash
+cd /path/to/train_qwen35_9b
+mkdir -p qwen35_9b_fullft/data/hf_with_thinking qwen35_9b_fullft/data/no_thinking_tmp
+
+# Put downloaded HF jsonl file(s) under qwen35_9b_fullft/data/hf_with_thinking/
+python qwen35_9b_fullft/scripts/strip_thinking_only_dataset.py \
+  --input-root qwen35_9b_fullft/data/hf_with_thinking \
+  --output-root qwen35_9b_fullft/data/no_thinking_tmp
+
+# Copy/rename one produced jsonl to the canonical training path:
+SRC_JSONL="$(find qwen35_9b_fullft/data/no_thinking_tmp -name '*.jsonl' | head -n 1)"
+cp "$SRC_JSONL" qwen35_9b_fullft/data/all_1109_rows_no_assistant_thinking.jsonl
+```
 
 ## 4) Exact Launch Command
 

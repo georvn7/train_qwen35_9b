@@ -17,6 +17,11 @@ Published dataset on Hugging Face:
 
 `https://huggingface.co/datasets/georvn7/super-debug-v1`
 
+Important:
+
+- HF dataset above contains assistant `thinking` fields.
+- The full-FT run in this repo was trained on the **no-thinking** variant.
+
 Default training dataset is copied locally to:
 
 `/home/georvn/train_qwen35_9b/qwen35_9b_fullft/data/all_1109_rows_no_assistant_thinking.jsonl`

@@ -16,13 +16,16 @@ Train `Qwen3.5 9B` with full-weight fine-tuning using the same session/manifest/
 
 - Public HF dataset:
   - `https://huggingface.co/datasets/georvn7/super-debug-v1`
+  - Note: this HF dataset contains assistant `thinking` fields.
 - Source dataset selected by user:
   - `/home/georvn/final_archive-20260305T073201Z-3-001/final_archive/datasets_views/all_1109_rows_no_assistant_thinking.jsonl`
 - Local copied dataset used for training:
   - `/home/georvn/train_qwen35_9b/qwen35_9b_fullft/data/all_1109_rows_no_assistant_thinking.jsonl`
+  - Note: this is the no-thinking training variant used for full-FT.
 
 ## Key Decisions
 
+- `2026-03-15`: Documentation clarified that HF dataset `georvn7/super-debug-v1` contains thinking, while full-FT training here uses the derived no-thinking file `all_1109_rows_no_assistant_thinking.jsonl`.
 - `2026-03-15`: Public-collaboration reproducibility policy set: keep code/docs/evals/snapshots in Git; keep model/checkpoint binaries and caches in external storage (Drive/HF) with manifest-style references.
 - `2026-03-15`: Canonical reproducibility target for collaborators/agents is explicitly pinned to run `20260307_050331_qwen35_9b_instruct_full1109_32k_recipe_v1` with checked-in run/env/dataset/metrics snapshots under `docs/repro/`.
 - `2026-03-09`: Canonical inference launch profile is now `scripts/start_vllm_fullft_bf16_resident.sh` (fixed attrs: host `0.0.0.0`, port `8002`, model id `qwen35-9b-fullft-bf16`, `max_model_len=32768`, `gpu_memory_utilization=0.90`, `max_num_seqs=1`) for single-user always-on serving.
