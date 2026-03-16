@@ -1,0 +1,83 @@
+{
+  "created_at_utc": "2026-03-05T09:30:21Z",
+  "workspace_root": "/home/georvn/train_qwen35_9b",
+  "dataset_root": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/data/all_1109_rows_no_assistant_thinking.jsonl",
+  "model_name": "Qwen/Qwen3.5-9B-Base",
+  "max_seq_length": 32768,
+  "max_steps": 2,
+  "eval_holdout_ratio": 0.0,
+  "eval_max_samples": 128,
+  "eval_steps": 2,
+  "learning_rates": [
+    1e-05,
+    2e-05,
+    3e-05,
+    5e-05
+  ],
+  "results": [
+    {
+      "session_dir": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260305_090939_quality_probe_trainloss_2step_64rows_32k_lr_1_00e-05",
+      "learning_rate": 1e-05,
+      "return_code": 0,
+      "runtime_s": 295.702,
+      "train_runtime_s": 174.4453,
+      "train_loss_final": 1.6133462190628052,
+      "eval_loss_first": null,
+      "eval_loss_best": null,
+      "eval_loss_last": null,
+      "train_loss_first_log": 1.9931821823120117,
+      "train_loss_last_log": 1.2335102558135986,
+      "grad_norm_last_log": 7.71875,
+      "num_eval_points": 0,
+      "num_train_log_points": 2
+    },
+    {
+      "session_dir": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260305_091434_quality_probe_trainloss_2step_64rows_32k_lr_2_00e-05",
+      "learning_rate": 2e-05,
+      "return_code": 0,
+      "runtime_s": 318.839,
+      "train_runtime_s": 173.5382,
+      "train_loss_final": 1.5732685327529907,
+      "eval_loss_first": null,
+      "eval_loss_best": null,
+      "eval_loss_last": null,
+      "train_loss_first_log": 1.9931821823120117,
+      "train_loss_last_log": 1.1533548831939697,
+      "grad_norm_last_log": 5.09375,
+      "num_eval_points": 0,
+      "num_train_log_points": 2
+    },
+    {
+      "session_dir": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260305_091953_quality_probe_trainloss_2step_64rows_32k_lr_3_00e-05",
+      "learning_rate": 3e-05,
+      "return_code": 0,
+      "runtime_s": 312.952,
+      "train_runtime_s": 172.7214,
+      "train_loss_final": 1.5727254152297974,
+      "eval_loss_first": null,
+      "eval_loss_best": null,
+      "eval_loss_last": null,
+      "train_loss_first_log": 1.9931821823120117,
+      "train_loss_last_log": 1.152268648147583,
+      "grad_norm_last_log": 5.1875,
+      "num_eval_points": 0,
+      "num_train_log_points": 2
+    },
+    {
+      "session_dir": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260305_092506_quality_probe_trainloss_2step_64rows_32k_lr_5_00e-05",
+      "learning_rate": 5e-05,
+      "return_code": 0,
+      "runtime_s": 314.39,
+      "train_runtime_s": 173.4618,
+      "train_loss_final": 1.6716723442077637,
+      "eval_loss_first": null,
+      "eval_loss_best": null,
+      "eval_loss_last": null,
+      "train_loss_first_log": 1.9931821823120117,
+      "train_loss_last_log": 1.3501625061035156,
+      "grad_norm_last_log": 7.6875,
+      "num_eval_points": 0,
+      "num_train_log_points": 2
+    }
+  ]
+}

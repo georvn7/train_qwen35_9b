@@ -1,0 +1,365 @@
+{
+  "model": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260307_050331_qwen35_9b_instruct_full1109_32k_recipe_v1/artifacts/full_model",
+  "eval_file": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/evals/agent_cases_20_schema_final_v1.json",
+  "num_cases": 20,
+  "avg_structured_score": 0.7175,
+  "median_structured_score": 1.0,
+  "min_structured_score": 0.0,
+  "max_structured_score": 1.0,
+  "generated_at_utc": "2026-03-08T05:53:40.117685+00:00",
+  "results": [
+    {
+      "index": 1,
+      "name": "train_dbg_sft_00011_10",
+      "structured_score": 0.25,
+      "latency_s": 24.874,
+      "action_type": "function_info",
+      "action_subject": "gen_expr",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"gen_expr\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Inspect gen_expr to verify how it updates __last_expr__ and whether it leaks temporaries during nested BINARY_OP/UNARY_OP processing, since the trace shows reg",
+      "output_text": null
+    },
+    {
+      "index": 2,
+      "name": "train_dbg_sft_00025_10",
+      "structured_score": 1.0,
+      "latency_s": 13.897,
+      "action_type": "function_info",
+      "action_subject": "emit_expression_node_asm",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"emit_expression_node_asm\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Confirm how array_subscript is dispatched in emit_expression_node_asm to target the correct emitter for adding scaled index arithmetic.\"}",
+      "output_text": null
+    },
+    {
+      "index": 3,
+      "name": "train_dbg_sft_00010_08",
+      "structured_score": 1.0,
+      "latency_s": 18.051,
+      "action_type": "function_info",
+      "action_subject": "parse_func_def",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"parse_func_def\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"parse_ext_decl failed to parse the function definition, returning nullptr. The error log indicates 'failed to parse parameter list' and a trace shows 'pa",
+      "output_text": null
+    },
+    {
+      "index": 4,
+      "name": "train_dbg_sft_00033_06",
+      "structured_score": 1.0,
+      "latency_s": 16.14,
+      "action_type": "function_info",
+      "action_subject": "sema_enter_func",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"sema_enter_func\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Inspect sema_enter_func to confirm how parameters are extracted from the FUNCTION_DECL header and bound to the function scope, since argv typing errors ",
+      "output_text": null
+    },
+    {
+      "index": 5,
+      "name": "train_dbg_sft_00001_04",
+      "structured_score": 1.0,
+      "latency_s": 10.552,
+      "action_type": "function_info",
+      "action_subject": "emit_text_section",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"emit_text_section\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Inspect emit_text_section to verify the fix for extracting the function name from the first IDENTIFIER child when the parent's value is empty, and con",
+      "output_text": null
+    },
+    {
+      "index": 6,
+      "name": "train_dbg_sft_00017_06",
+      "structured_score": 0.7,
+      "latency_s": 16.847,
+      "action_type": "function_info",
+      "action_subject": "resolve_expression_type",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"resolve_expression_type\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Examine resolve_expression_type to verify it handles all parser expression node types (cast, Ternary, Assignment, array_subscript, OPERATOR-toke",
+      "output_text": null
+    },
+    {
+      "index": 7,
+      "name": "train_dbg_sft_00019_08",
+      "structured_score": 1.0,
+      "latency_s": 20.771,
+      "action_type": "function_info",
+      "action_subject": "sema_chk_init_tu",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"sema_chk_init_tu\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Inspect sema_chk_init_tu to locate the code path that validates local declaration initializers and why it\u2019s rejecting the non-constant ternary initiali",
+      "output_text": null
+    },
+    {
+      "index": 8,
+      "name": "train_dbg_sft_00003_08",
+      "structured_score": 1.0,
+      "latency_s": 15.99,
+      "action_type": "function_info",
+      "action_subject": "emit_func_epilogue",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"emit_func_epilogue\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Inspect emit_func_epilogue to verify it emits the epilogue label at column 0 and indented instructions, since unit_test_output.s shows the label inde",
+      "output_text": null
+    },
+    {
+      "index": 9,
+      "name": "train_dbg_sft_00010_16",
+      "structured_score": 0.4,
+      "latency_s": 29.513,
+      "action_type": "function_info",
+      "action_subject": "cg_emit_array_intermediate_pointer_chain",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"cg_emit_array_intermediate_pointer_chain\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Inspect cg_emit_array_intermediate_pointer_chain to locate the mixed\u2011width add/mov errors that occur when computing intermediat",
+      "output_text": null
+    },
+    {
+      "index": 10,
+      "name": "train_dbg_sft_00034_08",
+      "structured_score": 0.4,
+      "latency_s": 14.346,
+      "action_type": "file_info",
+      "action_subject": "s2_pre.c",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"s2_pre.c\",\"action_type\":\"file_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Open s2_pre.c to confirm the intended for/while structure and array subscripts since the assembly lacks the inner loop and comparisons.\"}",
+      "output_text": null
+    },
+    {
+      "index": 11,
+      "name": "train_dbg_sft_00002_06",
+      "structured_score": 0.25,
+      "latency_s": 12.288,
+      "action_type": "file_info",
+      "action_subject": "unit_test_output.s",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"unit_test_output.s\",\"action_type\":\"file_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":1,\"motivation\":\"Inspect the generated assembly file to identify the exact formatting or syntax error (likely around the epilogue label or indentation) that causes clang ",
+      "output_text": null
+    },
+    {
+      "index": 12,
+      "name": "train_dbg_sft_00009_06",
+      "structured_score": 1.0,
+      "latency_s": 17.577,
+      "action_type": "fix_function",
+      "action_subject": "emit_primary_expr_asm",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"emit_primary_expr_asm\",\"action_type\":\"fix_function\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Fix emit_primary_expr_asm to return silently for unsupported node types (e.g., BinaryExpr) instead of setting an error message, allowing the dispat",
+      "output_text": null
+    },
+    {
+      "index": 13,
+      "name": "train_dbg_sft_00024_04",
+      "structured_score": 1.0,
+      "latency_s": 12.871,
+      "action_type": "function_info",
+      "action_subject": "parse_tunit_items",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"parse_tunit_items\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Inspect parse_tunit_items to verify how it handles function-parameter declarators and confirm whether it correctly consumes bracket suffixes ([], [N])",
+      "output_text": null
+    },
+    {
+      "index": 14,
+      "name": "train_dbg_sft_00037_10",
+      "structured_score": 0.5499999999999999,
+      "latency_s": 32.745,
+      "action_type": "debug_function",
+      "action_subject": "traverse_ast_impl",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"traverse_ast_impl\",\"action_type\":\"debug_function\",\"breakpoints\":[{\"condition\":\"none\",\"expression\":\"none\",\"source_line\":121}],\"invocation\":1,\"line_number\":0,\"motivation\":\"Set a breakpoint at the recursive call inside the declaration-handling block (line 121) to ",
+      "output_text": null
+    },
+    {
+      "index": 15,
+      "name": "train_dbg_sft_00002_06",
+      "structured_score": 1.0,
+      "latency_s": 11.425,
+      "action_type": "function_info",
+      "action_subject": "cg_emit_binary_complex_ternary_and_compare",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"cg_emit_binary_complex_ternary_and_compare\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Inspect the implementation of cg_emit_binary_complex_ternary_and_compare to understand how it handles the comparison result a",
+      "output_text": null
+    },
+    {
+      "index": 16,
+      "name": "train_dbg_sft_00010_10",
+      "structured_score": 1.0,
+      "latency_s": 29.638,
+      "action_type": "fix_function",
+      "action_subject": "emit_function_def_and_body_asm",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"emit_function_def_and_body_asm\",\"action_type\":\"fix_function\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Fix the two Darwin\u2011incompatible directives and the missing param\u2192register mapping in emit_function_def_and_body_asm: (1) remove '.type' an",
+      "output_text": null
+    },
+    {
+      "index": 17,
+      "name": "train_dbg_sft_00014_06",
+      "structured_score": 0.0,
+      "latency_s": 19.541,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "{\"action_subject\":\"gen_stmt\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Inspect gen_stmt to verify how VARIABLE_DECL emits the initializer store. The assembly shows first1\u2019s initializer is stored from x0 (default ABI return) instea",
+      "output_text": null
+    },
+    {
+      "index": 18,
+      "name": "train_dbg_sft_00009_04",
+      "structured_score": 0.7,
+      "latency_s": 12.844,
+      "action_type": "function_info",
+      "action_subject": "process_stmt_node",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"process_stmt_node\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Inspect process_stmt_node to understand how it dispatches on node_type and why a generic 'Stmt' with a 'break' token bypasses the loop_depth check. Th",
+      "output_text": null
+    },
+    {
+      "index": 19,
+      "name": "train_dbg_sft_00023_10",
+      "structured_score": 0.7,
+      "latency_s": 26.229,
+      "action_type": "search_source",
+      "action_subject": "comp_src",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"comp_src\",\"action_type\":\"search_source\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Search for the initialization of config->type_size_table in comp_src to confirm it is missing and locate where it should be populated with default C17 sizes.\"}",
+      "output_text": null
+    },
+    {
+      "index": 20,
+      "name": "train_dbg_sft_00010_14",
+      "structured_score": 0.4,
+      "latency_s": 35.186,
+      "action_type": "function_info",
+      "action_subject": "emit_literal_asm",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"emit_literal_asm\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Inspect emit_literal_asm to confirm it allocates a temporary register (e.g., x8) without width normalization, which explains the mixed-width operand er",
+      "output_text": null
+    }
+  ]
+}

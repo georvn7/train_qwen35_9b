@@ -1,0 +1,365 @@
+{
+  "model": "Qwen/Qwen3.5-9B",
+  "eval_file": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/evals/agent_cases_20_schema_final_v1.json",
+  "num_cases": 20,
+  "avg_structured_score": 0.6425,
+  "median_structured_score": 0.7,
+  "min_structured_score": 0.0,
+  "max_structured_score": 1.0,
+  "generated_at_utc": "2026-03-08T06:03:01.207270+00:00",
+  "results": [
+    {
+      "index": 1,
+      "name": "train_dbg_sft_00011_10",
+      "structured_score": 0.25,
+      "latency_s": 30.701,
+      "action_type": "function_info",
+      "action_subject": "gen_expr",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"gen_expr\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"The trace shows gen_ternary_subexpr successfully cleaning up after the first sub-expression (BINARY_OP), but the subsequent failure occurs when evaluating the ",
+      "output_text": null
+    },
+    {
+      "index": 2,
+      "name": "train_dbg_sft_00025_10",
+      "structured_score": 0.0,
+      "latency_s": 27.26,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "{\n  \"action_subject\": \"emit_expression_node_asm\",\n  \"action_type\": \"function_info\",\n  \"breakpoints\": [],\n  \"invocation\": 1,\n  \"line_number\": 0,\n  \"motivation\": \"Since 'TranslationUnit' is structural and delegates to 'emit_structural_node_asm', the array subscript expression (argv",
+      "output_text": null
+    },
+    {
+      "index": 3,
+      "name": "train_dbg_sft_00010_08",
+      "structured_score": 0.7,
+      "latency_s": 19.657,
+      "action_type": "function_info",
+      "action_subject": "parse_param_list",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"parse_param_list\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"The logs indicate parse_func_def fails specifically at the parameter list stage with 'expected type keyword' when encountering a trailing comma. Inspec",
+      "output_text": null
+    },
+    {
+      "index": 4,
+      "name": "train_dbg_sft_00033_06",
+      "structured_score": 1.0,
+      "latency_s": 28.932,
+      "action_type": "function_info",
+      "action_subject": "sema_enter_func",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\n  \"action_subject\": \"sema_enter_func\",\n  \"action_type\": \"function_info\",\n  \"breakpoints\": [],\n  \"invocation\": 1,\n  \"line_number\": 0,\n  \"motivation\": \"The logs show 'ENTER_FUNC success=1' but the subsequent body check fails with 'base expression is neither array nor pointer' for",
+      "output_text": null
+    },
+    {
+      "index": 5,
+      "name": "train_dbg_sft_00001_04",
+      "structured_score": 0.7,
+      "latency_s": 18.071,
+      "action_type": "fix_function",
+      "action_subject": "emit_text_section",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\n  \"action_subject\": \"emit_text_section\",\n  \"action_type\": \"fix_function\",\n  \"breakpoints\": [],\n  \"invocation\": 1,\n  \"line_number\": 0,\n  \"motivation\": \"The test failure indicates that the function body is not being generated because the name extraction logic in emit_text_section",
+      "output_text": null
+    },
+    {
+      "index": 6,
+      "name": "train_dbg_sft_00017_06",
+      "structured_score": 1.0,
+      "latency_s": 24.493,
+      "action_type": "function_info",
+      "action_subject": "analyze_ast",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"analyze_ast\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"The log shows 'analyze_ast' completed successfully but the error 'Expression node has no token' persists. This indicates the traversal logic inside 'analyze",
+      "output_text": null
+    },
+    {
+      "index": 7,
+      "name": "train_dbg_sft_00019_08",
+      "structured_score": 1.0,
+      "latency_s": 30.393,
+      "action_type": "function_info",
+      "action_subject": "sema_chk_init_tu",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\n  \"action_subject\": \"sema_chk_init_tu\",\n  \"action_type\": \"function_info\",\n  \"breakpoints\": [],\n  \"invocation\": 1,\n  \"line_number\": 0,\n  \"motivation\": \"Inspect sema_chk_init_tu to locate the logic that validates the initializer expression. The logs indicate it is rejecting the n",
+      "output_text": null
+    },
+    {
+      "index": 8,
+      "name": "train_dbg_sft_00003_08",
+      "structured_score": 1.0,
+      "latency_s": 17.014,
+      "action_type": "function_info",
+      "action_subject": "emit_func_epilogue",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"emit_func_epilogue\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Inspect emit_func_epilogue to verify it outputs the label '.Lfunc_epilogue:' at column 0 without indentation, as the generated assembly shows the lab",
+      "output_text": null
+    },
+    {
+      "index": 9,
+      "name": "train_dbg_sft_00010_16",
+      "structured_score": 0.4,
+      "latency_s": 31.724,
+      "action_type": "function_info",
+      "action_subject": "cg_emit_array_intermediate_pointer_chain",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\n  \"action_subject\": \"cg_emit_array_intermediate_pointer_chain\",\n  \"action_type\": \"function_info\",\n  \"breakpoints\": [],\n  \"invocation\": 1,\n  \"line_number\": 0,\n  \"motivation\": \"Inspect cg_emit_array_intermediate_pointer_chain to verify how it computes scaled addresses and emits t",
+      "output_text": null
+    },
+    {
+      "index": 10,
+      "name": "train_dbg_sft_00034_08",
+      "structured_score": 0.4,
+      "latency_s": 14.925,
+      "action_type": "file_info",
+      "action_subject": "s2_pre.c",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"s2_pre.c\",\"action_type\":\"file_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Confirm the source code structure (lines 8-10) to verify the expected logic involving nested array subscripts and the while loop, contrasting it with the missing l",
+      "output_text": null
+    },
+    {
+      "index": 11,
+      "name": "train_dbg_sft_00002_06",
+      "structured_score": 0.25,
+      "latency_s": 13.95,
+      "action_type": "file_info",
+      "action_subject": "unit_test_output.s",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"unit_test_output.s\",\"action_type\":\"file_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":25,\"motivation\":\"Inspect the epilogue section (lines 25-28) to verify if the label '.Lfunc_epilogue:' is correctly aligned at column 0 and if the subsequent instructions",
+      "output_text": null
+    },
+    {
+      "index": 12,
+      "name": "train_dbg_sft_00009_06",
+      "structured_score": 0.7,
+      "latency_s": 23.618,
+      "action_type": "fix_function",
+      "action_subject": "emit_expression_node_asm",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\n  \"action_subject\": \"emit_expression_node_asm\",\n  \"action_type\": \"fix_function\",\n  \"breakpoints\": [],\n  \"invocation\": 1,\n  \"line_number\": 0,\n  \"motivation\": \"The test failure is caused by emit_primary_expr_asm setting a fatal error when encountering a BinaryExpr. The architectu",
+      "output_text": null
+    },
+    {
+      "index": 13,
+      "name": "train_dbg_sft_00024_04",
+      "structured_score": 1.0,
+      "latency_s": 13.343,
+      "action_type": "function_info",
+      "action_subject": "parse_tunit_items",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\n  \"action_subject\": \"parse_tunit_items\",\n  \"action_type\": \"function_info\",\n  \"breakpoints\": [],\n  \"invocation\": 1,\n  \"line_number\": 0,\n  \"motivation\": \"Inspect the function-parameter declarator logic within parse_tunit_items to confirm it rejects array suffixes (e.g., '[]') and",
+      "output_text": null
+    },
+    {
+      "index": 14,
+      "name": "train_dbg_sft_00037_10",
+      "structured_score": 0.5499999999999999,
+      "latency_s": 35.048,
+      "action_type": "debug_function",
+      "action_subject": "traverse_ast_impl",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\n  \"action_subject\": \"traverse_ast_impl\",\n  \"action_type\": \"debug_function\",\n  \"breakpoints\": [\n    {\n      \"source_line\": 82,\n      \"condition\": \"none\",\n      \"expression\": \"none\"\n    }\n  ],\n  \"invocation\": 1,\n  \"line_number\": 0,\n  \"motivation\": \"Set a breakpoint at the start o",
+      "output_text": null
+    },
+    {
+      "index": 15,
+      "name": "train_dbg_sft_00002_06",
+      "structured_score": 1.0,
+      "latency_s": 13.359,
+      "action_type": "function_info",
+      "action_subject": "cg_emit_binary_complex_ternary_and_compare",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"cg_emit_binary_complex_ternary_and_compare\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Inspect the implementation of cg_emit_binary_complex_ternary_and_compare to understand how it handles temporary register allo",
+      "output_text": null
+    },
+    {
+      "index": 16,
+      "name": "train_dbg_sft_00010_10",
+      "structured_score": 1.0,
+      "latency_s": 29.981,
+      "action_type": "fix_function",
+      "action_subject": "emit_function_def_and_body_asm",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\n  \"action_subject\": \"emit_function_def_and_body_asm\",\n  \"action_type\": \"fix_function\",\n  \"breakpoints\": [],\n  \"invocation\": 1,\n  \"line_number\": 0,\n  \"motivation\": \"Fix the two identified issues in emit_function_def_and_body_asm: 1) Remove ELF-specific '.type' and '.size' direct",
+      "output_text": null
+    },
+    {
+      "index": 17,
+      "name": "train_dbg_sft_00014_06",
+      "structured_score": 0.4,
+      "latency_s": 15.108,
+      "action_type": "search_source",
+      "action_subject": "gen_stmt",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"gen_stmt\",\"action_type\":\"search_source\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Search for the source code implementing VARIABLE_DECL and the store logic to verify if it correctly retrieves the register from register_allocation['__last_exp",
+      "output_text": null
+    },
+    {
+      "index": 18,
+      "name": "train_dbg_sft_00009_04",
+      "structured_score": 0.4,
+      "latency_s": 18.85,
+      "action_type": "fix_function",
+      "action_subject": "process_stmt_node",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\n  \"action_subject\": \"process_stmt_node\",\n  \"action_type\": \"fix_function\",\n  \"breakpoints\": [],\n  \"invocation\": 1,\n  \"line_number\": 0,\n  \"motivation\": \"The test fails because the statement dispatcher relies on specific node_type strings (e.g., 'BreakStmt') which are missing in t",
+      "output_text": null
+    },
+    {
+      "index": 19,
+      "name": "train_dbg_sft_00023_10",
+      "structured_score": 0.7,
+      "latency_s": 24.503,
+      "action_type": "search_source",
+      "action_subject": "comp_src",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"comp_src\",\"action_type\":\"search_source\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Search for the initialization of config->type_size_table in comp_src to confirm it is missing and locate where it should be populated with default C17 sizes.\"}",
+      "output_text": null
+    },
+    {
+      "index": 20,
+      "name": "train_dbg_sft_00010_14",
+      "structured_score": 0.4,
+      "latency_s": 29.498,
+      "action_type": "function_info",
+      "action_subject": "emit_binary_operator_asm",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\n  \"action_subject\": \"emit_binary_operator_asm\",\n  \"action_type\": \"function_info\",\n  \"breakpoints\": [],\n  \"invocation\": 1,\n  \"line_number\": 0,\n  \"motivation\": \"Inspect emit_binary_operator_asm to verify if it performs width normalization (e.g., truncating x-registers to w-regist",
+      "output_text": null
+    }
+  ]
+}

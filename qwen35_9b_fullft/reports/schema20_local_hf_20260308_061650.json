@@ -1,0 +1,239 @@
+{
+  "model": "Qwen/Qwen3.5-9B",
+  "eval_file": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/evals/agent_cases_20_schema_final_v1.json",
+  "num_cases": 20,
+  "avg_structured_score": 0.05,
+  "median_structured_score": 0.0,
+  "min_structured_score": 0.0,
+  "max_structured_score": 1.0,
+  "generated_at_utc": "2026-03-08T06:28:36.910355+00:00",
+  "results": [
+    {
+      "index": 1,
+      "name": "train_dbg_sft_00011_10",
+      "structured_score": 0.0,
+      "latency_s": 39.964,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is asking me to analyze the debugging progress and determine the next action. Let me review what we've learned:\n\n1. **Root Cause Identified**: The error cascade starts with \"alloc_reg: register pool exhausted\" during ternary expression evaluation.\n\n2. **Key Findings**:\n ",
+      "output_text": null
+    },
+    {
+      "index": 2,
+      "name": "train_dbg_sft_00025_10",
+      "structured_score": 0.0,
+      "latency_s": 30.831,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is debugging a code generation issue where array indexing is not properly scaled by element size. The crash occurs because `argv[1]` is being computed as `base + 1` byte instead of `base + 8` bytes (for pointers on AArch64).\n\nFrom the debug notes, I know:\n1. The issue is",
+      "output_text": null
+    },
+    {
+      "index": 3,
+      "name": "train_dbg_sft_00010_08",
+      "structured_score": 0.0,
+      "latency_s": 30.806,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The analysis shows that:\n\n1. `parse_trans_unit` is working correctly - it's calling `parse_ext_decl` and the token_index is advancing (from 0 to 8)\n2. `parse_ext_decl` is correctly identifying the function and calling `parse_func_def`\n3. The problem is in `parse_func_def` - it's ",
+      "output_text": null
+    },
+    {
+      "index": 4,
+      "name": "train_dbg_sft_00033_06",
+      "structured_score": 0.0,
+      "latency_s": 33.703,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is asking me to analyze the debugging progress and determine the next action. Let me review what we've learned:\n\n1. The test is failing with \"FAIL: res1 not successful\" and returning 65535 instead of 0\n2. The expected output should match regex: ^S2_count_ones_comp_to_a64",
+      "output_text": null
+    },
+    {
+      "index": 5,
+      "name": "train_dbg_sft_00001_04",
+      "structured_score": 0.0,
+      "latency_s": 25.687,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is asking me to analyze the debugging situation and determine the next action. Based on the information provided:\n\n1. The test is failing with \"gen_asm returned false\"\n2. The previous fix attempted to handle the case where FUNCTION_DECL.value is empty by reading from the",
+      "output_text": null
+    },
+    {
+      "index": 6,
+      "name": "train_dbg_sft_00017_06",
+      "structured_score": 0.0,
+      "latency_s": 30.971,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The test is failing with \"Expression node has no token\" and \"Return type mismatch: expected 'int', got 'unknown'\". The semantic analysis is completing (line 517 shows \"AST traversal completed\" and line 517 shows \"Semantic analysis succeeded\"), but the error message is in the erro",
+      "output_text": null
+    },
+    {
+      "index": 7,
+      "name": "train_dbg_sft_00019_08",
+      "structured_score": 0.0,
+      "latency_s": 38.136,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is asking me to analyze the debugging progress and determine the next action. Let me review what we've learned:\n\n1. The test is failing because semantic analysis returns success=0\n2. The diagnostics show \"initializer is not a valid constant expression\" errors\n3. The fail",
+      "output_text": null
+    },
+    {
+      "index": 8,
+      "name": "train_dbg_sft_00003_08",
+      "structured_score": 0.0,
+      "latency_s": 30.031,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is asking me to analyze the debugging progress and determine the next action. Looking at the evidence:\n\n1. The generated assembly file `unit_test_output.s` shows the epilogue label `.Lfunc_epilogue:` is at column 0 (line 25), which is correct for GAS.\n\n2. However, lookin",
+      "output_text": null
+    },
+    {
+      "index": 9,
+      "name": "train_dbg_sft_00010_16",
+      "structured_score": 0.0,
+      "latency_s": 40.918,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is asking me to analyze the debugging progress and determine the next action. Let me review what we've found so far:\n\n1. We've traced through `cg_emit_body` \u2192 `cg_emit_statement` \u2192 `cg_emit_expression` \u2192 `cg_emit_binary_complex_array_index`\n2. The function `cg_emit_binar",
+      "output_text": null
+    },
+    {
+      "index": 10,
+      "name": "train_dbg_sft_00034_08",
+      "structured_score": 0.0,
+      "latency_s": 27.482,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is asking me to analyze the debugging situation and determine the next action. Let me review what we have:\n\n1. The source code (s2_pre.c) has a proper for/while loop structure with array subscripts like `argv[i][k]`\n2. The generated assembly (s2_unit.s) shows:\n   - It ha",
+      "output_text": null
+    },
+    {
+      "index": 11,
+      "name": "train_dbg_sft_00002_06",
+      "structured_score": 0.0,
+      "latency_s": 23.628,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is asking me to analyze the assembly file and determine the next debugging step. Looking at the assembly file content, I can see several potential issues:\n\n1. Line 25: `.Lfunc_epilogue:` - This label appears to be at column 0, which is correct for GAS.\n\n2. Lines 26-28: T",
+      "output_text": null
+    },
+    {
+      "index": 12,
+      "name": "train_dbg_sft_00009_06",
+      "structured_score": 0.0,
+      "latency_s": 28.471,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is asking me to analyze the debugging situation and determine the next action. Looking at the information provided:\n\n1. The test failed because `emit_primary_expr_asm` is being called with a `BinaryExpr` node, which it doesn't support.\n2. The error message shows: \"emit_p",
+      "output_text": null
+    },
+    {
+      "index": 13,
+      "name": "train_dbg_sft_00024_04",
+      "structured_score": 0.0,
+      "latency_s": 22.734,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is asking me to analyze the debugging progress and determine the next action. Let me review what we've learned:\n\n1. Previous fix: We fixed `scan_source_tokens` to properly emit '[' and ']' tokens instead of discarding them.\n2. Current status: Lexing now succeeds and prod",
+      "output_text": null
+    },
+    {
+      "index": 14,
+      "name": "train_dbg_sft_00037_10",
+      "structured_score": 0.0,
+      "latency_s": 35.155,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is debugging a C compiler where semantic analysis fails with \"Undefined identifier\" errors for function parameters (argc, argv). The issue is that the semantic walker (`traverse_ast_impl`) is evaluating declaration identifiers as expressions before they are registered in",
+      "output_text": null
+    },
+    {
+      "index": 15,
+      "name": "train_dbg_sft_00002_06",
+      "structured_score": 1.0,
+      "latency_s": 26.178,
+      "action_type": "function_info",
+      "action_subject": "cg_emit_binary_complex_ternary_and_compare",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "The search found the error message in function `cg_emit_binary_complex_ternary_and_compare`. This is the function that's failing when there's no temporary register available for comparison results.\n\nNow I need to get more information about this function to understand:\n1. How it c",
+      "output_text": null
+    },
+    {
+      "index": 16,
+      "name": "train_dbg_sft_00010_10",
+      "structured_score": 0.0,
+      "latency_s": 36.632,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is debugging a compiler that generates ARM64 assembly. The issue is that:\n1. The assembler rejects ELF-specific directives (`.type`, `.size`) on Darwin/macOS\n2. Parameters are not being mapped to registers (x0-x7), causing \"CMP argc, x8\" errors\n\nFrom the code I've review",
+      "output_text": null
+    },
+    {
+      "index": 17,
+      "name": "train_dbg_sft_00014_06",
+      "structured_score": 0.0,
+      "latency_s": 29.99,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is asking me to analyze the s1.s assembly file and determine the next debugging step.\n\nLooking at the assembly output, I can see the issue. The problem is in the variable declaration with initializer at line 5 of the source (which corresponds to the ternary expression).\n",
+      "output_text": null
+    },
+    {
+      "index": 18,
+      "name": "train_dbg_sft_00009_04",
+      "structured_score": 0.0,
+      "latency_s": 24.674,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is asking me to analyze the debugging situation and provide the next action in JSON format.\n\nLooking at the debug notes:\n- The test is failing on \"illegal break\" case\n- The analyzer doesn't flag break outside a loop\n- The AST has generic \"Stmt\" nodes with KEYWORD tokens ",
+      "output_text": null
+    },
+    {
+      "index": 19,
+      "name": "train_dbg_sft_00023_10",
+      "structured_score": 0.0,
+      "latency_s": 40.546,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The analysis shows that the root cause is clear: `config->type_size_table` is empty (size=0) when `emit_load` is called, causing it to fail for basic types like \"int\". The function `emit_load` tries to look up the type in the table, but since the table is empty, it fails.\n\nThe ne",
+      "output_text": null
+    },
+    {
+      "index": 20,
+      "name": "train_dbg_sft_00010_14",
+      "structured_score": 0.0,
+      "latency_s": 40.322,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is debugging a compiler that generates ARM64 assembly. Based on the investigation so far:\n\n1. `emit_node_asm` - The main dispatcher that routes structural vs expression nodes\n2. `emit_expression_node_asm` - Routes expression types to appropriate handlers\n3. `emit_ternary",
+      "output_text": null
+    }
+  ]
+}

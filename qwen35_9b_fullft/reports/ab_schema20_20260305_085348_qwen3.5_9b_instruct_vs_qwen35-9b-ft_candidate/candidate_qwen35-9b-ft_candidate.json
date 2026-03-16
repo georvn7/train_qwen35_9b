@@ -1,0 +1,305 @@
+{
+  "model": "qwen35-9b-ft:candidate",
+  "base_url": "http://127.0.0.1:11434",
+  "endpoint_mode": "v1",
+  "endpoint": "http://127.0.0.1:11434/v1/chat/completions",
+  "messages_file": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/evals/agent_cases_20_schema_final_v1.json",
+  "max_tokens": 4096,
+  "temperature": 0.0,
+  "top_p": 1.0,
+  "num_ctx": 32768,
+  "reasoning_effort": "medium",
+  "verbosity": "medium",
+  "think": true,
+  "runs_per_case": 1,
+  "start_case_index": 1,
+  "end_case_index": 20,
+  "completed_cases": 20,
+  "aggregate": {
+    "num_cases": 20,
+    "num_successful_cases": 0,
+    "num_failed_cases": 20
+  },
+  "results": [
+    {
+      "case_index": 1,
+      "case_name": "train_dbg_sft_00011_10",
+      "expected": {
+        "action_type": "debug_function",
+        "action_subject": "gen_ternary_subexpr",
+        "line_number": 0,
+        "breakpoints_exact": 3,
+        "breakpoints_nonempty": true,
+        "max_words": 173
+      },
+      "error": "request failed: URLError(ConnectionRefusedError(111, 'Connection refused'))",
+      "runs": []
+    },
+    {
+      "case_index": 2,
+      "case_name": "train_dbg_sft_00025_10",
+      "expected": {
+        "action_type": "function_info",
+        "action_subject": "emit_expression_node_asm",
+        "line_number": 0,
+        "breakpoints_exact": 0,
+        "breakpoints_nonempty": false,
+        "max_words": 159
+      },
+      "error": "request failed: URLError(ConnectionRefusedError(111, 'Connection refused'))",
+      "runs": []
+    },
+    {
+      "case_index": 3,
+      "case_name": "train_dbg_sft_00010_08",
+      "expected": {
+        "action_type": "function_info",
+        "action_subject": "parse_func_def",
+        "line_number": 0,
+        "breakpoints_exact": 0,
+        "breakpoints_nonempty": false,
+        "max_words": 154
+      },
+      "error": "request failed: URLError(ConnectionRefusedError(111, 'Connection refused'))",
+      "runs": []
+    },
+    {
+      "case_index": 4,
+      "case_name": "train_dbg_sft_00033_06",
+      "expected": {
+        "action_type": "function_info",
+        "action_subject": "sema_enter_func",
+        "line_number": 0,
+        "breakpoints_exact": 0,
+        "breakpoints_nonempty": false,
+        "max_words": 167
+      },
+      "error": "request failed: URLError(ConnectionRefusedError(111, 'Connection refused'))",
+      "runs": []
+    },
+    {
+      "case_index": 5,
+      "case_name": "train_dbg_sft_00001_04",
+      "expected": {
+        "action_type": "function_info",
+        "action_subject": "emit_text_section",
+        "line_number": 0,
+        "breakpoints_exact": 0,
+        "breakpoints_nonempty": false,
+        "max_words": 145
+      },
+      "error": "request failed: URLError(ConnectionRefusedError(111, 'Connection refused'))",
+      "runs": []
+    },
+    {
+      "case_index": 6,
+      "case_name": "train_dbg_sft_00017_06",
+      "expected": {
+        "action_type": "function_info",
+        "action_subject": "analyze_ast",
+        "line_number": 0,
+        "breakpoints_exact": 0,
+        "breakpoints_nonempty": false,
+        "max_words": 155
+      },
+      "error": "request failed: URLError(ConnectionRefusedError(111, 'Connection refused'))",
+      "runs": []
+    },
+    {
+      "case_index": 7,
+      "case_name": "train_dbg_sft_00019_08",
+      "expected": {
+        "action_type": "function_info",
+        "action_subject": "sema_chk_init_tu",
+        "line_number": 0,
+        "breakpoints_exact": 0,
+        "breakpoints_nonempty": false,
+        "max_words": 131
+      },
+      "error": "request failed: URLError(ConnectionRefusedError(111, 'Connection refused'))",
+      "runs": []
+    },
+    {
+      "case_index": 8,
+      "case_name": "train_dbg_sft_00003_08",
+      "expected": {
+        "action_type": "function_info",
+        "action_subject": "emit_func_epilogue",
+        "line_number": 0,
+        "breakpoints_exact": 0,
+        "breakpoints_nonempty": false,
+        "max_words": 135
+      },
+      "error": "request failed: URLError(ConnectionRefusedError(111, 'Connection refused'))",
+      "runs": []
+    },
+    {
+      "case_index": 9,
+      "case_name": "train_dbg_sft_00010_16",
+      "expected": {
+        "action_type": "fix_function",
+        "action_subject": "cg_emit_binary_complex_array_index",
+        "line_number": 0,
+        "breakpoints_exact": 0,
+        "breakpoints_nonempty": false,
+        "max_words": 366
+      },
+      "error": "request failed: URLError(ConnectionRefusedError(111, 'Connection refused'))",
+      "runs": []
+    },
+    {
+      "case_index": 10,
+      "case_name": "train_dbg_sft_00034_08",
+      "expected": {
+        "action_type": "log_info",
+        "action_subject": "none",
+        "line_number": 0,
+        "breakpoints_exact": 0,
+        "breakpoints_nonempty": false,
+        "max_words": 158
+      },
+      "error": "request failed: URLError(ConnectionRefusedError(111, 'Connection refused'))",
+      "runs": []
+    },
+    {
+      "case_index": 11,
+      "case_name": "train_dbg_sft_00002_06",
+      "expected": {
+        "action_type": "function_info",
+        "action_subject": "emit_text_section",
+        "line_number": 0,
+        "breakpoints_exact": 0,
+        "breakpoints_nonempty": false,
+        "max_words": 118
+      },
+      "error": "request failed: URLError(ConnectionRefusedError(111, 'Connection refused'))",
+      "runs": []
+    },
+    {
+      "case_index": 12,
+      "case_name": "train_dbg_sft_00009_06",
+      "expected": {
+        "action_type": "fix_function",
+        "action_subject": "emit_primary_expr_asm",
+        "line_number": 0,
+        "breakpoints_exact": 0,
+        "breakpoints_nonempty": false,
+        "max_words": 253
+      },
+      "error": "request failed: URLError(ConnectionRefusedError(111, 'Connection refused'))",
+      "runs": []
+    },
+    {
+      "case_index": 13,
+      "case_name": "train_dbg_sft_00024_04",
+      "expected": {
+        "action_type": "function_info",
+        "action_subject": "parse_tunit_items",
+        "line_number": 0,
+        "breakpoints_exact": 0,
+        "breakpoints_nonempty": false,
+        "max_words": 149
+      },
+      "error": "request failed: URLError(ConnectionRefusedError(111, 'Connection refused'))",
+      "runs": []
+    },
+    {
+      "case_index": 14,
+      "case_name": "train_dbg_sft_00037_10",
+      "expected": {
+        "action_type": "fix_function",
+        "action_subject": "traverse_ast_impl",
+        "line_number": 0,
+        "breakpoints_exact": 0,
+        "breakpoints_nonempty": false,
+        "max_words": 253
+      },
+      "error": "request failed: URLError(ConnectionRefusedError(111, 'Connection refused'))",
+      "runs": []
+    },
+    {
+      "case_index": 15,
+      "case_name": "train_dbg_sft_00002_06",
+      "expected": {
+        "action_type": "function_info",
+        "action_subject": "cg_emit_binary_complex_ternary_and_compare",
+        "line_number": 0,
+        "breakpoints_exact": 0,
+        "breakpoints_nonempty": false,
+        "max_words": 174
+      },
+      "error": "request failed: URLError(ConnectionRefusedError(111, 'Connection refused'))",
+      "runs": []
+    },
+    {
+      "case_index": 16,
+      "case_name": "train_dbg_sft_00010_10",
+      "expected": {
+        "action_type": "fix_function",
+        "action_subject": "emit_function_def_and_body_asm",
+        "line_number": 0,
+        "breakpoints_exact": 0,
+        "breakpoints_nonempty": false,
+        "max_words": 246
+      },
+      "error": "request failed: URLError(ConnectionRefusedError(111, 'Connection refused'))",
+      "runs": []
+    },
+    {
+      "case_index": 17,
+      "case_name": "train_dbg_sft_00014_06",
+      "expected": {
+        "action_type": "file_info",
+        "action_subject": "s1_pre.c",
+        "line_number": 0,
+        "breakpoints_exact": 0,
+        "breakpoints_nonempty": false,
+        "max_words": 112
+      },
+      "error": "request failed: URLError(ConnectionRefusedError(111, 'Connection refused'))",
+      "runs": []
+    },
+    {
+      "case_index": 18,
+      "case_name": "train_dbg_sft_00009_04",
+      "expected": {
+        "action_type": "function_info",
+        "action_subject": "analyze_semantics",
+        "line_number": 0,
+        "breakpoints_exact": 0,
+        "breakpoints_nonempty": false,
+        "max_words": 112
+      },
+      "error": "request failed: URLError(ConnectionRefusedError(111, 'Connection refused'))",
+      "runs": []
+    },
+    {
+      "case_index": 19,
+      "case_name": "train_dbg_sft_00023_10",
+      "expected": {
+        "action_type": "function_info",
+        "action_subject": "comp_src",
+        "line_number": 0,
+        "breakpoints_exact": 0,
+        "breakpoints_nonempty": false,
+        "max_words": 128
+      },
+      "error": "request failed: URLError(ConnectionRefusedError(111, 'Connection refused'))",
+      "runs": []
+    },
+    {
+      "case_index": 20,
+      "case_name": "train_dbg_sft_00010_14",
+      "expected": {
+        "action_type": "fix_function",
+        "action_subject": "emit_ternary_expr_asm",
+        "line_number": 0,
+        "breakpoints_exact": 0,
+        "breakpoints_nonempty": false,
+        "max_words": 273
+      },
+      "error": "request failed: URLError(ConnectionRefusedError(111, 'Connection refused'))",
+      "runs": []
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "model": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260307_050331_qwen35_9b_instruct_full1109_32k_recipe_v1/artifacts/full_model",
+  "eval_file": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/evals/agent_cases_20_schema_final_v1.json",
+  "num_cases": 1,
+  "avg_strict_score": 0.0,
+  "median_strict_score": 0.0,
+  "min_strict_score": 0.0,
+  "max_strict_score": 0.0,
+  "generated_at_utc": "2026-03-08T05:10:01.679991+00:00",
+  "results": [
+    {
+      "index": 1,
+      "name": "train_dbg_sft_00011_10",
+      "strict_score": 0.0,
+      "latency_s": 38.844,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is asking me to analyze the debugging progress and determine the next action. Let me review what we've learned:\n\n1. **Root Cause Identified**: The error cascade starts with \"alloc_reg: register pool exhausted\" during ternary expression evaluation. The logs show:\n   - `ge"
+    }
+  ]
+}

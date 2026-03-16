@@ -1,0 +1,36 @@
+{
+  "files_scanned": 1,
+  "samples_scanned": 1109,
+  "tokenizer_model": "Qwen/Qwen3.5-9B-Base",
+  "tokenizer_loaded": true,
+  "format_counts": {
+    "messages": 1109,
+    "text": 0,
+    "other": 0
+  },
+  "token_length_stats": {
+    "min": 1152,
+    "mean": 7439,
+    "p50": 5444,
+    "p90": 16494,
+    "p95": 19742,
+    "p99": 28901,
+    "max": 36458
+  },
+  "bucket_counts": {
+    "512": 0,
+    "1024": 0,
+    "2048": 139,
+    "4096": 263,
+    "8192": 358,
+    "16384": 235,
+    "32768": 108,
+    ">32768": 6
+  },
+  "recommendation": {
+    "max_seq_length": 32768,
+    "group_by_length": true,
+    "packing_for_short_data": true,
+    "note": "Bucket by sample length, not file. Keep one manifest and let batching handle length groups."
+  }
+}

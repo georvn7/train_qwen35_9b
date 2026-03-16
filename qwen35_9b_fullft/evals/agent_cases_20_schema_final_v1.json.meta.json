@@ -1,0 +1,9 @@
+{
+  "created_from_roots": [
+    "/home/georvn/gptoss_debugger/datasets_1"
+  ],
+  "num_files_scanned": 126,
+  "num_candidates": 883,
+  "num_selected": 20,
+  "output_file": "/home/georvn/gptoss_debugger/gpt_oss120b_unsloth/evals/agent_cases_20_schema_final_v1.json"
+}

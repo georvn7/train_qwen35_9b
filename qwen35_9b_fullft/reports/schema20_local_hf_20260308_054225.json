@@ -1,0 +1,66 @@
+{
+  "model": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260307_050331_qwen35_9b_instruct_full1109_32k_recipe_v1/artifacts/full_model",
+  "eval_file": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/evals/agent_cases_20_schema_final_v1.json",
+  "num_cases": 3,
+  "avg_structured_score": 0.75,
+  "median_structured_score": 1.0,
+  "min_structured_score": 0.25,
+  "max_structured_score": 1.0,
+  "generated_at_utc": "2026-03-08T05:45:08.733716+00:00",
+  "results": [
+    {
+      "index": 1,
+      "name": "train_dbg_sft_00011_10",
+      "structured_score": 0.25,
+      "latency_s": 25.501,
+      "action_type": "function_info",
+      "action_subject": "gen_expr",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"gen_expr\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Inspect gen_expr to verify how it updates __last_expr__ and whether it leaks temporaries during nested BINARY_OP/UNARY_OP processing, since the trace shows reg",
+      "output_text": null
+    },
+    {
+      "index": 2,
+      "name": "train_dbg_sft_00025_10",
+      "structured_score": 1.0,
+      "latency_s": 15.077,
+      "action_type": "function_info",
+      "action_subject": "emit_expression_node_asm",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"emit_expression_node_asm\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Confirm how array_subscript is dispatched in emit_expression_node_asm to target the correct emitter for adding scaled index arithmetic.\"}",
+      "output_text": null
+    },
+    {
+      "index": 3,
+      "name": "train_dbg_sft_00010_08",
+      "structured_score": 1.0,
+      "latency_s": 20.544,
+      "action_type": "function_info",
+      "action_subject": "parse_func_def",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"parse_func_def\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"parse_ext_decl failed to parse the function definition, returning nullptr. The error log indicates 'failed to parse parameter list' and a trace shows 'pa",
+      "output_text": null
+    }
+  ]
+}

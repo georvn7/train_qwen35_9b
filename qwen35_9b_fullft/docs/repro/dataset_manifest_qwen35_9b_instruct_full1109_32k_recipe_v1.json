@@ -1,0 +1,19 @@
+{
+  "created_at_utc": "2026-03-07T05:03:31Z",
+  "workspace_root": "/home/georvn/train_qwen35_9b",
+  "dataset_roots": [
+    "qwen35_9b_fullft/data/all_1109_rows_no_assistant_thinking.jsonl"
+  ],
+  "jsonl_pattern": "*.jsonl",
+  "num_files": 1,
+  "total_lines": 1109,
+  "total_bytes": 33264008,
+  "files": [
+    {
+      "size_bytes": 33264008,
+      "num_lines": 1109,
+      "sha256": "3c6ecbe7ae3ac997ee9396f71263b56b94637bbc6846e0229b2eb55686901ee2",
+      "relative_path": "qwen35_9b_fullft/data/all_1109_rows_no_assistant_thinking.jsonl"
+    }
+  ]
+}

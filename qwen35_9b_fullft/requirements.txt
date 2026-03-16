@@ -1,0 +1,16 @@
+# Core
+numpy
+pandas
+
+# Training stack
+torch
+transformers
+datasets
+trl
+accelerate
+bitsandbytes
+sentencepiece
+protobuf
+
+# Unsloth
+unsloth

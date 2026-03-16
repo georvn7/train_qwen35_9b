@@ -1,0 +1,29 @@
+# Python/cache/env
+__pycache__/
+*.py[cod]
+.venv/
+.local_py312dev/
+.state/
+.tmp_120b_core/
+unsloth_compiled_cache/
+
+# Runtime logs
+logs/
+*.log
+logs_smoke_*.txt
+
+# Model/training artifacts (store externally, e.g., Google Drive / HF)
+qwen35_9b_fullft/.cache/
+qwen35_9b_fullft/runs/
+qwen35_9b_fullft/data/*.jsonl
+
+# Large binary formats
+*.safetensors
+*.safetensors.index.json
+*.pt
+*.bin
+*.gguf
+*.onnx
+
+# Keep docs/repro snapshots tracked
+!qwen35_9b_fullft/docs/repro/**

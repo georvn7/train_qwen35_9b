@@ -1,0 +1,37 @@
+{
+  "source_file": "qwen35_9b_fullft/data/all_1109_rows_no_assistant_thinking.jsonl",
+  "target_file": "qwen35_9b_fullft/data/stress_top6_over32k_rows.jsonl",
+  "count": 6,
+  "rows": [
+    {
+      "source_line_index_0based": 1089,
+      "approx_tokens_before_truncation": 36458,
+      "would_truncate_at_32768": true
+    },
+    {
+      "source_line_index_0based": 1096,
+      "approx_tokens_before_truncation": 36101,
+      "would_truncate_at_32768": true
+    },
+    {
+      "source_line_index_0based": 1091,
+      "approx_tokens_before_truncation": 33701,
+      "would_truncate_at_32768": true
+    },
+    {
+      "source_line_index_0based": 1090,
+      "approx_tokens_before_truncation": 33353,
+      "would_truncate_at_32768": true
+    },
+    {
+      "source_line_index_0based": 1099,
+      "approx_tokens_before_truncation": 33234,
+      "would_truncate_at_32768": true
+    },
+    {
+      "source_line_index_0based": 1098,
+      "approx_tokens_before_truncation": 32943,
+      "would_truncate_at_32768": true
+    }
+  ]
+}

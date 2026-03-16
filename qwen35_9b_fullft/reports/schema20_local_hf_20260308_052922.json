@@ -1,0 +1,246 @@
+{
+  "model": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260307_050331_qwen35_9b_instruct_full1109_32k_recipe_v1/artifacts/full_model",
+  "eval_file": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/evals/agent_cases_20_schema_final_v1.json",
+  "num_cases": 20,
+  "avg_structured_score": 0.08499999999999999,
+  "median_structured_score": 0.0,
+  "min_structured_score": 0.0,
+  "max_structured_score": 1.0,
+  "generated_at_utc": "2026-03-08T05:41:49.737534+00:00",
+  "results": [
+    {
+      "index": 1,
+      "name": "train_dbg_sft_00011_10",
+      "structured_score": 0.0,
+      "latency_s": 37.982,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is asking me to analyze the debugging progress and determine the next action. Let me review what we've learned:\n\n1. **Root Cause Identified**: The error cascade starts with \"alloc_reg: register pool exhausted\" during ternary expression evaluation. The logs show:\n   - `ge",
+      "output_text": null
+    },
+    {
+      "index": 2,
+      "name": "train_dbg_sft_00025_10",
+      "structured_score": 0.0,
+      "latency_s": 30.024,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is debugging a code generation issue where array indexing for argv[1] is not being scaled correctly. The root cause identified is that the code generation computes the address for argv[1] without scaling the index by the element size (8 bytes for pointers on AArch64).\n\nL",
+      "output_text": null
+    },
+    {
+      "index": 3,
+      "name": "train_dbg_sft_00010_08",
+      "structured_score": 0.0,
+      "latency_s": 29.007,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The test failures show that parse_trans_unit returns 0 children, meaning parse_ext_decl failed to parse the function definition. The trace shows parse_ext_decl was called at token_index=0 with the function tokens, and it returned nullptr with errors including \"parse_type_spec: ex",
+      "output_text": null
+    },
+    {
+      "index": 4,
+      "name": "train_dbg_sft_00033_06",
+      "structured_score": 0.0,
+      "latency_s": 30.579,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The log shows that `sema_walk_tu` is calling `sema_enter_func` for the FUNCTION_DECL, and `ENTER_FUNC success=1`, but then the function body check fails with `Function body check success=0`. The diagnostics show \"Multiple identifiers in VAR_DECL\" and \"Semantic analysis failed for",
+      "output_text": null
+    },
+    {
+      "index": 5,
+      "name": "train_dbg_sft_00001_04",
+      "structured_score": 0.7,
+      "latency_s": 23.211,
+      "action_type": "run_test",
+      "action_subject": "emit_text_section",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "The test is failing because gen_asm returns false. The previous fix addressed the function name extraction in emit_text_section, but the test still fails. I need to run the test again to see what the current state is and what specific error is occurring now.\n\nLooking at the debug",
+      "output_text": null
+    },
+    {
+      "index": 6,
+      "name": "train_dbg_sft_00017_06",
+      "structured_score": 0.0,
+      "latency_s": 28.249,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The test is failing with \"Expression node has no token\" and \"Return type mismatch: expected 'int', got 'unknown'\". The log shows that semantic analysis completed but with an error message. The error message suggests that during semantic analysis, an expression node was encountere",
+      "output_text": null
+    },
+    {
+      "index": 7,
+      "name": "train_dbg_sft_00019_08",
+      "structured_score": 0.0,
+      "latency_s": 34.632,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The logs show that `sema_check_decl` is being called for a local VAR_DECL inside the function body (line 1, column 66). The diagnostics indicate constant-expression evaluation failures for the initializer. This is happening because `sema_check_decl` is being invoked from `sema_st",
+      "output_text": null
+    },
+    {
+      "index": 8,
+      "name": "train_dbg_sft_00003_08",
+      "structured_score": 0.0,
+      "latency_s": 28.42,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is asking me to analyze the debugging progress and determine the next action. Let me review what we've learned:\n\n1. The compiler successfully generates assembly code (internal logs show success)\n2. The post-test clang assembler fails to produce an object file\n3. The gene",
+      "output_text": null
+    },
+    {
+      "index": 9,
+      "name": "train_dbg_sft_00010_16",
+      "structured_score": 0.0,
+      "latency_s": 40.105,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is asking me to analyze the provided information and determine the next debugging action. Let me review what I've learned so far:\n\n1. **cg_emit_body** - Successfully emits function body, delegates to cg_emit_statement\n2. **cg_emit_statement** - Successfully processes con",
+      "output_text": null
+    },
+    {
+      "index": 10,
+      "name": "train_dbg_sft_00034_08",
+      "structured_score": 0.0,
+      "latency_s": 29.181,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The assembly shows only the outer loop (lines 36-51) and the initial setup, but completely missing:\n1. The inner while loop (line 8 in source: `while (argv[i][k] != '\\0')`)\n2. The character comparison `if (argv[i][k] == '1')`\n3. The increment `k++`\n\nThis confirms the inner while ",
+      "output_text": null
+    },
+    {
+      "index": 11,
+      "name": "train_dbg_sft_00002_06",
+      "structured_score": 0.0,
+      "latency_s": 27.365,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is asking me to analyze the generated assembly file and determine the next debugging step. Looking at the assembly file, I can see the issue now.\n\nLooking at the assembly:\n- Line 25: `.Lfunc_epilogue:` - This label is at column 0 (correct)\n- Line 26: `add sp, sp, #16` - ",
+      "output_text": null
+    },
+    {
+      "index": 12,
+      "name": "train_dbg_sft_00009_06",
+      "structured_score": 0.0,
+      "latency_s": 31.582,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The test failed because `emit_primary_expr_asm` is being called with a `BinaryExpr` node, which it doesn't support. The error message shows \"emit_primary_expr_asm: unsupported node type 'BinaryExpr'\".\n\nLooking at the call stack, the flow is:\n1. `emit_expression_node_asm` is calle",
+      "output_text": null
+    },
+    {
+      "index": 13,
+      "name": "train_dbg_sft_00024_04",
+      "structured_score": 0.0,
+      "latency_s": 25.773,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is asking me to analyze the debugging progress and determine the next action. Let me review what we've learned:\n\n1. We fixed the lexer (scan_source_tokens) to properly emit '[' and ']' tokens\n2. The test now shows lexing succeeds (52 tokens) but parsing fails\n3. The pars",
+      "output_text": null
+    },
+    {
+      "index": 14,
+      "name": "train_dbg_sft_00037_10",
+      "structured_score": 0.0,
+      "latency_s": 38.644,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The analysis shows that the semantic traversal is evaluating declaration identifiers (like `argc` and `argv`) as expressions before they are registered in the symbol table. Looking at the `traverse_ast_impl` function, I can see the issue:\n\n1. For FunctionDef nodes (lines 44-101),",
+      "output_text": null
+    },
+    {
+      "index": 15,
+      "name": "train_dbg_sft_00002_06",
+      "structured_score": 1.0,
+      "latency_s": 25.041,
+      "action_type": "function_info",
+      "action_subject": "cg_emit_binary_complex_ternary_and_compare",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "The search found the failure message in function `cg_emit_binary_complex_ternary_and_compare`. This is the codegen function that's aborting when it can't get a temporary register for the comparison result. I need to get more information about this function to understand its imple",
+      "output_text": null
+    },
+    {
+      "index": 16,
+      "name": "train_dbg_sft_00010_10",
+      "structured_score": 0.0,
+      "latency_s": 38.265,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is debugging a compiler that generates ARM64 assembly. The test is failing because:\n\n1. The assembler rejects ELF-specific directives (`.type`, `.size`) on Darwin/macOS\n2. Function parameters aren't being mapped to registers (x0-x7), causing `CMP argc, x8` instead of `CM",
+      "output_text": null
+    },
+    {
+      "index": 17,
+      "name": "train_dbg_sft_00014_06",
+      "structured_score": 0.0,
+      "latency_s": 30.663,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The test is failing with exit code 2 instead of 65. Looking at the assembly, I can see the issue:\n\nAt line 86: `str x0, [fp, #-1]` - This stores the value of x0 (which is the return value from the ternary expression) into the local variable.\n\nBut looking at the ternary expression",
+      "output_text": null
+    },
+    {
+      "index": 18,
+      "name": "train_dbg_sft_00009_04",
+      "structured_score": 0.0,
+      "latency_s": 26.034,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The test is failing because the analyzer doesn't detect break/continue statements outside of loops. The issue is in the statement dispatch logic - it's likely checking for specific node types like \"BreakStmt\" but the AST has generic \"Stmt\" nodes with keyword tokens.\n\nI need to:\n1",
+      "output_text": null
+    },
+    {
+      "index": 19,
+      "name": "train_dbg_sft_00023_10",
+      "structured_score": 0.0,
+      "latency_s": 42.367,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The logs clearly show that `emit_load` fails because `config->type_size_table` is empty (size=0). The error message is \"emit_load: unknown type specification 'int'\". This is the root cause of the `emit_expr_eval` failure for the `++` operator.\n\nThe next logical step is to find wh",
+      "output_text": null
+    },
+    {
+      "index": 20,
+      "name": "train_dbg_sft_00010_14",
+      "structured_score": 0.0,
+      "latency_s": 43.175,
+      "action_type": "",
+      "action_subject": "",
+      "parsed_keys": [],
+      "preview": "The user is asking me to analyze the debugging progress and determine the next action. Let me review what we've learned:\n\n1. **emit_node_asm** - The main dispatcher that routes nodes to either structural or expression emitters. It validates arguments and delegates appropriately.\n",
+      "output_text": null
+    }
+  ]
+}
