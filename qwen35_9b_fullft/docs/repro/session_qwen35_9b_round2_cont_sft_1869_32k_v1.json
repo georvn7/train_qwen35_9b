@@ -1,0 +1,8 @@
+{
+  "created_at_utc": "2026-04-18T22:00:25Z",
+  "session_id": "20260418_220025_qwen35_9b_round2_cont_sft_1869_32k_v1",
+  "session_dir": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260418_220025_qwen35_9b_round2_cont_sft_1869_32k_v1",
+  "notes": "Qwen3.5-9B full-finetuning on local all_1109_rows_no_assistant_thinking.jsonl (resume-safe)",
+  "status": "trained",
+  "last_updated_utc": "2026-04-20T14:35:51Z"
+}

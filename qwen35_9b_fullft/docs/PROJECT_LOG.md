@@ -25,6 +25,15 @@ Train `Qwen3.5 9B` with full-weight fine-tuning using the same session/manifest/
 
 ## Key Decisions
 
+- `2026-04-20`: Round-2 continuation run `20260418_220025_qwen35_9b_round2_cont_sft_1869_32k_v1` completed successfully at `1869/1869` with final `train_loss=0.23181603004614768`, final checkpoint `checkpoint-1869`, and exported full model under `artifacts/full_model`.
+- `2026-04-20`: Round-2 archive policy fixed: preserve external copies of final full model, final checkpoint, merged round-2 SFT dataset, and merged round-2 DPO dataset; preserve small repro snapshots and logs in Git under `docs/repro/`.
+- `2026-04-20`: Round-2 checked-in reproducibility snapshot set added for the finished run: run config, environment, dataset manifest, train metrics, session, truncation stats, train-log history, export report, and copied live log.
+- `2026-04-18`: Round-2 continuation smoke `runs/20260418_215311_qwen35_9b_round2_cont_sft_1869_smoke1_fix1` proved the previous March 32K full-FT recipe still works when starting from the prior full model: one `32768` full-weight step completed and checkpoint save finished successfully.
+- `2026-04-18`: Checkpoint policy for round-2 continuation is unchanged from the last stable run: `save_steps=50`, `save_total_limit=4`, safe sharded save enabled, with pre-save `gc` + `torch.cuda.empty_cache()`.
+- `2026-04-18`: Round-2 continuation policy set: start from previous full-FT model `runs/20260307_050331_qwen35_9b_instruct_full1109_32k_recipe_v1/artifacts/full_model`, not from `Qwen/Qwen3.5-9B`.
+- `2026-04-18`: New dataset prep for round 2 is split into two canonical merged files under `qwen35_9b_fullft/data/`: one SFT continuation file built from all `train_dbg_sft.jsonl` + `train_run_sft.jsonl`, and one separate DPO file built from all `train_dbg_dpo.jsonl`.
+- `2026-04-18`: For round-2 SFT, keep overlength rows and preserve the existing left-truncation rule. Reason: this dataset family puts the latest debugging state and supervised answer at the tail; dropping all `>32K` rows would discard too much new signal.
+- `2026-04-18`: DPO is explicitly staged as a second-phase experiment after continuation SFT, even though the new `train_dbg_dpo.jsonl` files are already in conversational `prompt/chosen/rejected` format.
 - `2026-03-15`: Documentation clarified that HF dataset `georvn7/super-debug-v1` contains thinking, while full-FT training here uses the derived no-thinking file `all_1109_rows_no_assistant_thinking.jsonl`.
 - `2026-03-15`: Public-collaboration reproducibility policy set: keep code/docs/evals/snapshots in Git; keep model/checkpoint binaries and caches in external storage (Drive/HF) with manifest-style references.
 - `2026-03-15`: Canonical reproducibility target for collaborators/agents is explicitly pinned to run `20260307_050331_qwen35_9b_instruct_full1109_32k_recipe_v1` with checked-in run/env/dataset/metrics snapshots under `docs/repro/`.
@@ -70,6 +79,19 @@ Train `Qwen3.5 9B` with full-weight fine-tuning using the same session/manifest/
 
 ## Technical Changes Implemented
 
+- Local venv compatibility fix (not committed to repo code)
+  - Patched `/home/georvn/train_qwen35_9b/.venv/lib/python3.12/site-packages/unsloth/models/_utils.py`.
+  - Added `from transformers.utils import auto_docstring` so `Unsloth 2026.3.3` can re-exec current `transformers` Qwen config classes without startup failure.
+  - This fixes `NameError: name 'auto_docstring' is not defined`.
+  - This is an environment patch only; it is not a tracked code change in this repository.
+- `scripts/prepare_round2_continuation_datasets.py`
+  - Added round-2 dataset merger that builds canonical continuation SFT and DPO files from all new dataset bundles under `/home/georvn/new_datasets`.
+- `scripts/run_train_qwen35_9b_round2_from_last_fullft_safe.sh`
+  - Added round-2 continuation launcher that starts from the previous full-FT model and keeps the March 32K Spark-safe recipe and checkpoint policy.
+- `docs/ROUND2_ARCHIVE_20260420.md`
+  - Added concrete round-2 archive manifest with exact local paths, sizes, checksums, and keep/drop guidance.
+- `docs/repro/`
+  - Added checked-in round-2 reproducibility snapshots and copied live training log for the finished run.
 - `.gitignore`
   - Added repository-wide ignore policy to prevent accidental commits of local env/toolchain dirs, runtime logs, HF cache, run artifacts, and large model binary formats.
 - `requirements.lock.txt`

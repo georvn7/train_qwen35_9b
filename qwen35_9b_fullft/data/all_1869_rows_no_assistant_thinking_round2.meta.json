@@ -1,0 +1,83 @@
+{
+  "created_at_utc": "2026-04-18T21:49:14Z",
+  "input_root": "/home/georvn/new_datasets",
+  "tokenizer_model": "Qwen/Qwen3.5-9B",
+  "max_seq_length": 32768,
+  "inputs": {
+    "train_run_sft": {
+      "files": 138,
+      "rows": 469,
+      "thinking_fields_removed": 469
+    },
+    "train_dbg_sft": {
+      "files": 144,
+      "rows": 1400,
+      "thinking_fields_removed": 1400
+    },
+    "combined_sft": {
+      "files": 282,
+      "rows": 1869,
+      "thinking_fields_removed": 1869
+    },
+    "train_dbg_dpo": {
+      "files": 144,
+      "rows": 706,
+      "thinking_fields_removed": 0
+    }
+  },
+  "token_stats": {
+    "train_run_sft": {
+      "rows": 469,
+      "min": 1021,
+      "mean": 24733,
+      "p50": 21751,
+      "p90": 49776,
+      "p95": 68778,
+      "p99": 76201,
+      "max": 90235,
+      "rows_gt_32768": 124
+    },
+    "train_dbg_sft": {
+      "rows": 1400,
+      "min": 1034,
+      "mean": 6843,
+      "p50": 5071,
+      "p90": 12906,
+      "p95": 18113,
+      "p99": 43821,
+      "max": 66180,
+      "rows_gt_32768": 20
+    },
+    "combined_sft": {
+      "rows": 1869,
+      "min": 1021,
+      "mean": 11332,
+      "p50": 6307,
+      "p90": 27937,
+      "p95": 38386,
+      "p99": 69348,
+      "max": 90235,
+      "rows_gt_32768": 144
+    },
+    "train_dbg_dpo": {
+      "rows": 706,
+      "min": 1061,
+      "mean": 5834,
+      "p50": 3866,
+      "p90": 11937,
+      "p95": 15137,
+      "p99": 23181,
+      "max": 27390,
+      "rows_gt_32768": 0,
+      "pairs_with_side_gt_32768": 0
+    }
+  },
+  "outputs": {
+    "sft_path": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/data/all_1869_rows_no_assistant_thinking_round2.jsonl",
+    "sft_rows": 1869,
+    "sft_sha256": "b0d3c21f330d8a73f3cf96487508efe4f2710360acf397bc085eb3e70b3ca018",
+    "dpo_path": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/data/all_706_rows_dbg_dpo_round2.jsonl",
+    "dpo_rows": 706,
+    "dpo_sha256": "82b945af6c86a51bc56eccf1a7035d2cd7d53ea4dd097f8525801f8a35039b4e"
+  }
+}
