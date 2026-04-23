@@ -94,11 +94,14 @@ qwen35_9b_fullft/scripts/run_train_qwen35_9b_full1109_resume_safe.sh
   - `qwen35_9b_fullft/scripts/start_vllm_fullft_int8_openai.sh`
 - Start OpenAI-compatible vLLM server (full-FT model, bf16, default port `8002`):
   - `qwen35_9b_fullft/scripts/start_vllm_fullft_bf16_openai.sh`
+- Start OpenAI-compatible vLLM server (round-2 DPO model, bf16, default port `8002`):
+  - `qwen35_9b_fullft/scripts/start_vllm_round2_dpo_bf16_openai.sh`
 - Start untouched Qwen3.5-9B server (BitsAndBytes 8-bit, default port `8001`):
   - `qwen35_9b_fullft/scripts/start_vllm_untouched_int8_openai.sh`
 - Stop server:
   - `qwen35_9b_fullft/scripts/stop_vllm_fullft_openai.sh`
   - `qwen35_9b_fullft/scripts/stop_vllm_fullft_bf16_openai.sh`
+  - `qwen35_9b_fullft/scripts/stop_vllm_round2_dpo_bf16_openai.sh`
   - `qwen35_9b_fullft/scripts/stop_vllm_untouched_openai.sh`
 - Full serving instructions:
   - `qwen35_9b_fullft/docs/SERVING_VLLM_INT8.md`
@@ -108,6 +111,7 @@ qwen35_9b_fullft/scripts/run_train_qwen35_9b_full1109_resume_safe.sh
 - Canonical repro runbook: `docs/REPRODUCE_FULLFT_20260307.md`
 - Repo keep vs external storage policy: `docs/REPO_KEEP_AND_DRIVE_POLICY.md`
 - External artifact manifest template: `docs/EXTERNAL_ARTIFACTS_MANIFEST_TEMPLATE.md`
+- Round-2 DPO archive manifest: `docs/ROUND2_DPO_ARCHIVE_20260422.md`
 - Decision and technical log: `docs/PROJECT_LOG.md`
 - Run records and metrics snapshots: `docs/RUN_HISTORY.md`
 - Current recommended training config: `docs/QUALITY_RECIPE.md`

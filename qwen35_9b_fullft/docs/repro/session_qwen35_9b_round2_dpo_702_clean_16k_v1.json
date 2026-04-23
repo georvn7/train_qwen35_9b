@@ -1,0 +1,13 @@
+{
+  "created_at_utc": "2026-04-21T03:23:08Z",
+  "session_id": "20260421_032308_qwen35_9b_round2_dpo_702_clean_16k_v1",
+  "session_dir": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260421_032308_qwen35_9b_round2_dpo_702_clean_16k_v1",
+  "notes": "Round-2 DPO continuation from the latest round-2 full-FT model",
+  "status": "trained",
+  "last_updated_utc": "2026-04-23T00:13:07Z",
+  "train_ref_logprob_cache": {
+    "data_path": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260421_032308_qwen35_9b_round2_dpo_702_clean_16k_v1/metadata/train_ref_logprobs_cache.npz",
+    "meta_path": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260421_032308_qwen35_9b_round2_dpo_702_clean_16k_v1/metadata/train_ref_logprobs_cache.meta.json",
+    "loaded_at_launch": true
+  }
+}

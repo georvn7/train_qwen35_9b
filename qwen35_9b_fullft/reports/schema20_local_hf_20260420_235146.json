@@ -1,0 +1,372 @@
+{
+  "model": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260418_220025_qwen35_9b_round2_cont_sft_1869_32k_v1/artifacts/full_model",
+  "eval_file": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/evals/agent_cases_20_schema_final_v1.json",
+  "num_cases": 20,
+  "avg_structured_score": 0.7675,
+  "median_structured_score": 1.0,
+  "min_structured_score": 0.25,
+  "max_structured_score": 1.0,
+  "generated_at_utc": "2026-04-21T00:05:49.302352+00:00",
+  "results": [
+    {
+      "index": 1,
+      "name": "train_dbg_sft_00011_10",
+      "structured_score": 0.25,
+      "latency_s": 34.233,
+      "action_type": "function_info",
+      "action_subject": "gen_expr",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"gen_expr\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect gen_expr because the trace shows gen_ternary_subexpr:1 returned success with result_reg=21, yet the ternary true branch still failed and the",
+      "output_text": "{\"action_subject\":\"gen_expr\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect gen_expr because the trace shows gen_ternary_subexpr:1 returned success with result_reg=21, yet the ternary true branch still failed and the error list already contains 'alloc_reg: register pool exhausted'. That means the sub\u2011expression code path completed, but the register pool was depleted during it. gen_expr is the shared entry point for all expression types, so it is the most likely place where temporary registers are allocated without being released. Inspecting gen_expr will reveal whether it properly tracks and frees temporaries, and will guide the next fix.\"}"
+    },
+    {
+      "index": 2,
+      "name": "train_dbg_sft_00025_10",
+      "structured_score": 1.0,
+      "latency_s": 30.459,
+      "action_type": "function_info",
+      "action_subject": "emit_expression_node_asm",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"emit_expression_node_asm\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect emit_expression_node_asm because the crash is in the array subscript path: the emitted sequence for argv[1] is `mov x9, #1; ",
+      "output_text": "{\"action_subject\":\"emit_expression_node_asm\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect emit_expression_node_asm because the crash is in the array subscript path: the emitted sequence for argv[1] is `mov x9, #1; add x10, x1, x9; ldr x9, [x10]`, which adds only 1 byte to argv (char**) instead of 8 bytes. The root cause is that the array-index address computation is missing element-size scaling. emit_node_asm already delegates expression nodes to emit_expression_node_asm, so the fix belongs there. Inspect the function to find where array_subscript is dispatched and where the index is turned into an address, then apply the scaled add (LSL #3 for pointers, or bit_width/8 for integers) before the load.\"}"
+    },
+    {
+      "index": 3,
+      "name": "train_dbg_sft_00010_08",
+      "structured_score": 0.7,
+      "latency_s": 32.336,
+      "action_type": "function_info",
+      "action_subject": "parse_param_list",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"parse_param_list\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect parse_param_list because the failure now localizes to function-definition parameter parsing. parse_trans_unit and parse_ext_decl are",
+      "output_text": "{\"action_subject\":\"parse_param_list\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect parse_param_list because the failure now localizes to function-definition parameter parsing. parse_trans_unit and parse_ext_decl are behaving correctly: parse_ext_decl returns nullptr with the logged error \\\"parse_func_def: failed to parse parameter list at line 2, column 1\\\", and parse_trans_unit ends with 0 children. The trace for parse_func_def shows parse_type_spec: expected type keyword at line 1, which strongly suggests parse_param_list is consuming the ',' after \\\"int argc\\\" and then attempting to parse another parameter at ')', triggering parse_type_spec on a non-type token. Inspecting parse_param_list will confirm whether it incorrectly treats a trailing comma as the start of a new parameter and will show the exact recovery path so we can fix it to stop the parameter list when the next token is ')'.\"}"
+    },
+    {
+      "index": 4,
+      "name": "train_dbg_sft_00033_06",
+      "structured_score": 0.9,
+      "latency_s": 50.938,
+      "action_type": "function_info",
+      "action_subject": "sema_enter_func",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"sema_enter_func\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect sema_enter_func because the current failure is a parameter-binding bug at function entry, not a body-statement bug. The trace shows s",
+      "output_text": "{\"action_subject\":\"sema_enter_func\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect sema_enter_func because the current failure is a parameter-binding bug at function entry, not a body-statement bug. The trace shows sema_walk_tu:1 reaches ENTER_FUNC success=1, then the body check fails with \\\"Function body check success=0\\\" and diagnostics \\\"Multiple identifiers in VAR_DECL\\\" and \\\"Semantic analysis failed for child node at line 5, column 5\\\". The AST for main is FUNCTION_DECL with a header VAR_DECL and a BLOCK; the body contains IF, VAR_DECL, FOR, and RETURN, so the failure is not in the body itself.\\n\\nThe root cause is that sema_enter_func is not binding parameters from the FUNCTION_DECL header with correct types. The AST shows the header as a VAR_DECL with IDENTIFIER children \\\"int\\\" and \\\"main\\\", but the body uses argv[i][k], and the diagnostics say the base of [] is not an array or pointer. This pattern indicates the parameter extraction from the header is not reconstructing pointer/array declarators (e.g., char *argv[] should normalize to char** in parameter context), leaving argv as a non-pointer and causing cascading expression failures in the body.\\n\\nInspecting sema_enter_func will reveal how it parses the header VAR_DECL, extracts the declarator, and inserts parameters into the new function scope. That is the exact place to fix the argv typing so the body can index it correctly.\"}"
+    },
+    {
+      "index": 5,
+      "name": "train_dbg_sft_00001_04",
+      "structured_score": 1.0,
+      "latency_s": 25.766,
+      "action_type": "function_info",
+      "action_subject": "emit_text_section",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"emit_text_section\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect emit_text_section because the test failure is now isolated to function symbol/label emission, not header or data generation. The lo",
+      "output_text": "{\"action_subject\":\"emit_text_section\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect emit_text_section because the test failure is now isolated to function symbol/label emission, not header or data generation. The logs show emit_text_section emitted the .text header but then skipped the function with the message 'function node with empty name, skipping', which means the function body and main label were never produced.\\n\\nWe need to see the current implementation to confirm the name extraction logic and identify the exact fallback needed when FUNCTION_DECL.value is empty. The AST stores the function identifier in the first child IDENTIFIER node, so the fix should read the name from that child when the parent value is empty, then emit the .globl directive, function label, and proceed with prologue/body/epilogue generation.\"}"
+    },
+    {
+      "index": 6,
+      "name": "train_dbg_sft_00017_06",
+      "structured_score": 0.6,
+      "latency_s": 38.994,
+      "action_type": "function_info",
+      "action_subject": "resolve_expression_type",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"resolve_expression_type\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect resolve_expression_type because the current failure is now clearly in expression typing, not in traversal dispatch. The lates",
+      "output_text": "{\"action_subject\":\"resolve_expression_type\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect resolve_expression_type because the current failure is now clearly in expression typing, not in traversal dispatch. The latest run still fails with \\\"Expression node has no token\\\" and \\\"Return type mismatch: expected 'int', got 'unknown'\\\", while codegen runs and emits `mov x8, #0` for the literal. That pattern means semantic metadata is missing for the expression subtree, so the type resolver is not being invoked or is rejecting the node.\\n\\nThe previous fix already centralized expression dispatch in traverse_ast_impl, so the remaining blocker is likely inside resolve_expression_type itself. It may only recognize a narrow set of node names (e.g. 'CastExpr', 'IndexExpr', 'ParenExpr') and/or require a token on the expression node, which would explain why parser-emitted nodes like 'cast', 'array_subscript', and 'Ternary' never get type_annotation. Inspecting this function will confirm whether it needs broader node-name recognition, token fallback handling, and proper child-type propagation so that complex expressions reach type resolution and codegen can emit correct literals.\"}"
+    },
+    {
+      "index": 7,
+      "name": "train_dbg_sft_00019_08",
+      "structured_score": 0.9,
+      "latency_s": 44.335,
+      "action_type": "function_info",
+      "action_subject": "sema_chk_init_tu",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"sema_chk_init_tu\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect `sema_chk_init_tu` because the current failure is localized to the local variable initializer inside the function body. The trace sh",
+      "output_text": "{\"action_subject\":\"sema_chk_init_tu\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect `sema_chk_init_tu` because the current failure is localized to the local variable initializer inside the function body. The trace shows `sema_check_decl` returns false for the `first1` VAR_DECL, and the diagnostics are all constant-expression errors: \\\"initializer is not a valid constant expression\\\" plus ICE-eval failures for the ternary expression using `argv[1]`. The declaration itself is already resolved correctly (`unsigned char` base type, `first1` symbol inserted), so the problem is in the initializer validation path.\\n\\n`sema_chk_init_tu` is the function that validates whether an initializer is legal for a given declaration. We need to see its source to determine whether it is incorrectly requiring an integral constant expression for all declarations, or whether it is misusing the `sema_eval_int_const` helper for non-constant initializers. Once we understand the exact validation logic, we can fix it to allow non-constant expressions for automatic locals while still rejecting invalid initializers for file-scope/static objects.\"}"
+    },
+    {
+      "index": 8,
+      "name": "train_dbg_sft_00003_08",
+      "structured_score": 1.0,
+      "latency_s": 33.946,
+      "action_type": "function_info",
+      "action_subject": "emit_func_epilogue",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"emit_func_epilogue\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect emit_func_epilogue because the generated assembly shows the epilogue label is indented, which is invalid in GAS. The unit_test_out",
+      "output_text": "{\"action_subject\":\"emit_func_epilogue\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect emit_func_epilogue because the generated assembly shows the epilogue label is indented, which is invalid in GAS. The unit_test_output.s file shows '.Lfunc_epilogue:' at column 4, and the epilogue instructions (add sp, sp, #16; ldp x29, x30, [sp], #16; ret) are also indented. This is a classic formatting bug in string-based assembly generation where the label must be at column 0 and only the instructions should be indented. Since emit_text_section orchestrates the text section generation and calls emit_func_epilogue, we need to verify whether the bug is in emit_func_epilogue itself or in how emit_text_section/emit_func_body handle the returned string. The function_info will show us the exact source code and help us determine whether to fix emit_func_epilogue directly or adjust the caller's string handling.\"}"
+    },
+    {
+      "index": 9,
+      "name": "train_dbg_sft_00010_16",
+      "structured_score": 1.0,
+      "latency_s": 54.49,
+      "action_type": "fix_function",
+      "action_subject": "cg_emit_binary_complex_array_index",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"cg_emit_binary_complex_array_index\",\"action_type\":\"fix_function\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to fix cg_emit_binary_complex_array_index because it is the only function in the current call stack that emits the mixed\u2011width",
+      "output_text": "{\"action_subject\":\"cg_emit_binary_complex_array_index\",\"action_type\":\"fix_function\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to fix cg_emit_binary_complex_array_index because it is the only function in the current call stack that emits the mixed\u2011width ARM64 add and mov instructions causing the assembler failures. The function currently emits `add x1, x1, w17, uxtw #0` and `mov w15, x1` for the expression `argv[0][0]`, which is invalid on ARM64: `add` must use registers of the same width, and `mov` cannot move a 64\u2011bit register into a 32\u2011bit register. The fix must (1) keep the intermediate pointer chain logic unchanged, (2) emit the final index expression into a 32\u2011bit register, (3) use a 32\u2011bit add (`add w1, w1, w17`) to compute the effective address, (4) load the byte with `ldrb w15, [w1]`, and (5) zero\u2011extend the result to 64\u2011bit with `uxtw x15, w15` before returning. This preserves the existing control flow and temporary\u2011register handling while producing valid ARM64 assembly.\"}"
+    },
+    {
+      "index": 10,
+      "name": "train_dbg_sft_00034_08",
+      "structured_score": 0.4,
+      "latency_s": 31.884,
+      "action_type": "function_info",
+      "action_subject": "gen_binary_expr",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"gen_binary_expr\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect gen_binary_expr because the generated assembly shows the outer for-loop was emitted but the inner while loop and its condition are mi",
+      "output_text": "{\"action_subject\":\"gen_binary_expr\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect gen_binary_expr because the generated assembly shows the outer for-loop was emitted but the inner while loop and its condition are missing entirely. The source file clearly contains nested array subscripts in the while condition (argv[i][k] != '\\\\0'), so the most likely blocker is that the expression parser failed to bind the postfix bracket chain to the base identifier. gen_binary_expr is the central expression emitter and is the natural place to verify whether it handles bracket tokens for array subscripts, whether it delegates to a postfix handler, and whether it correctly builds the AST node for nested subscripts. Inspecting its source will tell us whether the bracket-handling contract matches the parser's token kind, which is the key to restoring the missing inner loop and fixing the wrong exit code.\"}"
+    },
+    {
+      "index": 11,
+      "name": "train_dbg_sft_00002_06",
+      "structured_score": 0.3,
+      "latency_s": 31.331,
+      "action_type": "fix_function",
+      "action_subject": "emit_func_epilogue",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"emit_func_epilogue\",\"action_type\":\"fix_function\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to fix emit_func_epilogue because the generated assembly is syntactically invalid for clang-as. The unit_test_output.s file shows the epilogue",
+      "output_text": "{\"action_subject\":\"emit_func_epilogue\",\"action_type\":\"fix_function\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to fix emit_func_epilogue because the generated assembly is syntactically invalid for clang-as. The unit_test_output.s file shows the epilogue label is mis-indented: '.Lfunc_epilogue:' appears at column 4 instead of column 0, and the following instructions (add sp, sp, #16; ldp x29, x30, [sp], #16; ret) are also indented. GAS requires labels at column 0, so this will cause the assembler to reject the file even though the compiler pipeline completes successfully.\\n\\nThe fix should ensure emit_func_epilogue emits the epilogue label at column 0 and indents its instructions consistently. This is the most likely source of the clang-as failure given the string-based emission pipeline and the shared epilogue branching pattern. After fixing this, the generated assembly should pass clang-as and produce unit_test_output.o.\"}"
+    },
+    {
+      "index": 12,
+      "name": "train_dbg_sft_00009_06",
+      "structured_score": 1.0,
+      "latency_s": 44.124,
+      "action_type": "fix_function",
+      "action_subject": "emit_primary_expr_asm",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"emit_primary_expr_asm\",\"action_type\":\"fix_function\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to fix emit_primary_expr_asm because the current test failure is caused by it treating unsupported node types as fatal errors. The log show",
+      "output_text": "{\"action_subject\":\"emit_primary_expr_asm\",\"action_type\":\"fix_function\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to fix emit_primary_expr_asm because the current test failure is caused by it treating unsupported node types as fatal errors. The log shows: 'emit_primary_expr_asm: unsupported node type 'BinaryExpr'' and the generated assembly stops with 'Code generation failed with error: emit_primary_expr_asm: unsupported node type 'BinaryExpr''.\\n\\nThe root cause is in the function's final fallback block (lines 191-193): it sets codegen_result->error_msg and returns immediately for any node type not explicitly handled. This is wrong because the primary-expression emitter is only responsible for literals, identifiers, casts, and register-like tokens. BinaryExpr, UnaryExpr, and other complex nodes should be silently ignored here, not cause a hard failure.\\n\\nThe fix is to replace the error-returning fallback with a silent return. The existing early-exit path for register-like lexemes (lines 34-51) already prevents double-processing, so the only remaining issue is the fatal error for out-of-scope nodes. Change the final block to simply return without setting error_msg, allowing the caller (emit_expression_node_asm) to route the node to the correct specialized emitter.\"}"
+    },
+    {
+      "index": 13,
+      "name": "train_dbg_sft_00024_04",
+      "structured_score": 1.0,
+      "latency_s": 31.173,
+      "action_type": "function_info",
+      "action_subject": "parse_tunit_items",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"parse_tunit_items\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect parse_tunit_items because the current evidence points to a function-header parsing failure, not a lexer problem. comp_to_a64 report",
+      "output_text": "{\"action_subject\":\"parse_tunit_items\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect parse_tunit_items because the current evidence points to a function-header parsing failure, not a lexer problem. comp_to_a64 reports lexing success with 52 tokens, but parse_tu returns success=false with diagnostics including \\\"Parse: Expected ',' or ')' after function parameter\\\" and \\\"Failed to parse function body.\\\" parse_tunit_items is the function that detects function definitions and then parses their headers and bodies, so it is the most likely place where the parser rejects a valid parameter declarator like `char *argv[]`.\\n\\nRequesting function_info for parse_tunit_items will show its source and call stack, letting us verify whether the function-header parsing path handles bracket suffixes on parameter declarators. If the source shows it only accepts `identifier` followed by `','` or `')'`, that confirms the root cause and sets up the next fix_function step to extend the declarator loop to consume `[` and `]` before checking for `','` or `')'`.\"}"
+    },
+    {
+      "index": 14,
+      "name": "train_dbg_sft_00037_10",
+      "structured_score": 1.0,
+      "latency_s": 35.441,
+      "action_type": "fix_function",
+      "action_subject": "traverse_ast_impl",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"traverse_ast_impl\",\"action_type\":\"fix_function\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to fix traverse_ast_impl because semantic analysis fails with undefined identifiers at parameter declaration sites, and the root cause is that ",
+      "output_text": "{\"action_subject\":\"traverse_ast_impl\",\"action_type\":\"fix_function\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to fix traverse_ast_impl because semantic analysis fails with undefined identifiers at parameter declaration sites, and the root cause is that the walker evaluates declaration Identifier children as expressions before those symbols are registered in the current scope. The current implementation recursively descends into declaration children and treats the name node as an expression, triggering lookups at the exact coordinates where parameters are defined (line 1, cols 14 and 26). The fix should adjust the declaration handling path to first register the declaration symbol in the current scope, then recursively traverse its children, and finally process the declaration node itself. This ensures that identifiers like argc and argv are registered before any expression analysis reaches them, preventing the undefined identifier errors while preserving the existing behavior for function definitions, statements, and other node types.\"}"
+    },
+    {
+      "index": 15,
+      "name": "train_dbg_sft_00002_06",
+      "structured_score": 1.0,
+      "latency_s": 25.271,
+      "action_type": "function_info",
+      "action_subject": "cg_emit_binary_complex_ternary_and_compare",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"cg_emit_binary_complex_ternary_and_compare\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect cg_emit_binary_complex_ternary_and_compare because the run_test failure is now traced to this function. Th",
+      "output_text": "{\"action_subject\":\"cg_emit_binary_complex_ternary_and_compare\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect cg_emit_binary_complex_ternary_and_compare because the run_test failure is now traced to this function. The log shows gen_a64 completed with success=0, and the only remaining blocker is the diagnostic 'no temporary register for comparison result' emitted by this function. That abort prevents gen_a64 from finishing, so no assembly is written and the post-test cannot run.\\n\\nRequesting function_info for invocation 1 will show the full source and local state for the failing call. This will reveal how the function obtains a result register, whether it falls back to operand reuse, and how it emits the comparison and cset. With that information we can implement the no-extra-temp fallback, fix the width handling, and restore the codegen path.\"}"
+    },
+    {
+      "index": 16,
+      "name": "train_dbg_sft_00010_10",
+      "structured_score": 1.0,
+      "latency_s": 41.527,
+      "action_type": "fix_function",
+      "action_subject": "emit_function_def_and_body_asm",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"emit_function_def_and_body_asm\",\"action_type\":\"fix_function\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to fix emit_function_def_and_body_asm because the current implementation emits ELF\u2011specific directives ('.type main, %function' an",
+      "output_text": "{\"action_subject\":\"emit_function_def_and_body_asm\",\"action_type\":\"fix_function\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to fix emit_function_def_and_body_asm because the current implementation emits ELF\u2011specific directives ('.type main, %function' and '.size main, .-main') that the aarch64\u2011apple\u2011darwin assembler rejects, and it never maps function parameters to registers. The test failure shows '.type' and '.size' errors plus 'CMP argc, x8', proving the prologue is wrong and the ParamList is not being used to populate x0/x1 for later expression emission. The fix should: 1) remove '.type' and '.size' for Darwin (keep '.text', '.global', '.p2align', and the label), 2) after emitting the label, iterate over node->children[0] (ParamList) and for each Param child write its token lexeme into the shared tokens so VarExpr resolves to x0/x1, and 3) keep the existing register reservation/release logic. This single change will eliminate the assembler errors and make the generated assembly pass the Darwin post\u2011test.\"}"
+    },
+    {
+      "index": 17,
+      "name": "train_dbg_sft_00014_06",
+      "structured_score": 0.3,
+      "latency_s": 33.698,
+      "action_type": "function_info",
+      "action_subject": "gen_stmt",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"gen_stmt\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect gen_stmt because the runtime failure is now clearly a codegen store error, not a front-end or I/O problem. The test still compiles and write",
+      "output_text": "{\"action_subject\":\"gen_stmt\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect gen_stmt because the runtime failure is now clearly a codegen store error, not a front-end or I/O problem. The test still compiles and writes s1.s, but the executable exits with 2 instead of 65, and the earlier analysis points to the initializer\u2019s computed value not being stored into the local variable. In this architecture, expression results are tracked via register_allocation[\\\"__last_expr__\\\"], while statement emission (gen_stmt \u2192 VARIABLE_DECL path) must source the store from that entry, not from the variable name or a hardcoded register.\\n\\nInspecting gen_stmt will show how it handles variable declarations with initializers, how it resolves the initializer expression, and how it emits the store instruction. We need to confirm whether the store helper is reading the source register from \\\"__last_expr__\\\" or defaulting to X0, which would explain why the wrong value reaches the local and why the ternary result is ignored. This is the most direct way to verify the hypothesis and prepare a precise fix.\"}"
+    },
+    {
+      "index": 18,
+      "name": "train_dbg_sft_00009_04",
+      "structured_score": 0.6,
+      "latency_s": 28.877,
+      "action_type": "function_info",
+      "action_subject": "process_stmt_node",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"process_stmt_node\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect process_stmt_node because the test now fails on the illegal-break case while the earlier undeclared-variable case still passes. The",
+      "output_text": "{\"action_subject\":\"process_stmt_node\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect process_stmt_node because the test now fails on the illegal-break case while the earlier undeclared-variable case still passes. The log shows the AST is being analyzed and the first error is caught, but the second run reports 'Failed to catch break outside loop.' This points to a statement-dispatch mismatch: the AST is sparse and uses generic 'Stmt' nodes with a KEYWORD token (e.g., 'break'), so the dispatcher likely keys off node_type substrings like 'BreakStmt' and never reaches the loop_depth guard. The test also searches error text case-sensitively for 'break', so diagnostics should use lowercase. Inspect process_stmt_node to confirm how it dispatches on node_type, how it handles generic Stmt nodes, and how it emits diagnostics, then prepare a fix that token-driven dispatches return/break/continue, enforces loop_depth for break/continue, and emits lowercase messages.\"}"
+    },
+    {
+      "index": 19,
+      "name": "train_dbg_sft_00023_10",
+      "structured_score": 1.0,
+      "latency_s": 51.146,
+      "action_type": "function_info",
+      "action_subject": "comp_src",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"comp_src\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect comp_src because the root cause is architectural: config->type_size_table is empty (size=0) when gen_asm is called, so emit_load fails on 'i",
+      "output_text": "{\"action_subject\":\"comp_src\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect comp_src because the root cause is architectural: config->type_size_table is empty (size=0) when gen_asm is called, so emit_load fails on 'int' and cascades into emit_unary_operator_core and emit_expr_eval failures. The trace shows comp_src:1->gen_asm:1->emit_text_section:1->emit_func_body:1->emit_stmt:6->emit_ctrl_flow:2->emit_loop_ctrl_flow:1->emit_stmt:7->emit_block:1->emit_stmt:9->emit_ctrl_flow:3->emit_loop_ctrl_flow:2->emit_stmt:10->emit_block:2->emit_stmt:11->emit_ctrl_flow:4->emit_if_ctrl_flow:2->emit_stmt:12->emit_expr:1->emit_expr_eval:33->emit_unary:2->emit_unary_operator_core:1->emit_load:1, and the error is 'emit_load: unknown type specification int'. Opening comp_src will show where config is initialized and whether type_size_table is populated with default C17 sizes for char/short/int/long (and unsigned variants). That will confirm the missing initialization and guide the fix.\"}"
+    },
+    {
+      "index": 20,
+      "name": "train_dbg_sft_00010_14",
+      "structured_score": 0.4,
+      "latency_s": 35.647,
+      "action_type": "function_info",
+      "action_subject": "emit_literal_asm",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"emit_literal_asm\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Inspect emit_literal_asm to confirm whether it is the source of the width mismatch. The ternary result is x8 (from alloc_temp_reg), but the ternary nod",
+      "output_text": "{\"action_subject\":\"emit_literal_asm\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Inspect emit_literal_asm to confirm whether it is the source of the width mismatch. The ternary result is x8 (from alloc_temp_reg), but the ternary node\u2019s type is int (32-bit). If emit_literal_asm emits a 64-bit MOV for the literal and then emits a 32-bit MOV to store the result, the final register will be w8, which explains the mixed-width error. Verifying this will determine whether the fix belongs in emit_literal_asm (width-aware MOV) or in the ternary emitter (adjust_reg_width).\"}"
+    }
+  ]
+}

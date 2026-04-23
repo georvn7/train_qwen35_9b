@@ -1,0 +1,18 @@
+# Round 2 DPO Cleaned Dataset Report
+
+- created_at_utc: `2026-04-21T03:21:51Z`
+- input_jsonl: `/home/georvn/train_qwen35_9b/qwen35_9b_fullft/data/all_706_rows_dbg_dpo_round2.jsonl`
+- output_jsonl: `/home/georvn/train_qwen35_9b/qwen35_9b_fullft/data/all_702_rows_dbg_dpo_round2_clean.jsonl`
+- input_rows: `706`
+- output_rows: `702`
+- dropped_rows: `4`
+- normalized_breakpoints_rows: `3`
+- output_sha256: `a8637d64c5c29c3edb17d30dae8951cfd75004a2a23621b8c2a03344c8eb9e22`
+
+## Drop Reasons
+- `chosen:empty_action_type`: `4`
+
+## Decision
+- Keep all structurally valid rows.
+- Drop rows whose chosen or rejected action JSON is unusable for DPO training.
+- Normalize missing `breakpoints` to `[]` so the schema stays stable.

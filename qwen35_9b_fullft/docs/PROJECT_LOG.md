@@ -25,6 +25,18 @@ Train `Qwen3.5 9B` with full-weight fine-tuning using the same session/manifest/
 
 ## Key Decisions
 
+- `2026-04-22`: Post-DPO local-HF schema20 evaluation on `runs/20260421_032308_qwen35_9b_round2_dpo_702_clean_16k_v1/artifacts/full_model` scored `avg_structured_score=0.7725`, slightly above the pre-DPO round-2 SFT reference `0.7675`.
+- `2026-04-22`: Round-2 DPO run `20260421_032308_qwen35_9b_round2_dpo_702_clean_16k_v1` completed successfully with final checkpoint `checkpoint-702`, exported model under `artifacts/full_model`, and final `train_loss=0.09880231095854713`.
+- `2026-04-22`: Round-2 DPO archive policy fixed: preserve external copies of final DPO full model, final DPO checkpoint, canonical cleaned DPO dataset, canonical prepared DPO dataset, and full launcher log; preserve small DPO repro snapshots in Git under `docs/repro/`.
+- `2026-04-22`: Added dedicated DPO bf16 serving wrappers `scripts/start_vllm_round2_dpo_bf16_openai.sh` and `scripts/stop_vllm_round2_dpo_bf16_openai.sh` so manual probing points at the DPO `full_model` by default.
+- `2026-04-21`: Round-2 DPO resume hardening v2: after full precompute and `checkpoint-10`, the remaining blocker was host-RAM pressure during exact resume of the `~23 GiB` `optimizer.pt`. The launcher now uses a two-phase host-RAM guard (`resume_min_mem_avail_mib=1024`, steady `min_mem_avail_mib=3072` by default), writes a `resume_warm_marker.json` after the first resumed step, and densifies early durable checkpoints to `10,20,30,40` before the regular `save_steps=50`.
+- `2026-04-21`: Round-2 DPO resume path now applies mmap-backed `torch.load` for files under the resume checkpoint tree, with automatic fallback to non-mmap if unsupported. This mirrors the earlier SFT resume hardening and is intended to reduce CPU-memory duplication during checkpoint restore.
+- `2026-04-21`: Round-2 DPO checkpoint-save hardening v1: save-phase host-RAM guard is now split from steady-state (`checkpoint_save_min_mem_avail_mib=1536` by default), training writes `metadata/checkpoint_save_marker.json` before checkpoint writes, and completed checkpoints write `checkpoint_complete.json`. Launcher-side checkpoint selection now skips `.incomplete*` directories and quarantines only raw invalid `checkpoint-*` dirs.
+- `2026-04-20`: Canonical round-2 DPO training set is the cleaned `702`-row variant, not the raw `706` rows. Reason: `4` source rows had empty chosen outputs and are not repairable; `3` rows had missing `breakpoints` and were normalized.
+- `2026-04-20`: Round-2 DPO policy is fixed to continue from the finished round-2 full model `runs/20260418_220025_qwen35_9b_round2_cont_sft_1869_32k_v1/artifacts/full_model`; do not start DPO from base or from scratch.
+- `2026-04-20`: Round-2 DPO recipe is pinned conservatively for Spark: `DPOTrainer`, `bf16`, `adamw_8bit`, `lr=1e-6`, `beta=0.05`, `per_device_train_batch_size=1`, `gradient_accumulation_steps=1`, `precompute_ref_log_probs=true`, `use_logits_to_keep=true`.
+- `2026-04-20`: Round-2 DPO length budget fixed to `max_prompt_length=14848`, `max_completion_length=1536`, `max_length=16384`, `truncation_mode=keep_end`.
+- `2026-04-20`: Canonical round-2 DPO input is a prepared chat-templated view built from `all_706_rows_dbg_dpo_round2.jsonl`; this freezes the prompt/chosen/rejected string rendering used by training.
 - `2026-04-20`: Round-2 continuation run `20260418_220025_qwen35_9b_round2_cont_sft_1869_32k_v1` completed successfully at `1869/1869` with final `train_loss=0.23181603004614768`, final checkpoint `checkpoint-1869`, and exported full model under `artifacts/full_model`.
 - `2026-04-20`: Round-2 archive policy fixed: preserve external copies of final full model, final checkpoint, merged round-2 SFT dataset, and merged round-2 DPO dataset; preserve small repro snapshots and logs in Git under `docs/repro/`.
 - `2026-04-20`: Round-2 checked-in reproducibility snapshot set added for the finished run: run config, environment, dataset manifest, train metrics, session, truncation stats, train-log history, export report, and copied live log.
@@ -79,6 +91,30 @@ Train `Qwen3.5 9B` with full-weight fine-tuning using the same session/manifest/
 
 ## Technical Changes Implemented
 
+- `scripts/clean_round2_dpo_dataset.py`
+  - Added canonical DPO cleaning step:
+    - drops rows with unusable chosen/rejected action JSON
+    - normalizes missing `breakpoints` to `[]`
+    - writes a manifest-style cleanup report beside the output JSONL
+- Local venv compatibility fix (not committed to repo code)
+  - Patched `/home/georvn/train_qwen35_9b/.venv/lib/python3.12/site-packages/trl/trainer/judges.py`.
+  - Moved `llm_blender` import inside `PairRMJudge.__init__` so `DPOTrainer` can import without the judge-only extra installed.
+- Local venv compatibility fix (not committed to repo code)
+  - Patched `/home/georvn/train_qwen35_9b/.venv/lib/python3.12/site-packages/trl/trainer/callbacks.py`.
+  - Moved `weave` and `mergekit` imports off the module import path and into the specific callback codepaths that actually use them.
+  - Reason: local `trl==0.24.0` eagerly imported optional extras and blocked `DPOTrainer` import for unrelated training flows.
+- `scripts/prepare_round2_dpo_dataset_view.py`
+  - Added canonical round-2 DPO prepared-view builder that freezes the Qwen chat template into plain `prompt/chosen/rejected` strings and writes explicit token-budget stats.
+- `scripts/train_dpo_session.py`
+  - Added manifest-driven DPO trainer entrypoint with:
+    - explicit local tokenization to `prompt_input_ids/chosen_input_ids/rejected_input_ids`
+    - `DPOTrainer` on top of the latest round-2 full model
+    - checkpoint save cleanup and internal GPU memory guard
+    - `run_config.json`, `environment.json`, `dpo_tokenization_stats.json`, `train_metrics.json`, and `train_log_history.json` outputs
+- `scripts/run_train_qwen35_9b_round2_dpo_from_last_fullft_safe.sh`
+  - Added resume-safe DPO launcher with the same external guard and checkpoint retry conventions used for the SFT run family.
+- `docs/ROUND2_DPO_PLAN_20260420.md`
+  - Added the round-2 DPO design note: model lineage, length budget, optimizer/precision choices, environment patches, and launch order.
 - Local venv compatibility fix (not committed to repo code)
   - Patched `/home/georvn/train_qwen35_9b/.venv/lib/python3.12/site-packages/unsloth/models/_utils.py`.
   - Added `from transformers.utils import auto_docstring` so `Unsloth 2026.3.3` can re-exec current `transformers` Qwen config classes without startup failure.

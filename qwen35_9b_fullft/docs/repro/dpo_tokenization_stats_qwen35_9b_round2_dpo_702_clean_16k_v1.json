@@ -1,0 +1,14 @@
+{
+  "rows": 702,
+  "max_prompt_length": 14848,
+  "max_completion_length": 1536,
+  "prompt_original_max": 27049,
+  "prompt_final_max": 14848,
+  "chosen_original_max": 1085,
+  "chosen_final_max": 1085,
+  "rejected_original_max": 402,
+  "rejected_final_max": 402,
+  "prompt_truncated_rows": 36,
+  "chosen_truncated_rows": 0,
+  "rejected_truncated_rows": 0
+}

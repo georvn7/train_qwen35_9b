@@ -1,0 +1,19 @@
+{
+  "created_at_utc": "2026-04-21T03:23:08Z",
+  "workspace_root": "/home/georvn/train_qwen35_9b",
+  "dataset_roots": [
+    "qwen35_9b_fullft/data/all_702_rows_dbg_dpo_round2_clean_prepared.jsonl"
+  ],
+  "jsonl_pattern": "*.jsonl",
+  "num_files": 1,
+  "total_lines": 702,
+  "total_bytes": 16563141,
+  "files": [
+    {
+      "size_bytes": 16563141,
+      "num_lines": 702,
+      "sha256": "a1cffa42f265bec3ed3ab10c3d4b7f667c30cf993c88ade5e362a2b55503dc3c",
+      "relative_path": "qwen35_9b_fullft/data/all_702_rows_dbg_dpo_round2_clean_prepared.jsonl"
+    }
+  ]
+}

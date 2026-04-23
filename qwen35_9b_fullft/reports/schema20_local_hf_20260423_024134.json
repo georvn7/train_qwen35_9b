@@ -1,0 +1,372 @@
+{
+  "model": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260421_032308_qwen35_9b_round2_dpo_702_clean_16k_v1/artifacts/full_model",
+  "eval_file": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/evals/agent_cases_20_schema_final_v1.json",
+  "num_cases": 20,
+  "avg_structured_score": 0.7725,
+  "median_structured_score": 1.0,
+  "min_structured_score": 0.25,
+  "max_structured_score": 1.0,
+  "generated_at_utc": "2026-04-23T02:56:24.282022+00:00",
+  "results": [
+    {
+      "index": 1,
+      "name": "train_dbg_sft_00011_10",
+      "structured_score": 0.25,
+      "latency_s": 35.15,
+      "action_type": "function_info",
+      "action_subject": "gen_expr",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"gen_expr\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect gen_expr because the trace shows gen_ternary_subexpr:1 returned success with result_reg=21, yet the ternary true branch still failed and the",
+      "output_text": null
+    },
+    {
+      "index": 2,
+      "name": "train_dbg_sft_00025_10",
+      "structured_score": 1.0,
+      "latency_s": 30.271,
+      "action_type": "function_info",
+      "action_subject": "emit_expression_node_asm",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"emit_expression_node_asm\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect `emit_expression_node_asm` because the crash is in the expression path, not the structural path. The log shows `emit_node_as",
+      "output_text": null
+    },
+    {
+      "index": 3,
+      "name": "train_dbg_sft_00010_08",
+      "structured_score": 0.7,
+      "latency_s": 38.876,
+      "action_type": "function_info",
+      "action_subject": "parse_param_list",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"parse_param_list\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect parse_param_list because the failure now localizes to function-definition parameter parsing. parse_trans_unit and parse_ext_decl are",
+      "output_text": null
+    },
+    {
+      "index": 4,
+      "name": "train_dbg_sft_00033_06",
+      "structured_score": 1.0,
+      "latency_s": 41.265,
+      "action_type": "function_info",
+      "action_subject": "sema_enter_func",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"sema_enter_func\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect sema_enter_func because the current failure is a parameter-binding bug at function entry, not a body-statement bug. The trace shows s",
+      "output_text": null
+    },
+    {
+      "index": 5,
+      "name": "train_dbg_sft_00001_04",
+      "structured_score": 1.0,
+      "latency_s": 26.392,
+      "action_type": "function_info",
+      "action_subject": "emit_text_section",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"emit_text_section\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect emit_text_section source because the test failure is now isolated to function symbol/label emission, not header or data generation.",
+      "output_text": null
+    },
+    {
+      "index": 6,
+      "name": "train_dbg_sft_00017_06",
+      "structured_score": 0.6,
+      "latency_s": 48.846,
+      "action_type": "function_info",
+      "action_subject": "resolve_expression_type",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"resolve_expression_type\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect resolve_expression_type because the current failure is semantic, not codegen: the log shows 'Expression node has no token' an",
+      "output_text": null
+    },
+    {
+      "index": 7,
+      "name": "train_dbg_sft_00019_08",
+      "structured_score": 1.0,
+      "latency_s": 45.735,
+      "action_type": "function_info",
+      "action_subject": "sema_chk_init_tu",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"sema_chk_init_tu\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect `sema_chk_init_tu` because the current failure is localized to the local variable initializer inside the function body. The trace sh",
+      "output_text": null
+    },
+    {
+      "index": 8,
+      "name": "train_dbg_sft_00003_08",
+      "structured_score": 1.0,
+      "latency_s": 37.282,
+      "action_type": "function_info",
+      "action_subject": "emit_func_epilogue",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"emit_func_epilogue\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect emit_func_epilogue because the generated assembly shows the epilogue label is indented, which is invalid in GAS. The unit_test_out",
+      "output_text": null
+    },
+    {
+      "index": 9,
+      "name": "train_dbg_sft_00010_16",
+      "structured_score": 1.0,
+      "latency_s": 53.139,
+      "action_type": "fix_function",
+      "action_subject": "cg_emit_binary_complex_array_index",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"cg_emit_binary_complex_array_index\",\"action_type\":\"fix_function\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to fix cg_emit_binary_complex_array_index because it is the only function in the current call stack that emits the mixed\u2011width",
+      "output_text": null
+    },
+    {
+      "index": 10,
+      "name": "train_dbg_sft_00034_08",
+      "structured_score": 0.4,
+      "latency_s": 29.17,
+      "action_type": "function_info",
+      "action_subject": "gen_binary_expr",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"gen_binary_expr\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect gen_binary_expr because the generated assembly shows the outer for-loop was emitted but the inner while loop and its condition are mi",
+      "output_text": null
+    },
+    {
+      "index": 11,
+      "name": "train_dbg_sft_00002_06",
+      "structured_score": 0.3,
+      "latency_s": 37.298,
+      "action_type": "fix_function",
+      "action_subject": "emit_func_epilogue",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"emit_func_epilogue\",\"action_type\":\"fix_function\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to fix emit_func_epilogue because the generated assembly is syntactically invalid for clang-as. The unit_test_output.s file shows the epilogue",
+      "output_text": null
+    },
+    {
+      "index": 12,
+      "name": "train_dbg_sft_00009_06",
+      "structured_score": 1.0,
+      "latency_s": 44.154,
+      "action_type": "fix_function",
+      "action_subject": "emit_primary_expr_asm",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"emit_primary_expr_asm\",\"action_type\":\"fix_function\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to fix emit_primary_expr_asm because the current test failure is caused by it treating unsupported node types as fatal errors. The log show",
+      "output_text": null
+    },
+    {
+      "index": 13,
+      "name": "train_dbg_sft_00024_04",
+      "structured_score": 0.9,
+      "latency_s": 38.907,
+      "action_type": "function_info",
+      "action_subject": "parse_tunit_items",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"parse_tunit_items\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect parse_tunit_items because the current evidence points to a function-header parsing failure, not a lexer problem. comp_to_a64 report",
+      "output_text": null
+    },
+    {
+      "index": 14,
+      "name": "train_dbg_sft_00037_10",
+      "structured_score": 1.0,
+      "latency_s": 38.465,
+      "action_type": "fix_function",
+      "action_subject": "traverse_ast_impl",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"traverse_ast_impl\",\"action_type\":\"fix_function\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to fix traverse_ast_impl because semantic analysis fails with undefined identifiers at parameter declaration sites, and the root cause is that ",
+      "output_text": null
+    },
+    {
+      "index": 15,
+      "name": "train_dbg_sft_00002_06",
+      "structured_score": 1.0,
+      "latency_s": 28.06,
+      "action_type": "function_info",
+      "action_subject": "cg_emit_binary_complex_ternary_and_compare",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"cg_emit_binary_complex_ternary_and_compare\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect cg_emit_binary_complex_ternary_and_compare because the run_test failure is now traced to this function. Th",
+      "output_text": null
+    },
+    {
+      "index": 16,
+      "name": "train_dbg_sft_00010_10",
+      "structured_score": 1.0,
+      "latency_s": 53.191,
+      "action_type": "fix_function",
+      "action_subject": "emit_function_def_and_body_asm",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"emit_function_def_and_body_asm\",\"action_type\":\"fix_function\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to fix emit_function_def_and_body_asm because the current implementation emits ELF\u2011specific directives ('.type main, %function' an",
+      "output_text": null
+    },
+    {
+      "index": 17,
+      "name": "train_dbg_sft_00014_06",
+      "structured_score": 0.3,
+      "latency_s": 34.937,
+      "action_type": "function_info",
+      "action_subject": "gen_stmt",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"gen_stmt\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect gen_stmt because the runtime failure is now clearly a codegen store bug, not a front-end or I/O problem. The test still compiles and writes ",
+      "output_text": null
+    },
+    {
+      "index": 18,
+      "name": "train_dbg_sft_00009_04",
+      "structured_score": 0.6,
+      "latency_s": 36.506,
+      "action_type": "function_info",
+      "action_subject": "process_stmt_node",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"process_stmt_node\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect `process_stmt_node` because the test now passes the undeclared-variable case but fails on the illegal-break case. The log shows the",
+      "output_text": null
+    },
+    {
+      "index": 19,
+      "name": "train_dbg_sft_00023_10",
+      "structured_score": 1.0,
+      "latency_s": 53.086,
+      "action_type": "function_info",
+      "action_subject": "comp_src",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"comp_src\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"We need to inspect comp_src because the root cause is architectural: config->type_size_table is empty (size=0) when gen_asm runs, so emit_load fails on 'int' a",
+      "output_text": null
+    },
+    {
+      "index": 20,
+      "name": "train_dbg_sft_00010_14",
+      "structured_score": 0.4,
+      "latency_s": 35.156,
+      "action_type": "function_info",
+      "action_subject": "emit_literal_asm",
+      "parsed_keys": [
+        "action_subject",
+        "action_type",
+        "breakpoints",
+        "invocation",
+        "line_number",
+        "motivation"
+      ],
+      "preview": "{\"action_subject\":\"emit_literal_asm\",\"action_type\":\"function_info\",\"breakpoints\":[],\"invocation\":1,\"line_number\":0,\"motivation\":\"Inspect emit_literal_asm to confirm whether it is the source of the width mismatch. The ternary result is x8, and alloc_temp_reg returns xN, so the lit",
+      "output_text": null
+    }
+  ]
+}
