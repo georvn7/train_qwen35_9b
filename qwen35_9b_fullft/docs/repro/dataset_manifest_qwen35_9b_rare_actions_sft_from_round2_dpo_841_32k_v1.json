@@ -1,0 +1,19 @@
+{
+  "created_at_utc": "2026-05-06T04:50:18Z",
+  "workspace_root": "/home/georvn/train_qwen35_9b",
+  "dataset_roots": [
+    "qwen35_9b_fullft/data/super-debug-v2-rare-actions-no-assistant-thinking.jsonl"
+  ],
+  "jsonl_pattern": "*.jsonl",
+  "num_files": 1,
+  "total_lines": 841,
+  "total_bytes": 34770014,
+  "files": [
+    {
+      "size_bytes": 34770014,
+      "num_lines": 841,
+      "sha256": "7ad5d9d4ea092412e16d4da783c663c4faa058ca0faa73a2500f4d56a90e1c39",
+      "relative_path": "qwen35_9b_fullft/data/super-debug-v2-rare-actions-no-assistant-thinking.jsonl"
+    }
+  ]
+}

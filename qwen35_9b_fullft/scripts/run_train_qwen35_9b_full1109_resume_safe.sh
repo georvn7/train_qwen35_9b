@@ -33,6 +33,7 @@ EXTERNAL_GPU_GUARD_MIB=$((EXTERNAL_GPU_GUARD_GIB * 1024))
 
 DATASET_ROOT="${DATASET_ROOT:-$WORK/qwen35_9b_fullft/data/all_1109_rows_no_assistant_thinking.jsonl}"
 LABEL="${LABEL:-candidate_qwen35_9b_full_all1109_seed3413_e1}"
+SESSION_NOTES="${SESSION_NOTES:-Qwen3.5-9B full-finetuning on local all_1109_rows_no_assistant_thinking.jsonl (resume-safe)}"
 
 mkdir -p "$STATE_DIR" "$LOG_DIR"
 if [[ ! -f "$FAIL_LEDGER" ]]; then
@@ -91,7 +92,7 @@ resolve_session_dir() {
     --workspace-root "$WORK" \
     --dataset-root "$DATASET_ROOT" \
     --label "$LABEL" \
-    --notes "Qwen3.5-9B full-finetuning on local all_1109_rows_no_assistant_thinking.jsonl (resume-safe)" \
+    --notes "$SESSION_NOTES" \
     >> "$RUN_LOG" 2>&1
 
   local created
@@ -188,6 +189,9 @@ build_train_cmd() {
 
   if [[ -n "${MAX_STEPS:-}" ]]; then
     CMD+=(--max-steps "$MAX_STEPS")
+  fi
+  if [[ -n "${MAX_SAMPLES:-}" ]]; then
+    CMD+=(--max-samples "$MAX_SAMPLES")
   fi
   if [[ -n "${checkpoint_arg}" ]]; then
     CMD+=(--resume-from-checkpoint "$checkpoint_arg")

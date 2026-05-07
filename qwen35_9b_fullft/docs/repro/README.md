@@ -48,3 +48,21 @@ Files:
 - `train_metrics_qwen35_9b_round2_dpo_702_clean_16k_v1.json`
 - `session_qwen35_9b_round2_dpo_702_clean_16k_v1.json`
 - `train_log_history_qwen35_9b_round2_dpo_702_clean_16k_v1.json`
+
+## 2026-05-06 Rare-Actions SFT From Round-2 DPO
+
+Run id:
+
+- `20260506_045018_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1`
+
+Files:
+
+- `run_config_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1.json`
+- `environment_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1.json`
+- `dataset_manifest_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1.json`
+- `train_metrics_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1.json`
+- `session_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1.json`
+- `truncation_stats_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1.json`
+- `train_log_history_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1.json`
+- `export_report_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1.json`
+- `log_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1.txt`

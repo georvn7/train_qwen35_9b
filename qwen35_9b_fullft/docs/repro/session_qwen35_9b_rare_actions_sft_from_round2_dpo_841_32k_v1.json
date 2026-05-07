@@ -1,0 +1,8 @@
+{
+  "created_at_utc": "2026-05-06T04:50:18Z",
+  "session_id": "20260506_045018_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1",
+  "session_dir": "/home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260506_045018_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1",
+  "notes": "Qwen3.5-9B continuation SFT on super-debug-v2 rare-actions no-assistant-thinking dataset, starting from round-2 DPO full model.",
+  "status": "trained",
+  "last_updated_utc": "2026-05-07T00:21:52Z"
+}

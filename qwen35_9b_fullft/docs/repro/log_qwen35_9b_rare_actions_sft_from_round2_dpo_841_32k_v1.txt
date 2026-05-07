@@ -1,0 +1,909 @@
+[2026-05-05T21:50:17-07:00] creating new session label=qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1
+Session created: /home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260506_045018_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1
+Manifest: /home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260506_045018_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1/metadata/dataset_manifest.json
+Dataset files: 1
+Total rows: 841
+
+Next step:
+python qwen35_9b_fullft/scripts/train_session.py --session-dir /home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260506_045018_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1
+[2026-05-05T21:50:18-07:00] session_dir=/home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260506_045018_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1
+[2026-05-05T21:50:18-07:00] latest_checkpoint=none
+[2026-05-05T21:50:18-07:00] python_interpreter=/home/georvn/train_qwen35_9b/.venv/bin/python
+[2026-05-05T21:50:18-07:00] dataset_root=/home/georvn/train_qwen35_9b/qwen35_9b_fullft/data/super-debug-v2-rare-actions-no-assistant-thinking.jsonl
+[2026-05-05T21:50:18-07:00] retry_policy: max_stagnant_failures=3 max_total_attempts=24 retry_sleep_sec=8
+[2026-05-05T21:50:18-07:00] failure_tracking: ledger=/home/georvn/train_qwen35_9b/logs/train_qwen35_9b_failed_steps.tsv todo=/home/georvn/train_qwen35_9b/.state/train_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1_failed_steps_todo.txt
+[2026-05-05T21:50:18-07:00] memory_safety: internal_gpu_guard_gib=110 external_gpu_guard_gib=0 min_mem_avail_mib=4096
+[2026-05-05T21:50:18-07:00] memory_tuning: cuda_memory_fraction=0.88 cuda_alloc_conf=expandable_segments:True,max_split_size_mb:256 causal_loss_mode=active_chunked_no_upcast causal_loss_chunk_tokens=2048 checkpoint_max_shard_size=512MB checkpoint_safe_serialization=true checkpoint_presave_gc=1 checkpoint_presave_empty_cache=1 checkpoint_presave_disable_cuda_history=1 resume_torch_load_mmap=1
+[2026-05-05T21:50:18-07:00] RUN attempt=1 stagnant_failures=0 cmd=/home/georvn/train_qwen35_9b/.venv/bin/python /home/georvn/train_qwen35_9b/qwen35_9b_fullft/scripts/train_session.py --session-dir /home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260506_045018_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1 --model-name /home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260421_032308_qwen35_9b_round2_dpo_702_clean_16k_v1/artifacts/full_model --max-seq-length 32768 --num-train-epochs 1.0 --truncation-side left --attn-implementation sdpa --device-map cuda:0 --per-device-train-batch-size 1 --dataset-num-proc 1 --gradient-accumulation-steps 1 --gradient-checkpointing unsloth --precision auto --torch-dtype bfloat16 --unsloth-mixed-precision auto --learning-rate 1e-5 --warmup-steps 50 --seed 3413 --logging-steps 5 --save-steps 50 --save-total-limit 4 --max-gpu-memory-gib 110 --cuda-memory-fraction 0.88 --cuda-alloc-conf expandable_segments:True,max_split_size_mb:256 --causal-loss-mode active_chunked_no_upcast --causal-loss-chunk-tokens 2048 --checkpoint-max-shard-size 512MB --checkpoint-safe-serialization true --full-finetuning --no-load-in-4bit --disable-unsloth-compile --disable-moe-triton --disable-flex-attention --disable-cce --no-packing --assistant-only-loss --group-by-length --skip-merged-export --skip-gguf-export --checkpoint-presave-gc --checkpoint-presave-empty-cache --checkpoint-presave-disable-cuda-history --resume-torch-load-mmap
+/home/georvn/train_qwen35_9b/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py:435: UserWarning: 
+    Found GPU0 NVIDIA GB10 which is of cuda capability 12.1.
+    Minimum and Maximum cuda capability supported by this version of PyTorch is
+    (8.0) - (12.0)
+    
+  queued_call()
+Using TRITON_PTXAS_PATH=/usr/local/cuda-13.0/bin/ptxas
+Loading 1 dataset files from manifest
+Using PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True,max_split_size_mb:256
+🦥 Unsloth: Will patch your computer to enable 2x faster free finetuning.
+[ERROR] `rope_scaling` is part of LlamaConfig.__init__'s signature, but not documented. Make sure to add it to the docstring of the function in <string>.
+[ERROR] `rope_scaling` is part of MistralConfig.__init__'s signature, but not documented. Make sure to add it to the docstring of the function in <string>.
+[ERROR] `rope_scaling` is part of GemmaConfig.__init__'s signature, but not documented. Make sure to add it to the docstring of the function in <string>.
+[ERROR] `rope_scaling` is part of Gemma2Config.__init__'s signature, but not documented. Make sure to add it to the docstring of the function in <string>.
+[ERROR] `rope_scaling` is part of Qwen2Config.__init__'s signature, but not documented. Make sure to add it to the docstring of the function in <string>.
+[ERROR] `rope_scaling` is part of GraniteConfig.__init__'s signature, but not documented. Make sure to add it to the docstring of the function in <string>.
+[ERROR] `rope_scaling` is part of Qwen3Config.__init__'s signature, but not documented. Make sure to add it to the docstring of the function in <string>.
+[ERROR] `rope_scaling` is part of Qwen3MoeConfig.__init__'s signature, but not documented. Make sure to add it to the docstring of the function in <string>.
+[ERROR] `rope_scaling` is part of FalconH1Config.__init__'s signature, but not documented. Make sure to add it to the docstring of the function in <string>.
+Unsloth: Your Flash Attention 2 installation seems to be broken. Using Xformers instead. No performance changes will be seen.
+🦥 Unsloth Zoo will now patch everything to make training faster!
+CUDA per-process allocator cap enabled: 0.8800 of device memory
+Loading model: /home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260421_032308_qwen35_9b_round2_dpo_702_clean_16k_v1/artifacts/full_model
+Forcing AutoModelForCausalLM load path (text-only; skips vision tower weights)
+==((====))==  Unsloth 2026.3.3: Fast Qwen3_5 patching. Transformers: 5.3.0.dev0. vLLM: 0.17.0.
+   \\   /|    NVIDIA GB10. Num GPUs = 1. Max memory: 121.69 GB. Platform: Linux.
+O^O/ \_/ \    Torch: 2.10.0+cu128. CUDA: 12.1. CUDA Toolkit: 12.8. Triton: 3.6.0
+\        /    Bfloat16 = TRUE. FA [Xformers = None. FA2 = False]
+ "-____-"     Free license: http://github.com/unslothai/unsloth
+Unsloth: Fast downloading is enabled - ignore downloading bars which are red colored!
+The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Unsloth: Using bfloat16 full finetuning which cuts memory usage by 50%.
+To enable float32 training, use `float32_mixed_precision = True` during FastLanguageModel.from_pretrained
+Loading weights:   0%|          | 0/427 [00:00<?, ?it/s]Loading weights:   0%|          | 1/427 [00:25<2:58:30, 25.14s/it]Loading weights:   2%|▏         | 9/427 [00:25<14:29,  2.08s/it]  Loading weights:   3%|▎         | 11/427 [00:25<11:01,  1.59s/it]Loading weights:   3%|▎         | 13/427 [00:26<08:53,  1.29s/it]Loading weights:   3%|▎         | 14/427 [00:27<08:09,  1.19s/it]Loading weights:   4%|▎         | 15/427 [00:27<07:26,  1.08s/it]Loading weights:   5%|▍         | 21/427 [00:28<02:59,  2.26it/s]Loading weights:   5%|▌         | 23/427 [00:28<02:38,  2.54it/s]Loading weights:   6%|▋         | 27/427 [00:29<01:59,  3.35it/s]Loading weights:   7%|▋         | 28/427 [00:29<02:15,  2.94it/s]Loading weights:   7%|▋         | 29/427 [00:30<02:34,  2.58it/s]Loading weights:   8%|▊         | 35/427 [00:30<01:22,  4.78it/s]Loading weights:   9%|▉         | 38/427 [00:31<01:05,  5.91it/s]Loading weights:   9%|▉         | 40/427 [00:31<01:00,  6.36it/s]Loading weights:  10%|▉         | 41/427 [00:31<01:24,  4.58it/s]Loading weights:  10%|▉         | 42/427 [00:32<01:51,  3.44it/s]Loading weights:  10%|█         | 43/427 [00:33<02:16,  2.81it/s]Loading weights:  11%|█         | 46/427 [00:33<01:51,  3.41it/s]Loading weights:  11%|█         | 47/427 [00:34<02:12,  2.87it/s]Loading weights:  11%|█         | 48/427 [00:35<02:32,  2.48it/s]Loading weights:  12%|█▏        | 52/427 [00:35<01:25,  4.40it/s]Loading weights:  13%|█▎        | 54/427 [00:35<01:21,  4.58it/s]Loading weights:  15%|█▍        | 62/427 [00:36<00:43,  8.32it/s]Loading weights:  15%|█▍        | 63/427 [00:36<00:47,  7.61it/s]Loading weights:  15%|█▌        | 65/427 [00:37<01:33,  3.89it/s]Loading weights:  16%|█▌        | 68/427 [00:38<01:29,  4.03it/s]Loading weights:  18%|█▊        | 76/427 [00:39<00:48,  7.23it/s]Loading weights:  18%|█▊        | 78/427 [00:39<00:46,  7.57it/s]Loading weights:  19%|█▊        | 79/427 [00:39<00:49,  7.03it/s]Loading weights:  19%|█▊        | 80/427 [00:40<01:10,  4.92it/s]Loading weights:  19%|█▉        | 81/427 [00:40<01:34,  3.67it/s]Loading weights:  19%|█▉        | 82/427 [00:41<01:55,  3.00it/s]Loading weights:  20%|█▉        | 84/427 [00:46<05:54,  1.03s/it]Loading weights:  27%|██▋       | 115/427 [00:46<00:41,  7.54it/s]Loading weights:  28%|██▊       | 118/427 [00:46<00:41,  7.45it/s]Loading weights:  28%|██▊       | 120/427 [00:48<00:55,  5.58it/s]Loading weights:  29%|██▊       | 122/427 [00:48<00:59,  5.10it/s]Loading weights:  30%|███       | 129/427 [00:49<00:42,  6.97it/s]Loading weights:  31%|███       | 131/427 [00:49<00:42,  7.04it/s]Loading weights:  31%|███       | 133/427 [00:50<00:53,  5.50it/s]Loading weights:  31%|███▏      | 134/427 [00:50<01:05,  4.47it/s]Loading weights:  32%|███▏      | 135/427 [00:51<01:19,  3.66it/s]Loading weights:  32%|███▏      | 137/427 [00:52<01:30,  3.21it/s]Loading weights:  34%|███▍      | 147/427 [00:52<00:42,  6.63it/s]Loading weights:  35%|███▍      | 148/427 [00:53<00:54,  5.16it/s]Loading weights:  35%|███▍      | 149/427 [00:54<01:06,  4.17it/s]Loading weights:  36%|███▌      | 152/427 [00:54<01:05,  4.20it/s]Loading weights:  36%|███▌      | 153/427 [00:56<01:40,  2.73it/s]Loading weights:  37%|███▋      | 158/427 [00:56<00:57,  4.67it/s]Loading weights:  38%|███▊      | 161/427 [00:56<00:43,  6.08it/s]Loading weights:  38%|███▊      | 163/427 [00:57<01:14,  3.55it/s]Loading weights:  41%|████      | 173/427 [00:58<00:38,  6.56it/s]Loading weights:  41%|████      | 175/427 [00:59<00:43,  5.74it/s]Loading weights:  42%|████▏     | 181/427 [00:59<00:36,  6.81it/s]Loading weights:  43%|████▎     | 184/427 [01:00<00:43,  5.55it/s]Loading weights:  44%|████▍     | 187/427 [01:01<00:46,  5.16it/s]Loading weights:  44%|████▍     | 188/427 [01:02<00:57,  4.13it/s]Loading weights:  46%|████▌     | 196/427 [01:02<00:34,  6.75it/s]Loading weights:  46%|████▌     | 197/427 [01:02<00:35,  6.56it/s]Loading weights:  47%|████▋     | 199/427 [01:03<00:32,  7.03it/s]Loading weights:  47%|████▋     | 200/427 [01:03<00:47,  4.76it/s]Loading weights:  47%|████▋     | 201/427 [01:05<01:22,  2.73it/s]Loading weights:  48%|████▊     | 205/427 [01:05<01:00,  3.68it/s]Loading weights:  48%|████▊     | 206/427 [01:06<01:31,  2.42it/s]Loading weights:  49%|████▉     | 211/427 [01:07<00:49,  4.36it/s]Loading weights:  50%|████▉     | 212/427 [01:07<00:55,  3.91it/s]Loading weights:  51%|█████     | 218/427 [01:09<00:50,  4.10it/s]Loading weights:  52%|█████▏    | 222/427 [01:09<00:37,  5.43it/s]Loading weights:  55%|█████▍    | 234/427 [01:09<00:20,  9.22it/s]Loading weights:  56%|█████▌    | 237/427 [01:10<00:26,  7.10it/s]Loading weights:  56%|█████▌    | 240/427 [01:11<00:28,  6.46it/s]Loading weights:  56%|█████▋    | 241/427 [01:12<00:36,  5.09it/s]Loading weights:  58%|█████▊    | 248/427 [01:13<00:37,  4.72it/s]Loading weights:  60%|██████    | 257/427 [01:14<00:25,  6.71it/s]Loading weights:  61%|██████    | 259/427 [01:15<00:28,  5.85it/s]Loading weights:  61%|██████    | 260/427 [01:15<00:35,  4.70it/s]Loading weights:  62%|██████▏   | 264/427 [01:15<00:26,  6.09it/s]Loading weights:  62%|██████▏   | 266/427 [01:16<00:28,  5.66it/s]Loading weights:  63%|██████▎   | 271/427 [01:18<00:45,  3.39it/s]Loading weights:  67%|██████▋   | 284/427 [01:19<00:19,  7.29it/s]Loading weights:  68%|██████▊   | 289/427 [01:19<00:15,  8.74it/s]Loading weights:  68%|██████▊   | 291/427 [01:19<00:15,  8.72it/s]Loading weights:  69%|██████▊   | 293/427 [01:21<00:32,  4.16it/s]Loading weights:  70%|███████   | 300/427 [01:21<00:20,  6.11it/s]Loading weights:  71%|███████   | 303/427 [01:22<00:17,  6.98it/s]Loading weights:  71%|███████▏  | 305/427 [01:22<00:23,  5.29it/s]Loading weights:  72%|███████▏  | 307/427 [01:23<00:25,  4.79it/s]Loading weights:  72%|███████▏  | 308/427 [01:25<00:48,  2.44it/s]Loading weights:  73%|███████▎  | 313/427 [01:26<00:31,  3.63it/s]Loading weights:  74%|███████▍  | 317/427 [01:26<00:26,  4.12it/s]Loading weights:  77%|███████▋  | 327/427 [01:27<00:13,  7.53it/s]Loading weights:  77%|███████▋  | 329/427 [01:27<00:12,  7.74it/s]Loading weights:  78%|███████▊  | 331/427 [01:29<00:27,  3.50it/s]Loading weights:  80%|███████▉  | 341/427 [01:30<00:13,  6.51it/s]Loading weights:  80%|████████  | 343/427 [01:30<00:12,  6.84it/s]Loading weights:  81%|████████  | 345/427 [01:31<00:15,  5.26it/s]Loading weights:  81%|████████  | 346/427 [01:31<00:19,  4.24it/s]Loading weights:  81%|████████▏ | 347/427 [01:32<00:22,  3.57it/s]Loading weights:  82%|████████▏ | 352/427 [01:32<00:14,  5.33it/s]Loading weights:  83%|████████▎ | 356/427 [01:32<00:09,  7.25it/s]Loading weights:  84%|████████▍ | 358/427 [01:33<00:08,  7.70it/s]Loading weights:  84%|████████▍ | 360/427 [01:34<00:20,  3.24it/s]Loading weights:  85%|████████▌ | 364/427 [01:35<00:16,  3.94it/s]Loading weights:  85%|████████▌ | 365/427 [01:36<00:18,  3.40it/s]Loading weights:  86%|████████▌ | 366/427 [01:36<00:20,  2.95it/s]Loading weights:  87%|████████▋ | 370/427 [01:37<00:12,  4.74it/s]Loading weights:  87%|████████▋ | 372/427 [01:37<00:11,  4.65it/s]Loading weights:  89%|████████▉ | 380/427 [01:37<00:05,  8.00it/s]Loading weights:  89%|████████▉ | 381/427 [01:38<00:06,  7.60it/s]Loading weights:  89%|████████▉ | 382/427 [01:38<00:06,  7.00it/s]Loading weights:  90%|████████▉ | 384/427 [01:39<00:08,  5.30it/s]Loading weights:  90%|█████████ | 385/427 [01:39<00:10,  3.97it/s]Loading weights:  90%|█████████ | 386/427 [01:40<00:12,  3.19it/s]Loading weights:  92%|█████████▏| 393/427 [01:40<00:05,  5.90it/s]Loading weights:  93%|█████████▎| 397/427 [01:41<00:03,  7.89it/s]Loading weights:  93%|█████████▎| 399/427 [01:42<00:07,  3.57it/s]Loading weights:  95%|█████████▍| 404/427 [01:43<00:05,  4.59it/s]Loading weights:  97%|█████████▋| 414/427 [01:44<00:02,  6.04it/s]Loading weights:  98%|█████████▊| 418/427 [01:45<00:01,  6.22it/s]Loading weights:  98%|█████████▊| 419/427 [01:45<00:01,  5.10it/s]Loading weights:  99%|█████████▉| 423/427 [01:46<00:00,  6.51it/s]Loading weights: 100%|█████████▉| 425/427 [01:46<00:00,  6.11it/s]Loading weights: 100%|██████████| 427/427 [01:46<00:00,  4.01it/s]
+Causal loss config: mode=active_chunked_no_upcast, chunked=True, forward_chunked_logits=False, chunk_tokens=2048, upcast_logits=False, installed=True
+Visual module freeze enabled: model has no model.visual module
+Tokenizer truncation_side=left (max_seq_length=32768)
+Resolved precision: bf16=True, fp16=False (auto:model_bfloat16)
+Training mode: full_finetuning (no LoRA adapter wrapping)
+Rendering chat template:   0%|          | 0/841 [00:00<?, ? examples/s]Rendering chat template: 100%|██████████| 841/841 [00:00<00:00, 2484.06 examples/s]Rendering chat template: 100%|██████████| 841/841 [00:00<00:00, 2397.63 examples/s]
+Applying max_seq_length truncation:   0%|          | 0/841 [00:00<?, ? examples/s]Applying max_seq_length truncation: 100%|██████████| 841/841 [00:13<00:00, 60.96 examples/s]Applying max_seq_length truncation: 100%|██████████| 841/841 [00:13<00:00, 60.63 examples/s]
+Pre-truncation stats: rows_truncated=76/841, max_original_tokens=115527, max_final_tokens=32768
+Checkpoint save_pretrained overrides: {'max_shard_size': '512MB', 'safe_serialization': True}
+Dropping unsupported SFTConfig args for current trl version: ['group_by_length']
+GPU memory guard enabled: 110.00 GiB
+Checkpoint pre-save housekeeping enabled: gc=True, empty_cache=True, disable_cuda_history=True
+Unsloth: Tokenizing ["text"] (num_proc=1):   0%|          | 0/841 [00:00<?, ? examples/s]Unsloth: Tokenizing ["text"] (num_proc=1): 100%|██████████| 841/841 [00:10<00:00, 78.17 examples/s]Unsloth: Tokenizing ["text"] (num_proc=1): 100%|██████████| 841/841 [00:11<00:00, 76.12 examples/s]
+==((====))==  Unsloth - 2x faster free finetuning | Num GPUs used = 1
+   \\   /|    Num examples = 841 | Num Epochs = 1 | Total steps = 841
+O^O/ \_/ \    Batch size per device = 1 | Gradient accumulation steps = 1
+\        /    Data Parallel GPUs = 1 | Total batch size (1 x 1 x 1) = 1
+ "-____-"     Trainable parameters = 8,953,803,264 of 8,953,803,264 (100.00% trained)
+  0%|          | 0/841 [00:00<?, ?it/s]🦥 Unsloth: Padding-free auto-enabled, enabling faster training.
+Starting training
+  0%|          | 1/841 [01:38<22:58:17, 98.45s/it]  0%|          | 2/841 [02:44<18:32:58, 79.59s/it]  0%|          | 3/841 [03:01<11:48:36, 50.74s/it]  0%|          | 4/841 [07:39<32:39:58, 140.50s/it]  1%|          | 5/841 [08:31<25:11:39, 108.49s/it]                                                     1%|          | 5/841 [08:31<25:11:39, 108.49s/it]  1%|          | 6/841 [08:56<18:37:44, 80.32s/it]   1%|          | 7/841 [11:06<22:20:09, 96.41s/it]  1%|          | 8/841 [12:50<22:51:02, 98.75s/it]  1%|          | 9/841 [17:15<34:51:51, 150.86s/it]  1%|          | 10/841 [17:33<25:22:01, 109.89s/it]                                                      1%|          | 10/841 [17:33<25:22:01, 109.89s/it]  1%|▏         | 11/841 [18:12<20:20:12, 88.21s/it]   1%|▏         | 12/841 [19:05<17:51:53, 77.58s/it]  2%|▏         | 13/841 [21:43<23:25:00, 101.81s/it]  2%|▏         | 14/841 [26:04<34:27:51, 150.03s/it]  2%|▏         | 15/841 [27:47<31:09:36, 135.81s/it]                                                      2%|▏         | 15/841 [27:47<31:09:36, 135.81s/it]  2%|▏         | 16/841 [29:10<27:26:59, 119.78s/it]  2%|▏         | 17/841 [29:32<20:43:37, 90.56s/it]   2%|▏         | 18/841 [29:53<15:55:08, 69.63s/it]  2%|▏         | 19/841 [32:22<21:19:23, 93.39s/it]  2%|▏         | 20/841 [33:43<20:27:11, 89.68s/it]                                                     2%|▏         | 20/841 [33:43<20:27:11, 89.68s/it]  2%|▏         | 21/841 [34:25<17:09:41, 75.34s/it]  3%|▎         | 22/841 [36:20<19:52:25, 87.36s/it]  3%|▎         | 23/841 [37:27<18:24:27, 81.01s/it]  3%|▎         | 24/841 [40:28<25:13:56, 111.18s/it]  3%|▎         | 25/841 [41:37<22:20:06, 98.54s/it]                                                      3%|▎         | 25/841 [41:37<22:20:06, 98.54s/it]  3%|▎         | 26/841 [42:26<18:53:57, 83.48s/it]  3%|▎         | 27/841 [44:02<19:43:59, 87.27s/it]  3%|▎         | 28/841 [45:20<19:07:35, 84.69s/it]  3%|▎         | 29/841 [45:44<14:57:08, 66.29s/it]  4%|▎         | 30/841 [46:13<12:23:55, 55.04s/it]                                                     4%|▎         | 30/841 [46:13<12:23:55, 55.04s/it]  4%|▎         | 31/841 [47:01<11:54:58, 52.96s/it]  4%|▍         | 32/841 [49:18<17:35:12, 78.26s/it]  4%|▍         | 33/841 [52:15<24:14:43, 108.02s/it]  4%|▍         | 34/841 [54:03<24:10:29, 107.84s/it]  4%|▍         | 35/841 [55:25<22:23:49, 100.04s/it]                                                      4%|▍         | 35/841 [55:25<22:23:49, 100.04s/it]  4%|▍         | 36/841 [57:17<23:13:33, 103.87s/it]  4%|▍         | 37/841 [57:39<17:39:46, 79.09s/it]   5%|▍         | 38/841 [58:04<14:00:38, 62.81s/it]  5%|▍         | 39/841 [58:44<12:28:06, 55.97s/it]  5%|▍         | 40/841 [1:00:15<14:51:12, 66.76s/it]                                                       5%|▍         | 40/841 [1:00:15<14:51:12, 66.76s/it]  5%|▍         | 41/841 [1:01:09<13:57:51, 62.84s/it]  5%|▍         | 42/841 [1:01:35<11:29:47, 51.80s/it]  5%|▌         | 43/841 [1:01:57<9:30:41, 42.91s/it]   5%|▌         | 44/841 [1:04:13<15:37:27, 70.57s/it]  5%|▌         | 45/841 [1:05:50<17:24:55, 78.76s/it]                                                       5%|▌         | 45/841 [1:05:50<17:24:55, 78.76s/it]  5%|▌         | 46/841 [1:06:48<15:58:33, 72.34s/it]  6%|▌         | 47/841 [1:07:12<12:48:09, 58.05s/it]  6%|▌         | 48/841 [1:08:40<14:42:47, 66.79s/it]  6%|▌         | 49/841 [1:09:05<11:56:31, 54.28s/it]  6%|▌         | 50/841 [1:10:07<12:25:52, 56.58s/it]                                                       6%|▌         | 50/841 [1:10:07<12:25:52, 56.58s/it]
+Writing model shards:   0%|          | 0/32 [00:00<?, ?it/s][A{'loss': '0.4872', 'grad_norm': '5.781', 'learning_rate': '8e-07', 'epoch': '0.005945'}
+{'loss': '0.4375', 'grad_norm': '8.188', 'learning_rate': '1.8e-06', 'epoch': '0.01189'}
+{'loss': '0.4813', 'grad_norm': '2.766', 'learning_rate': '2.8e-06', 'epoch': '0.01784'}
+{'loss': '0.5746', 'grad_norm': '2.969', 'learning_rate': '3.8e-06', 'epoch': '0.02378'}
+{'loss': '0.4336', 'grad_norm': '3.438', 'learning_rate': '4.8e-06', 'epoch': '0.02973'}
+{'loss': '0.5953', 'grad_norm': '8.062', 'learning_rate': '5.8e-06', 'epoch': '0.03567'}
+{'loss': '0.4145', 'grad_norm': '3.672', 'learning_rate': '6.8e-06', 'epoch': '0.04162'}
+{'loss': '0.6891', 'grad_norm': '3.344', 'learning_rate': '7.8e-06', 'epoch': '0.04756'}
+{'loss': '0.5928', 'grad_norm': '2.703', 'learning_rate': '8.8e-06', 'epoch': '0.05351'}
+Checkpoint pre-save memory: rss_mib=1478.0, mem_avail_mib=9388.7, torch_peak_reserved_mib=109630.0, nvidia_used_mib=107447.0
+Checkpoint pre-save action: gc.collect()
+Checkpoint pre-save action: torch.cuda.empty_cache()
+Checkpoint pre-save memory (after cleanup): rss_mib=1478.0, mem_avail_mib=76201.0, torch_peak_reserved_mib=109630.0, nvidia_used_mib=41951.0
+{'loss': '0.5555', 'grad_norm': '4.031', 'learning_rate': '9.8e-06', 'epoch': '0.05945'}
+
+Writing model shards:   3%|▎         | 1/32 [00:16<08:31, 16.51s/it][A
+Writing model shards:   6%|▋         | 2/32 [00:18<04:05,  8.17s/it][A
+Writing model shards:   9%|▉         | 3/32 [00:23<03:04,  6.37s/it][A
+Writing model shards:  12%|█▎        | 4/32 [00:25<02:12,  4.72s/it][A
+Writing model shards:  16%|█▌        | 5/32 [00:26<01:32,  3.43s/it][A
+Writing model shards:  19%|█▉        | 6/32 [00:28<01:17,  3.00s/it][A
+Writing model shards:  22%|██▏       | 7/32 [00:30<01:02,  2.49s/it][A
+Writing model shards:  25%|██▌       | 8/32 [00:31<00:51,  2.16s/it][A
+Writing model shards:  28%|██▊       | 9/32 [00:31<00:37,  1.61s/it][A
+Writing model shards:  31%|███▏      | 10/32 [00:34<00:39,  1.81s/it][A
+Writing model shards:  34%|███▍      | 11/32 [00:35<00:35,  1.69s/it][A
+Writing model shards:  38%|███▊      | 12/32 [00:36<00:31,  1.60s/it][A
+Writing model shards:  41%|████      | 13/32 [00:38<00:28,  1.48s/it][A
+Writing model shards:  44%|████▍     | 14/32 [00:39<00:26,  1.47s/it][A
+Writing model shards:  47%|████▋     | 15/32 [00:40<00:24,  1.45s/it][A
+Writing model shards:  50%|█████     | 16/32 [00:42<00:23,  1.45s/it][A
+Writing model shards:  53%|█████▎    | 17/32 [00:43<00:21,  1.45s/it][A
+Writing model shards:  56%|█████▋    | 18/32 [00:45<00:20,  1.44s/it][A
+Writing model shards:  59%|█████▉    | 19/32 [00:46<00:18,  1.44s/it][A
+Writing model shards:  62%|██████▎   | 20/32 [00:47<00:16,  1.36s/it][A
+Writing model shards:  66%|██████▌   | 21/32 [00:50<00:18,  1.64s/it][A
+Writing model shards:  69%|██████▉   | 22/32 [00:51<00:15,  1.58s/it][A
+Writing model shards:  72%|███████▏  | 23/32 [00:53<00:13,  1.53s/it][A
+Writing model shards:  75%|███████▌  | 24/32 [00:53<00:09,  1.19s/it][A
+Writing model shards:  78%|███████▊  | 25/32 [00:55<00:10,  1.53s/it][A
+Writing model shards:  81%|████████▏ | 26/32 [00:57<00:09,  1.53s/it][A
+Writing model shards:  84%|████████▍ | 27/32 [00:58<00:07,  1.50s/it][A
+Writing model shards:  88%|████████▊ | 28/32 [00:59<00:05,  1.42s/it][A
+Writing model shards:  91%|█████████ | 29/32 [01:01<00:04,  1.41s/it][A
+Writing model shards:  94%|█████████▍| 30/32 [01:02<00:02,  1.44s/it][A
+Writing model shards:  97%|█████████▋| 31/32 [01:04<00:01,  1.46s/it][A
+Writing model shards: 100%|██████████| 32/32 [01:05<00:00,  1.34s/it][AWriting model shards: 100%|██████████| 32/32 [01:05<00:00,  2.05s/it]
+  6%|▌         | 51/841 [1:12:13<17:01:31, 77.58s/it]  6%|▌         | 52/841 [1:12:49<14:13:12, 64.88s/it]  6%|▋         | 53/841 [1:17:14<27:21:41, 125.00s/it]  6%|▋         | 54/841 [1:17:31<20:16:59, 92.78s/it]   7%|▋         | 55/841 [1:17:55<15:42:32, 71.95s/it]                                                       7%|▋         | 55/841 [1:17:55<15:42:32, 71.95s/it]  7%|▋         | 56/841 [1:18:22<12:46:27, 58.58s/it]  7%|▋         | 57/841 [1:19:27<13:08:40, 60.36s/it]  7%|▋         | 58/841 [1:20:21<12:45:33, 58.66s/it]  7%|▋         | 59/841 [1:21:20<12:46:09, 58.78s/it]  7%|▋         | 60/841 [1:21:53<11:01:40, 50.83s/it]                                                       7%|▋         | 60/841 [1:21:53<11:01:40, 50.83s/it]  7%|▋         | 61/841 [1:23:03<12:15:25, 56.57s/it]  7%|▋         | 62/841 [1:23:29<10:15:24, 47.40s/it]  7%|▋         | 63/841 [1:24:12<9:57:46, 46.10s/it]   8%|▊         | 64/841 [1:24:30<8:09:26, 37.80s/it]  8%|▊         | 65/841 [1:25:30<9:32:44, 44.28s/it]                                                      8%|▊         | 65/841 [1:25:30<9:32:44, 44.28s/it]  8%|▊         | 66/841 [1:26:36<10:59:06, 51.03s/it]  8%|▊         | 67/841 [1:30:59<24:35:32, 114.38s/it]  8%|▊         | 68/841 [1:33:22<26:25:14, 123.05s/it]  8%|▊         | 69/841 [1:34:31<22:56:16, 106.97s/it]  8%|▊         | 70/841 [1:35:01<17:57:29, 83.85s/it]                                                        8%|▊         | 70/841 [1:35:01<17:57:29, 83.85s/it]  8%|▊         | 71/841 [1:35:21<13:49:24, 64.63s/it]  9%|▊         | 72/841 [1:37:43<18:47:26, 87.97s/it]  9%|▊         | 73/841 [1:39:13<18:52:27, 88.47s/it]  9%|▉         | 74/841 [1:39:40<14:54:56, 70.01s/it]  9%|▉         | 75/841 [1:40:31<13:40:00, 64.23s/it]                                                       9%|▉         | 75/841 [1:40:31<13:40:00, 64.23s/it]  9%|▉         | 76/841 [1:40:57<11:13:59, 52.86s/it]  9%|▉         | 77/841 [1:41:55<11:32:29, 54.38s/it]  9%|▉         | 78/841 [1:42:29<10:14:23, 48.31s/it]  9%|▉         | 79/841 [1:42:54<8:43:40, 41.23s/it]  10%|▉         | 80/841 [1:43:21<7:50:37, 37.11s/it]                                                     10%|▉         | 80/841 [1:43:21<7:50:37, 37.11s/it] 10%|▉         | 81/841 [1:43:45<7:00:25, 33.19s/it] 10%|▉         | 82/841 [1:44:06<6:14:03, 29.57s/it] 10%|▉         | 83/841 [1:45:38<10:08:51, 48.19s/it] 10%|▉         | 84/841 [1:45:51<7:54:43, 37.63s/it]  10%|█         | 85/841 [1:46:35<8:19:43, 39.66s/it]                                                     10%|█         | 85/841 [1:46:35<8:19:43, 39.66s/it] 10%|█         | 86/841 [1:49:46<17:48:42, 84.93s/it] 10%|█         | 87/841 [1:50:19<14:32:21, 69.42s/it] 10%|█         | 88/841 [1:54:42<26:37:44, 127.31s/it] 11%|█         | 89/841 [1:55:07<20:14:01, 96.86s/it]  11%|█         | 90/841 [1:55:29<15:28:33, 74.19s/it]                                                      11%|█         | 90/841 [1:55:29<15:28:33, 74.19s/it] 11%|█         | 91/841 [1:57:39<18:57:40, 91.01s/it] 11%|█         | 92/841 [1:58:36<16:50:17, 80.93s/it] 11%|█         | 93/841 [2:02:58<28:05:39, 135.21s/it] 11%|█         | 94/841 [2:03:35<21:56:00, 105.70s/it] 11%|█▏        | 95/841 [2:03:54<16:31:06, 79.71s/it]                                                       11%|█▏        | 95/841 [2:03:54<16:31:06, 79.71s/it] 11%|█▏        | 96/841 [2:08:16<27:47:38, 134.31s/it] 12%|█▏        | 97/841 [2:12:38<35:39:46, 172.56s/it] 12%|█▏        | 98/841 [2:13:24<27:46:10, 134.55s/it] 12%|█▏        | 99/841 [2:13:40<20:25:35, 99.10s/it]  12%|█▏        | 100/841 [2:14:33<17:32:51, 85.25s/it]                                                       12%|█▏        | 100/841 [2:14:33<17:32:51, 85.25s/it]Checkpoint post-save memory: rss_mib=2569.3, mem_avail_mib=73462.3, torch_peak_reserved_mib=109630.0, nvidia_used_mib=41951.0
+{'loss': '0.4641', 'grad_norm': '6.969', 'learning_rate': '9.949e-06', 'epoch': '0.0654'}
+{'loss': '0.6594', 'grad_norm': '6.906', 'learning_rate': '9.886e-06', 'epoch': '0.07134'}
+{'loss': '0.458', 'grad_norm': '3.281', 'learning_rate': '9.823e-06', 'epoch': '0.07729'}
+{'loss': '0.5125', 'grad_norm': '7.312', 'learning_rate': '9.76e-06', 'epoch': '0.08323'}
+{'loss': '0.4914', 'grad_norm': '3.781', 'learning_rate': '9.697e-06', 'epoch': '0.08918'}
+{'loss': '0.6398', 'grad_norm': '8.125', 'learning_rate': '9.633e-06', 'epoch': '0.09512'}
+{'loss': '0.5926', 'grad_norm': '4.625', 'learning_rate': '9.57e-06', 'epoch': '0.1011'}
+{'loss': '0.4957', 'grad_norm': '5.938', 'learning_rate': '9.507e-06', 'epoch': '0.107'}
+{'loss': '0.4883', 'grad_norm': '7.812', 'learning_rate': '9.444e-06', 'epoch': '0.113'}
+Checkpoint pre-save memory: rss_mib=2575.1, mem_avail_mib=53993.5, torch_peak_reserved_mib=109658.0, nvidia_used_mib=62967.0
+Checkpoint pre-save action: gc.collect()
+Checkpoint pre-save action: torch.cuda.empty_cache()
+Checkpoint pre-save memory (after cleanup): rss_mib=2575.1, mem_avail_mib=75450.6, torch_peak_reserved_mib=109658.0, nvidia_used_mib=41949.0
+{'loss': '0.3219', 'grad_norm': '3.422', 'learning_rate': '9.381e-06', 'epoch': '0.1189'}
+
+Writing model shards:   0%|          | 0/32 [00:00<?, ?it/s][A
+Writing model shards:   3%|▎         | 1/32 [00:09<05:02,  9.76s/it][A
+Writing model shards:   6%|▋         | 2/32 [00:11<02:27,  4.91s/it][A
+Writing model shards:   9%|▉         | 3/32 [00:13<01:41,  3.49s/it][A
+Writing model shards:  12%|█▎        | 4/32 [00:14<01:17,  2.79s/it][A
+Writing model shards:  16%|█▌        | 5/32 [00:15<00:59,  2.21s/it][A
+Writing model shards:  19%|█▉        | 6/32 [00:18<00:57,  2.23s/it][A
+Writing model shards:  22%|██▏       | 7/32 [00:19<00:48,  1.95s/it][A
+Writing model shards:  25%|██▌       | 8/32 [00:20<00:42,  1.77s/it][A
+Writing model shards:  28%|██▊       | 9/32 [00:21<00:30,  1.34s/it][A
+Writing model shards:  31%|███▏      | 10/32 [00:23<00:35,  1.61s/it][A
+Writing model shards:  34%|███▍      | 11/32 [00:24<00:32,  1.54s/it][A
+Writing model shards:  38%|███▊      | 12/32 [00:26<00:29,  1.49s/it][A
+Writing model shards:  41%|████      | 13/32 [00:27<00:26,  1.40s/it][A
+Writing model shards:  44%|████▍     | 14/32 [00:28<00:25,  1.40s/it][A
+Writing model shards:  47%|████▋     | 15/32 [00:30<00:24,  1.41s/it][A
+Writing model shards:  50%|█████     | 16/32 [00:31<00:22,  1.43s/it][A
+Writing model shards:  53%|█████▎    | 17/32 [00:33<00:21,  1.43s/it][A
+Writing model shards:  56%|█████▋    | 18/32 [00:34<00:19,  1.43s/it][A
+Writing model shards:  59%|█████▉    | 19/32 [00:36<00:18,  1.42s/it][A
+Writing model shards:  62%|██████▎   | 20/32 [00:37<00:16,  1.38s/it][A
+Writing model shards:  66%|██████▌   | 21/32 [00:39<00:18,  1.67s/it][A
+Writing model shards:  69%|██████▉   | 22/32 [00:41<00:15,  1.59s/it][A
+Writing model shards:  72%|███████▏  | 23/32 [00:42<00:13,  1.55s/it][A
+Writing model shards:  75%|███████▌  | 24/32 [00:43<00:09,  1.20s/it][A
+Writing model shards:  78%|███████▊  | 25/32 [00:45<00:11,  1.64s/it][A
+Writing model shards:  81%|████████▏ | 26/32 [00:47<00:09,  1.57s/it][A
+Writing model shards:  84%|████████▍ | 27/32 [00:48<00:07,  1.53s/it][A
+Writing model shards:  88%|████████▊ | 28/32 [00:49<00:05,  1.40s/it][A
+Writing model shards:  91%|█████████ | 29/32 [00:51<00:04,  1.41s/it][A
+Writing model shards:  94%|█████████▍| 30/32 [00:52<00:02,  1.42s/it][A
+Writing model shards:  97%|█████████▋| 31/32 [00:53<00:01,  1.43s/it][A
+Writing model shards: 100%|██████████| 32/32 [00:55<00:00,  1.34s/it][AWriting model shards: 100%|██████████| 32/32 [00:55<00:00,  1.72s/it]
+ 12%|█▏        | 101/841 [2:16:57<21:08:13, 102.83s/it] 12%|█▏        | 102/841 [2:17:19<16:09:31, 78.72s/it]  12%|█▏        | 103/841 [2:19:18<18:34:46, 90.63s/it] 12%|█▏        | 104/841 [2:19:40<14:23:20, 70.29s/it] 12%|█▏        | 105/841 [2:21:56<18:22:53, 89.91s/it]                                                       12%|█▏        | 105/841 [2:21:56<18:22:53, 89.91s/it] 13%|█▎        | 106/841 [2:23:05<17:04:32, 83.64s/it] 13%|█▎        | 107/841 [2:23:29<13:22:40, 65.61s/it] 13%|█▎        | 108/841 [2:23:47<10:29:07, 51.50s/it] 13%|█▎        | 109/841 [2:28:09<23:18:06, 114.60s/it] 13%|█▎        | 110/841 [2:28:54<19:02:18, 93.76s/it]                                                        13%|█▎        | 110/841 [2:28:54<19:02:18, 93.76s/it] 13%|█▎        | 111/841 [2:29:52<16:47:59, 82.85s/it] 13%|█▎        | 112/841 [2:31:41<18:24:15, 90.89s/it] 13%|█▎        | 113/841 [2:34:25<22:48:04, 112.75s/it] 14%|█▎        | 114/841 [2:34:47<17:17:33, 85.63s/it]  14%|█▎        | 115/841 [2:35:20<14:02:12, 69.60s/it]                                                       14%|█▎        | 115/841 [2:35:20<14:02:12, 69.60s/it] 14%|█▍        | 116/841 [2:36:01<12:20:19, 61.27s/it] 14%|█▍        | 117/841 [2:36:32<10:28:39, 52.10s/it] 14%|█▍        | 118/841 [2:37:12<9:43:30, 48.42s/it]  14%|█▍        | 119/841 [2:37:42<8:35:04, 42.80s/it] 14%|█▍        | 120/841 [2:37:59<7:01:15, 35.06s/it]                                                      14%|█▍        | 120/841 [2:37:59<7:01:15, 35.06s/it] 14%|█▍        | 121/841 [2:39:47<11:24:19, 57.03s/it] 15%|█▍        | 122/841 [2:40:06<9:06:37, 45.62s/it]  15%|█▍        | 123/841 [2:40:54<9:13:31, 46.26s/it] 15%|█▍        | 124/841 [2:41:14<7:39:37, 38.46s/it] 15%|█▍        | 125/841 [2:42:24<9:32:56, 48.01s/it]                                                      15%|█▍        | 125/841 [2:42:24<9:32:56, 48.01s/it] 15%|█▍        | 126/841 [2:43:45<11:29:04, 57.82s/it] 15%|█▌        | 127/841 [2:48:13<23:58:15, 120.86s/it] 15%|█▌        | 128/841 [2:49:18<20:36:36, 104.06s/it] 15%|█▌        | 129/841 [2:53:39<29:53:50, 151.17s/it] 15%|█▌        | 130/841 [2:54:52<25:14:51, 127.84s/it]                                                        15%|█▌        | 130/841 [2:54:52<25:14:51, 127.84s/it] 16%|█▌        | 131/841 [2:55:19<19:13:16, 97.46s/it]  16%|█▌        | 132/841 [2:57:09<19:56:04, 101.22s/it] 16%|█▌        | 133/841 [2:57:31<15:13:46, 77.44s/it]  16%|█▌        | 134/841 [2:57:56<12:08:20, 61.81s/it] 16%|█▌        | 135/841 [2:58:26<10:14:44, 52.24s/it]                                                       16%|█▌        | 135/841 [2:58:26<10:14:44, 52.24s/it] 16%|█▌        | 136/841 [2:59:01<9:12:55, 47.06s/it]  16%|█▋        | 137/841 [2:59:22<7:41:38, 39.34s/it] 16%|█▋        | 138/841 [3:03:46<20:50:33, 106.73s/it] 17%|█▋        | 139/841 [3:05:07<19:17:35, 98.94s/it]  17%|█▋        | 140/841 [3:06:32<18:27:52, 94.83s/it]                                                       17%|█▋        | 140/841 [3:06:32<18:27:52, 94.83s/it] 17%|█▋        | 141/841 [3:07:13<15:18:19, 78.71s/it] 17%|█▋        | 142/841 [3:08:44<15:57:18, 82.17s/it] 17%|█▋        | 143/841 [3:09:07<12:30:17, 64.50s/it] 17%|█▋        | 144/841 [3:11:03<15:30:10, 80.07s/it] 17%|█▋        | 145/841 [3:11:30<12:22:48, 64.03s/it]                                                       17%|█▋        | 145/841 [3:11:30<12:22:48, 64.03s/it] 17%|█▋        | 146/841 [3:12:16<11:18:02, 58.54s/it] 17%|█▋        | 147/841 [3:12:36<9:06:11, 47.22s/it]  18%|█▊        | 148/841 [3:13:22<8:59:39, 46.72s/it] 18%|█▊        | 149/841 [3:13:49<7:48:57, 40.66s/it] 18%|█▊        | 150/841 [3:14:13<6:53:00, 35.86s/it]                                                      18%|█▊        | 150/841 [3:14:13<6:53:00, 35.86s/it]
+Writing model shards:   0%|          | 0/32 [00:00<?, ?it/s][ACheckpoint post-save memory: rss_mib=2592.1, mem_avail_mib=74675.3, torch_peak_reserved_mib=109658.0, nvidia_used_mib=41949.0
+{'loss': '0.4494', 'grad_norm': '2.438', 'learning_rate': '9.317e-06', 'epoch': '0.1249'}
+{'loss': '0.5098', 'grad_norm': '4', 'learning_rate': '9.254e-06', 'epoch': '0.1308'}
+{'loss': '0.4572', 'grad_norm': '5.375', 'learning_rate': '9.191e-06', 'epoch': '0.1367'}
+{'loss': '0.5465', 'grad_norm': '7.844', 'learning_rate': '9.128e-06', 'epoch': '0.1427'}
+{'loss': '0.5039', 'grad_norm': '4.062', 'learning_rate': '9.064e-06', 'epoch': '0.1486'}
+{'loss': '0.3037', 'grad_norm': '4.781', 'learning_rate': '9.001e-06', 'epoch': '0.1546'}
+{'loss': '0.5033', 'grad_norm': '5.562', 'learning_rate': '8.938e-06', 'epoch': '0.1605'}
+{'loss': '0.4771', 'grad_norm': '3.203', 'learning_rate': '8.875e-06', 'epoch': '0.1665'}
+{'loss': '0.6123', 'grad_norm': '8.75', 'learning_rate': '8.812e-06', 'epoch': '0.1724'}
+Checkpoint pre-save memory: rss_mib=2586.6, mem_avail_mib=57172.0, torch_peak_reserved_mib=109658.0, nvidia_used_mib=59339.0
+Checkpoint pre-save action: gc.collect()
+Checkpoint pre-save action: torch.cuda.empty_cache()
+Checkpoint pre-save memory (after cleanup): rss_mib=2586.6, mem_avail_mib=74904.7, torch_peak_reserved_mib=109658.0, nvidia_used_mib=41949.0
+{'loss': '0.5219', 'grad_norm': '4.969', 'learning_rate': '8.748e-06', 'epoch': '0.1784'}
+
+Writing model shards:   3%|▎         | 1/32 [00:09<04:39,  9.02s/it][A
+Writing model shards:   6%|▋         | 2/32 [00:10<02:17,  4.58s/it][A
+Writing model shards:   9%|▉         | 3/32 [00:12<01:33,  3.23s/it][A
+Writing model shards:  12%|█▎        | 4/32 [00:13<01:12,  2.57s/it][A
+Writing model shards:  16%|█▌        | 5/32 [00:14<00:55,  2.05s/it][A
+Writing model shards:  19%|█▉        | 6/32 [00:16<00:53,  2.04s/it][A
+Writing model shards:  22%|██▏       | 7/32 [00:18<00:44,  1.78s/it][A
+Writing model shards:  25%|██▌       | 8/32 [00:19<00:38,  1.62s/it][A
+Writing model shards:  28%|██▊       | 9/32 [00:19<00:28,  1.23s/it][A
+Writing model shards:  31%|███▏      | 10/32 [00:21<00:32,  1.48s/it][A
+Writing model shards:  34%|███▍      | 11/32 [00:23<00:29,  1.42s/it][A
+Writing model shards:  38%|███▊      | 12/32 [00:24<00:27,  1.38s/it][A
+Writing model shards:  41%|████      | 13/32 [00:25<00:24,  1.29s/it][A
+Writing model shards:  44%|████▍     | 14/32 [00:26<00:23,  1.30s/it][A
+Writing model shards:  47%|████▋     | 15/32 [00:28<00:22,  1.31s/it][A
+Writing model shards:  50%|█████     | 16/32 [00:29<00:20,  1.31s/it][A
+Writing model shards:  53%|█████▎    | 17/32 [00:30<00:19,  1.31s/it][A
+Writing model shards:  56%|█████▋    | 18/32 [00:31<00:18,  1.30s/it][A
+Writing model shards:  59%|█████▉    | 19/32 [00:33<00:16,  1.29s/it][A
+Writing model shards:  62%|██████▎   | 20/32 [00:34<00:14,  1.23s/it][A
+Writing model shards:  66%|██████▌   | 21/32 [00:36<00:16,  1.47s/it][A
+Writing model shards:  69%|██████▉   | 22/32 [00:37<00:13,  1.40s/it][A
+Writing model shards:  72%|███████▏  | 23/32 [00:38<00:12,  1.36s/it][A
+Writing model shards:  75%|███████▌  | 24/32 [00:39<00:08,  1.06s/it][A
+Writing model shards:  78%|███████▊  | 25/32 [00:41<00:09,  1.35s/it][A
+Writing model shards:  81%|████████▏ | 26/32 [00:42<00:07,  1.33s/it][A
+Writing model shards:  84%|████████▍ | 27/32 [00:43<00:06,  1.32s/it][A
+Writing model shards:  88%|████████▊ | 28/32 [00:44<00:05,  1.25s/it][A
+Writing model shards:  91%|█████████ | 29/32 [00:46<00:03,  1.26s/it][A
+Writing model shards:  94%|█████████▍| 30/32 [00:47<00:02,  1.27s/it][A
+Writing model shards:  97%|█████████▋| 31/32 [00:48<00:01,  1.27s/it][A
+Writing model shards: 100%|██████████| 32/32 [00:49<00:00,  1.18s/it][AWriting model shards: 100%|██████████| 32/32 [00:49<00:00,  1.55s/it]
+ 18%|█▊        | 151/841 [3:16:01<11:01:41, 57.54s/it] 18%|█▊        | 152/841 [3:16:35<9:38:54, 50.41s/it]  18%|█▊        | 153/841 [3:16:50<7:34:09, 39.61s/it] 18%|█▊        | 154/841 [3:17:13<6:38:42, 34.82s/it] 18%|█▊        | 155/841 [3:21:48<20:21:50, 106.87s/it]                                                        18%|█▊        | 155/841 [3:21:48<20:21:50, 106.87s/it] 19%|█▊        | 156/841 [3:22:03<15:05:12, 79.29s/it]  19%|█▊        | 157/841 [3:24:09<17:44:14, 93.35s/it] 19%|█▉        | 158/841 [3:25:52<18:13:30, 96.06s/it] 19%|█▉        | 159/841 [3:30:18<27:52:50, 147.17s/it] 19%|█▉        | 160/841 [3:31:12<22:34:00, 119.30s/it]                                                        19%|█▉        | 160/841 [3:31:12<22:34:00, 119.30s/it] 19%|█▉        | 161/841 [3:32:06<18:47:57, 99.53s/it]  19%|█▉        | 162/841 [3:33:02<16:20:52, 86.67s/it] 19%|█▉        | 163/841 [3:33:49<14:03:18, 74.63s/it] 20%|█▉        | 164/841 [3:35:12<14:30:26, 77.14s/it] 20%|█▉        | 165/841 [3:36:53<15:49:48, 84.30s/it]                                                       20%|█▉        | 165/841 [3:36:53<15:49:48, 84.30s/it] 20%|█▉        | 166/841 [3:39:02<18:19:16, 97.71s/it] 20%|█▉        | 167/841 [3:39:25<14:07:21, 75.43s/it] 20%|█▉        | 168/841 [3:40:45<14:19:02, 76.59s/it] 20%|██        | 169/841 [3:42:05<14:29:33, 77.64s/it] 20%|██        | 170/841 [3:42:27<11:22:02, 60.99s/it]                                                       20%|██        | 170/841 [3:42:27<11:22:02, 60.99s/it] 20%|██        | 171/841 [3:43:54<12:47:32, 68.74s/it] 20%|██        | 172/841 [3:44:42<11:38:55, 62.68s/it] 21%|██        | 173/841 [3:45:30<10:47:14, 58.14s/it] 21%|██        | 174/841 [3:46:20<10:20:09, 55.79s/it] 21%|██        | 175/841 [3:46:39<8:17:32, 44.82s/it]                                                       21%|██        | 175/841 [3:46:39<8:17:32, 44.82s/it] 21%|██        | 176/841 [3:47:11<7:34:33, 41.01s/it] 21%|██        | 177/841 [3:47:36<6:40:38, 36.20s/it] 21%|██        | 178/841 [3:47:58<5:50:34, 31.73s/it] 21%|██▏       | 179/841 [3:48:20<5:19:06, 28.92s/it] 21%|██▏       | 180/841 [3:49:18<6:54:30, 37.63s/it]                                                      21%|██▏       | 180/841 [3:49:18<6:54:30, 37.63s/it] 22%|██▏       | 181/841 [3:50:08<7:34:46, 41.34s/it] 22%|██▏       | 182/841 [3:52:03<11:36:05, 63.38s/it] 22%|██▏       | 183/841 [3:52:23<9:12:53, 50.42s/it]  22%|██▏       | 184/841 [3:54:29<13:20:40, 73.12s/it] 22%|██▏       | 185/841 [3:54:48<10:22:17, 56.92s/it]                                                       22%|██▏       | 185/841 [3:54:48<10:22:17, 56.92s/it] 22%|██▏       | 186/841 [3:55:51<10:42:00, 58.81s/it] 22%|██▏       | 187/841 [3:57:43<13:34:02, 74.68s/it] 22%|██▏       | 188/841 [3:59:42<15:56:49, 87.92s/it] 22%|██▏       | 189/841 [4:00:35<14:01:16, 77.42s/it] 23%|██▎       | 190/841 [4:01:02<11:16:36, 62.36s/it]                                                       23%|██▎       | 190/841 [4:01:02<11:16:36, 62.36s/it] 23%|██▎       | 191/841 [4:04:03<17:41:30, 97.99s/it] 23%|██▎       | 192/841 [4:06:15<19:29:40, 108.14s/it] 23%|██▎       | 193/841 [4:07:58<19:11:38, 106.63s/it] 23%|██▎       | 194/841 [4:09:11<17:20:20, 96.48s/it]  23%|██▎       | 195/841 [4:11:11<18:35:55, 103.65s/it]                                                        23%|██▎       | 195/841 [4:11:11<18:35:55, 103.65s/it] 23%|██▎       | 196/841 [4:12:19<16:39:13, 92.95s/it]  23%|██▎       | 197/841 [4:12:41<12:47:40, 71.52s/it] 24%|██▎       | 198/841 [4:13:07<10:20:44, 57.92s/it] 24%|██▎       | 199/841 [4:15:41<15:26:25, 86.58s/it] 24%|██▍       | 200/841 [4:17:14<15:45:51, 88.54s/it]                                                       24%|██▍       | 200/841 [4:17:14<15:45:51, 88.54s/it]
+Writing model shards:   0%|          | 0/32 [00:00<?, ?it/s][ACheckpoint post-save memory: rss_mib=2602.4, mem_avail_mib=73654.2, torch_peak_reserved_mib=109658.0, nvidia_used_mib=41949.0
+{'loss': '0.4906', 'grad_norm': '1.438', 'learning_rate': '8.685e-06', 'epoch': '0.1843'}
+{'loss': '0.3385', 'grad_norm': '3.812', 'learning_rate': '8.622e-06', 'epoch': '0.1902'}
+{'loss': '0.425', 'grad_norm': '2.172', 'learning_rate': '8.559e-06', 'epoch': '0.1962'}
+{'loss': '0.441', 'grad_norm': '7.281', 'learning_rate': '8.496e-06', 'epoch': '0.2021'}
+{'loss': '0.4195', 'grad_norm': '7.656', 'learning_rate': '8.432e-06', 'epoch': '0.2081'}
+{'loss': '0.5195', 'grad_norm': '3.375', 'learning_rate': '8.369e-06', 'epoch': '0.214'}
+{'loss': '0.4906', 'grad_norm': '7.156', 'learning_rate': '8.306e-06', 'epoch': '0.22'}
+{'loss': '0.3576', 'grad_norm': '5.406', 'learning_rate': '8.243e-06', 'epoch': '0.2259'}
+{'loss': '0.2766', 'grad_norm': '2.781', 'learning_rate': '8.18e-06', 'epoch': '0.2319'}
+Checkpoint pre-save memory: rss_mib=2601.1, mem_avail_mib=17720.5, torch_peak_reserved_mib=109658.0, nvidia_used_mib=98003.0
+Checkpoint pre-save action: gc.collect()
+Checkpoint pre-save action: torch.cuda.empty_cache()
+Checkpoint pre-save memory (after cleanup): rss_mib=2601.1, mem_avail_mib=74883.4, torch_peak_reserved_mib=109658.0, nvidia_used_mib=41953.0
+{'loss': '0.4734', 'grad_norm': '3.156', 'learning_rate': '8.116e-06', 'epoch': '0.2378'}
+
+Writing model shards:   3%|▎         | 1/32 [00:10<05:16, 10.20s/it][A
+Writing model shards:   6%|▋         | 2/32 [00:11<02:31,  5.03s/it][A
+Writing model shards:   9%|▉         | 3/32 [00:13<01:43,  3.58s/it][A
+Writing model shards:  12%|█▎        | 4/32 [00:15<01:20,  2.88s/it][A
+Writing model shards:  16%|█▌        | 5/32 [00:16<01:01,  2.29s/it][A
+Writing model shards:  19%|█▉        | 6/32 [00:18<01:00,  2.35s/it][A
+Writing model shards:  22%|██▏       | 7/32 [00:20<00:51,  2.05s/it][A
+Writing model shards:  25%|██▌       | 8/32 [00:21<00:44,  1.85s/it][A
+Writing model shards:  28%|██▊       | 9/32 [00:22<00:32,  1.39s/it][A
+Writing model shards:  31%|███▏      | 10/32 [00:24<00:37,  1.68s/it][A
+Writing model shards:  34%|███▍      | 11/32 [00:25<00:33,  1.60s/it][A
+Writing model shards:  38%|███▊      | 12/32 [00:27<00:31,  1.56s/it][A
+Writing model shards:  41%|████      | 13/32 [00:28<00:28,  1.48s/it][A
+Writing model shards:  44%|████▍     | 14/32 [00:30<00:26,  1.48s/it][A
+Writing model shards:  47%|████▋     | 15/32 [00:31<00:25,  1.49s/it][A
+Writing model shards:  50%|█████     | 16/32 [00:33<00:23,  1.48s/it][A
+Writing model shards:  53%|█████▎    | 17/32 [00:34<00:22,  1.47s/it][A
+Writing model shards:  56%|█████▋    | 18/32 [00:36<00:20,  1.46s/it][A
+Writing model shards:  59%|█████▉    | 19/32 [00:37<00:18,  1.45s/it][A
+Writing model shards:  62%|██████▎   | 20/32 [00:38<00:16,  1.38s/it][A
+Writing model shards:  66%|██████▌   | 21/32 [00:40<00:18,  1.65s/it][A
+Writing model shards:  69%|██████▉   | 22/32 [00:42<00:15,  1.58s/it][A
+Writing model shards:  72%|███████▏  | 23/32 [00:43<00:13,  1.54s/it][A
+Writing model shards:  75%|███████▌  | 24/32 [00:44<00:09,  1.19s/it][A
+Writing model shards:  78%|███████▊  | 25/32 [00:46<00:10,  1.50s/it][A
+Writing model shards:  81%|████████▏ | 26/32 [00:47<00:08,  1.47s/it][A
+Writing model shards:  84%|████████▍ | 27/32 [00:49<00:07,  1.46s/it][A
+Writing model shards:  88%|████████▊ | 28/32 [00:50<00:05,  1.39s/it][A
+Writing model shards:  91%|█████████ | 29/32 [00:51<00:04,  1.39s/it][A
+Writing model shards:  94%|█████████▍| 30/32 [00:53<00:02,  1.42s/it][A
+Writing model shards:  97%|█████████▋| 31/32 [00:54<00:01,  1.44s/it][A
+Writing model shards: 100%|██████████| 32/32 [00:55<00:00,  1.33s/it][AWriting model shards: 100%|██████████| 32/32 [00:55<00:00,  1.75s/it]
+ 24%|██▍       | 201/841 [4:19:33<18:26:10, 103.70s/it] 24%|██▍       | 202/841 [4:23:56<26:53:26, 151.50s/it] 24%|██▍       | 203/841 [4:24:38<21:03:27, 118.82s/it] 24%|██▍       | 204/841 [4:27:15<23:00:44, 130.05s/it] 24%|██▍       | 205/841 [4:27:37<17:17:23, 97.87s/it]                                                        24%|██▍       | 205/841 [4:27:37<17:17:23, 97.87s/it] 24%|██▍       | 206/841 [4:29:01<16:31:13, 93.66s/it] 25%|██▍       | 207/841 [4:29:50<14:06:03, 80.07s/it] 25%|██▍       | 208/841 [4:30:07<10:46:42, 61.30s/it] 25%|██▍       | 209/841 [4:30:57<10:10:50, 57.99s/it] 25%|██▍       | 210/841 [4:33:25<14:53:51, 84.99s/it]                                                       25%|██▍       | 210/841 [4:33:25<14:53:51, 84.99s/it] 25%|██▌       | 211/841 [4:34:08<12:40:28, 72.43s/it] 25%|██▌       | 212/841 [4:34:43<10:40:39, 61.11s/it] 25%|██▌       | 213/841 [4:35:04<8:33:41, 49.08s/it]  25%|██▌       | 214/841 [4:37:40<14:07:13, 81.07s/it] 26%|██▌       | 215/841 [4:39:04<14:14:35, 81.91s/it]                                                       26%|██▌       | 215/841 [4:39:04<14:14:35, 81.91s/it] 26%|██▌       | 216/841 [4:41:00<16:01:08, 92.27s/it] 26%|██▌       | 217/841 [4:41:50<13:46:08, 79.44s/it] 26%|██▌       | 218/841 [4:43:04<13:28:08, 77.83s/it] 26%|██▌       | 219/841 [4:44:16<13:08:38, 76.07s/it] 26%|██▌       | 220/841 [4:44:43<10:36:18, 61.48s/it]                                                       26%|██▌       | 220/841 [4:44:43<10:36:18, 61.48s/it] 26%|██▋       | 221/841 [4:47:31<16:05:59, 93.48s/it] 26%|██▋       | 222/841 [4:49:10<16:20:06, 95.00s/it] 27%|██▋       | 223/841 [4:50:25<15:18:08, 89.14s/it] 27%|██▋       | 224/841 [4:50:49<11:54:54, 69.52s/it] 27%|██▋       | 225/841 [4:51:57<11:48:22, 69.00s/it]                                                       27%|██▋       | 225/841 [4:51:57<11:48:22, 69.00s/it] 27%|██▋       | 226/841 [4:52:47<10:47:57, 63.22s/it] 27%|██▋       | 227/841 [4:53:39<10:14:22, 60.04s/it] 27%|██▋       | 228/841 [4:58:00<20:29:13, 120.32s/it] 27%|██▋       | 229/841 [4:58:30<15:49:44, 93.11s/it]  27%|██▋       | 230/841 [5:01:17<19:34:10, 115.30s/it]                                                        27%|██▋       | 230/841 [5:01:17<19:34:10, 115.30s/it] 27%|██▋       | 231/841 [5:03:32<20:33:37, 121.34s/it] 28%|██▊       | 232/841 [5:04:26<17:06:28, 101.13s/it] 28%|██▊       | 233/841 [5:04:46<12:56:07, 76.59s/it]  28%|██▊       | 234/841 [5:05:39<11:45:13, 69.71s/it] 28%|██▊       | 235/841 [5:10:09<21:49:22, 129.64s/it]                                                        28%|██▊       | 235/841 [5:10:09<21:49:22, 129.64s/it] 28%|██▊       | 236/841 [5:14:34<28:36:29, 170.23s/it] 28%|██▊       | 237/841 [5:15:16<22:08:38, 131.98s/it] 28%|██▊       | 238/841 [5:16:54<20:22:01, 121.59s/it] 28%|██▊       | 239/841 [5:17:15<15:17:50, 91.48s/it]  29%|██▊       | 240/841 [5:21:37<23:50:21, 142.80s/it]                                                        29%|██▊       | 240/841 [5:21:37<23:50:21, 142.80s/it] 29%|██▊       | 241/841 [5:22:06<18:06:36, 108.66s/it] 29%|██▉       | 242/841 [5:22:25<13:34:41, 81.61s/it]  29%|██▉       | 243/841 [5:23:20<12:14:16, 73.67s/it] 29%|██▉       | 244/841 [5:27:41<21:30:48, 129.73s/it] 29%|██▉       | 245/841 [5:29:31<20:30:15, 123.85s/it]                                                        29%|██▉       | 245/841 [5:29:31<20:30:15, 123.85s/it] 29%|██▉       | 246/841 [5:31:07<19:04:42, 115.43s/it] 29%|██▉       | 247/841 [5:31:53<15:36:35, 94.61s/it]  29%|██▉       | 248/841 [5:32:36<13:02:32, 79.18s/it] 30%|██▉       | 249/841 [5:32:58<10:13:49, 62.21s/it] 30%|██▉       | 250/841 [5:33:36<8:59:48, 54.80s/it]                                                       30%|██▉       | 250/841 [5:33:36<8:59:48, 54.80s/it]Checkpoint post-save memory: rss_mib=2617.3, mem_avail_mib=73658.6, torch_peak_reserved_mib=109658.0, nvidia_used_mib=41953.0
+{'loss': '0.3912', 'grad_norm': '6.344', 'learning_rate': '8.053e-06', 'epoch': '0.2438'}
+{'loss': '0.3746', 'grad_norm': '2.812', 'learning_rate': '7.99e-06', 'epoch': '0.2497'}
+{'loss': '0.3547', 'grad_norm': '3.344', 'learning_rate': '7.927e-06', 'epoch': '0.2556'}
+{'loss': '0.3744', 'grad_norm': '8.625', 'learning_rate': '7.863e-06', 'epoch': '0.2616'}
+{'loss': '0.3098', 'grad_norm': '4.375', 'learning_rate': '7.8e-06', 'epoch': '0.2675'}
+{'loss': '0.4172', 'grad_norm': '2.172', 'learning_rate': '7.737e-06', 'epoch': '0.2735'}
+{'loss': '0.3359', 'grad_norm': '1.352', 'learning_rate': '7.674e-06', 'epoch': '0.2794'}
+{'loss': '0.3469', 'grad_norm': '1.047', 'learning_rate': '7.611e-06', 'epoch': '0.2854'}
+{'loss': '0.3586', 'grad_norm': '2.578', 'learning_rate': '7.547e-06', 'epoch': '0.2913'}
+Checkpoint pre-save memory: rss_mib=1641.2, mem_avail_mib=26251.6, torch_peak_reserved_mib=109658.0, nvidia_used_mib=90547.0
+Checkpoint pre-save action: gc.collect()
+Checkpoint pre-save action: torch.cuda.empty_cache()
+Checkpoint pre-save memory (after cleanup): rss_mib=1641.2, mem_avail_mib=75853.4, torch_peak_reserved_mib=109658.0, nvidia_used_mib=41951.0
+{'loss': '0.4973', 'grad_norm': '6.25', 'learning_rate': '7.484e-06', 'epoch': '0.2973'}
+
+Writing model shards:   0%|          | 0/32 [00:00<?, ?it/s][A
+Writing model shards:   3%|▎         | 1/32 [00:18<09:33, 18.50s/it][A
+Writing model shards:   6%|▋         | 2/32 [00:19<04:14,  8.47s/it][A
+Writing model shards:   9%|▉         | 3/32 [00:21<02:36,  5.40s/it][A
+Writing model shards:  12%|█▎        | 4/32 [00:23<01:51,  3.97s/it][A
+Writing model shards:  16%|█▌        | 5/32 [00:24<01:20,  2.97s/it][A
+Writing model shards:  19%|█▉        | 6/32 [00:27<01:11,  2.75s/it][A
+Writing model shards:  22%|██▏       | 7/32 [00:28<00:57,  2.32s/it][A
+Writing model shards:  25%|██▌       | 8/32 [00:29<00:48,  2.04s/it][A
+Writing model shards:  28%|██▊       | 9/32 [00:30<00:35,  1.53s/it][A
+Writing model shards:  31%|███▏      | 10/32 [00:32<00:38,  1.77s/it][A
+Writing model shards:  34%|███▍      | 11/32 [00:33<00:34,  1.66s/it][A
+Writing model shards:  38%|███▊      | 12/32 [00:35<00:31,  1.59s/it][A
+Writing model shards:  41%|████      | 13/32 [00:36<00:28,  1.48s/it][A
+Writing model shards:  44%|████▍     | 14/32 [00:38<00:26,  1.47s/it][A
+Writing model shards:  47%|████▋     | 15/32 [00:39<00:25,  1.47s/it][A
+Writing model shards:  50%|█████     | 16/32 [00:41<00:23,  1.48s/it][A
+Writing model shards:  53%|█████▎    | 17/32 [00:42<00:22,  1.48s/it][A
+Writing model shards:  56%|█████▋    | 18/32 [00:44<00:20,  1.48s/it][A
+Writing model shards:  59%|█████▉    | 19/32 [00:45<00:18,  1.43s/it][A
+Writing model shards:  62%|██████▎   | 20/32 [00:46<00:16,  1.37s/it][A
+Writing model shards:  66%|██████▌   | 21/32 [00:48<00:17,  1.64s/it][A
+Writing model shards:  69%|██████▉   | 22/32 [00:50<00:15,  1.57s/it][A
+Writing model shards:  72%|███████▏  | 23/32 [00:51<00:13,  1.53s/it][A
+Writing model shards:  75%|███████▌  | 24/32 [00:52<00:09,  1.18s/it][A
+Writing model shards:  78%|███████▊  | 25/32 [00:54<00:10,  1.52s/it][A
+Writing model shards:  81%|████████▏ | 26/32 [00:55<00:08,  1.50s/it][A
+Writing model shards:  84%|████████▍ | 27/32 [00:57<00:07,  1.48s/it][A
+Writing model shards:  88%|████████▊ | 28/32 [00:58<00:05,  1.41s/it][A
+Writing model shards:  91%|█████████ | 29/32 [00:59<00:04,  1.43s/it][A
+Writing model shards:  94%|█████████▍| 30/32 [01:01<00:02,  1.44s/it][A
+Writing model shards:  97%|█████████▋| 31/32 [01:02<00:01,  1.46s/it][A
+Writing model shards: 100%|██████████| 32/32 [01:04<00:00,  1.35s/it][AWriting model shards: 100%|██████████| 32/32 [01:04<00:00,  2.00s/it]
+ 30%|██▉       | 251/841 [5:35:25<11:39:49, 71.17s/it] 30%|██▉       | 252/841 [5:36:04<10:01:44, 61.30s/it] 30%|███       | 253/841 [5:36:43<8:57:49, 54.88s/it]  30%|███       | 254/841 [5:37:51<9:33:11, 58.59s/it] 30%|███       | 255/841 [5:38:45<9:21:05, 57.45s/it]                                                      30%|███       | 255/841 [5:38:45<9:21:05, 57.45s/it] 30%|███       | 256/841 [5:43:18<19:50:23, 122.09s/it] 31%|███       | 257/841 [5:44:28<17:16:14, 106.46s/it] 31%|███       | 258/841 [5:45:41<15:37:12, 96.45s/it]  31%|███       | 259/841 [5:46:09<12:15:30, 75.83s/it] 31%|███       | 260/841 [5:46:40<10:04:24, 62.42s/it]                                                       31%|███       | 260/841 [5:46:40<10:04:24, 62.42s/it] 31%|███       | 261/841 [5:47:08<8:22:35, 51.99s/it]  31%|███       | 262/841 [5:47:53<8:01:36, 49.91s/it] 31%|███▏      | 263/841 [5:52:21<18:31:16, 115.36s/it] 31%|███▏      | 264/841 [5:53:11<15:19:05, 95.57s/it]  32%|███▏      | 265/841 [5:56:53<21:23:57, 133.75s/it]                                                        32%|███▏      | 265/841 [5:56:53<21:23:57, 133.75s/it] 32%|███▏      | 266/841 [5:57:18<16:07:58, 101.01s/it] 32%|███▏      | 267/841 [5:57:55<13:02:34, 81.80s/it]  32%|███▏      | 268/841 [5:58:32<10:51:41, 68.24s/it] 32%|███▏      | 269/841 [5:59:36<10:39:36, 67.09s/it] 32%|███▏      | 270/841 [6:00:02<8:40:53, 54.73s/it]                                                       32%|███▏      | 270/841 [6:00:02<8:40:53, 54.73s/it] 32%|███▏      | 271/841 [6:00:27<7:14:50, 45.77s/it] 32%|███▏      | 272/841 [6:01:00<6:37:23, 41.91s/it] 32%|███▏      | 273/841 [6:01:35<6:18:10, 39.95s/it] 33%|███▎      | 274/841 [6:02:22<6:36:53, 42.00s/it] 33%|███▎      | 275/841 [6:02:49<5:53:41, 37.49s/it]                                                      33%|███▎      | 275/841 [6:02:49<5:53:41, 37.49s/it] 33%|███▎      | 276/841 [6:06:17<13:56:12, 88.80s/it] 33%|███▎      | 277/841 [6:07:06<12:03:02, 76.92s/it] 33%|███▎      | 278/841 [6:08:17<11:44:51, 75.12s/it] 33%|███▎      | 279/841 [6:10:06<13:18:10, 85.21s/it] 33%|███▎      | 280/841 [6:10:54<11:33:21, 74.16s/it]                                                       33%|███▎      | 280/841 [6:10:54<11:33:21, 74.16s/it] 33%|███▎      | 281/841 [6:12:45<13:14:41, 85.15s/it] 34%|███▎      | 282/841 [6:16:14<18:59:53, 122.35s/it] 34%|███▎      | 283/841 [6:16:57<15:16:22, 98.53s/it]  34%|███▍      | 284/841 [6:17:36<12:27:50, 80.56s/it] 34%|███▍      | 285/841 [6:18:13<10:26:25, 67.60s/it]                                                       34%|███▍      | 285/841 [6:18:13<10:26:25, 67.60s/it] 34%|███▍      | 286/841 [6:18:49<8:55:43, 57.92s/it]  34%|███▍      | 287/841 [6:20:06<9:47:20, 63.61s/it] 34%|███▍      | 288/841 [6:22:08<12:29:55, 81.37s/it] 34%|███▍      | 289/841 [6:24:01<13:55:26, 90.81s/it] 34%|███▍      | 290/841 [6:24:47<11:49:31, 77.26s/it]                                                       34%|███▍      | 290/841 [6:24:47<11:49:31, 77.26s/it] 35%|███▍      | 291/841 [6:25:10<9:19:54, 61.08s/it]  35%|███▍      | 292/841 [6:25:30<7:26:32, 48.80s/it] 35%|███▍      | 293/841 [6:27:13<9:53:26, 64.97s/it] 35%|███▍      | 294/841 [6:29:15<12:29:22, 82.20s/it] 35%|███▌      | 295/841 [6:31:26<14:41:20, 96.85s/it]                                                       35%|███▌      | 295/841 [6:31:26<14:41:20, 96.85s/it] 35%|███▌      | 296/841 [6:32:37<13:28:39, 89.03s/it] 35%|███▌      | 297/841 [6:33:49<12:40:18, 83.86s/it] 35%|███▌      | 298/841 [6:35:28<13:20:00, 88.40s/it] 36%|███▌      | 299/841 [6:36:09<11:09:37, 74.13s/it] 36%|███▌      | 300/841 [6:36:32<8:51:26, 58.94s/it]                                                       36%|███▌      | 300/841 [6:36:32<8:51:26, 58.94s/it]Checkpoint post-save memory: rss_mib=2627.3, mem_avail_mib=73613.1, torch_peak_reserved_mib=109658.0, nvidia_used_mib=41951.0
+{'loss': '0.4867', 'grad_norm': '3.734', 'learning_rate': '7.421e-06', 'epoch': '0.3032'}
+{'loss': '0.3875', 'grad_norm': '5.469', 'learning_rate': '7.358e-06', 'epoch': '0.3092'}
+{'loss': '0.2769', 'grad_norm': '1.711', 'learning_rate': '7.295e-06', 'epoch': '0.3151'}
+{'loss': '0.4633', 'grad_norm': '7.031', 'learning_rate': '7.231e-06', 'epoch': '0.321'}
+{'loss': '0.5035', 'grad_norm': '7.781', 'learning_rate': '7.168e-06', 'epoch': '0.327'}
+{'loss': '0.3641', 'grad_norm': '4.406', 'learning_rate': '7.105e-06', 'epoch': '0.3329'}
+{'loss': '0.3803', 'grad_norm': '4.688', 'learning_rate': '7.042e-06', 'epoch': '0.3389'}
+{'loss': '0.2488', 'grad_norm': '4.344', 'learning_rate': '6.979e-06', 'epoch': '0.3448'}
+{'loss': '0.341', 'grad_norm': '2.312', 'learning_rate': '6.915e-06', 'epoch': '0.3508'}
+Checkpoint pre-save memory: rss_mib=2628.5, mem_avail_mib=16202.7, torch_peak_reserved_mib=109658.0, nvidia_used_mib=99407.0
+Checkpoint pre-save action: gc.collect()
+Checkpoint pre-save action: torch.cuda.empty_cache()
+Checkpoint pre-save memory (after cleanup): rss_mib=2628.5, mem_avail_mib=74854.9, torch_peak_reserved_mib=109658.0, nvidia_used_mib=41953.0
+{'loss': '0.3449', 'grad_norm': '8.312', 'learning_rate': '6.852e-06', 'epoch': '0.3567'}
+
+Writing model shards:   0%|          | 0/32 [00:00<?, ?it/s][A
+Writing model shards:   3%|▎         | 1/32 [00:08<04:37,  8.96s/it][A
+Writing model shards:   6%|▋         | 2/32 [00:10<02:13,  4.44s/it][A
+Writing model shards:   9%|▉         | 3/32 [00:11<01:30,  3.12s/it][A
+Writing model shards:  12%|█▎        | 4/32 [00:13<01:10,  2.52s/it][A
+Writing model shards:  16%|█▌        | 5/32 [00:14<00:54,  2.01s/it][A
+Writing model shards:  19%|█▉        | 6/32 [00:16<00:52,  2.03s/it][A
+Writing model shards:  22%|██▏       | 7/32 [00:17<00:44,  1.78s/it][A
+Writing model shards:  25%|██▌       | 8/32 [00:19<00:39,  1.63s/it][A
+Writing model shards:  28%|██▊       | 9/32 [00:19<00:28,  1.23s/it][A
+Writing model shards:  31%|███▏      | 10/32 [00:21<00:32,  1.48s/it][A
+Writing model shards:  34%|███▍      | 11/32 [00:22<00:29,  1.43s/it][A
+Writing model shards:  38%|███▊      | 12/32 [00:24<00:27,  1.39s/it][A
+Writing model shards:  41%|████      | 13/32 [00:25<00:24,  1.31s/it][A
+Writing model shards:  44%|████▍     | 14/32 [00:26<00:23,  1.29s/it][A
+Writing model shards:  47%|████▋     | 15/32 [00:27<00:22,  1.31s/it][A
+Writing model shards:  50%|█████     | 16/32 [00:29<00:21,  1.31s/it][A
+Writing model shards:  53%|█████▎    | 17/32 [00:30<00:19,  1.32s/it][A
+Writing model shards:  56%|█████▋    | 18/32 [00:31<00:18,  1.31s/it][A
+Writing model shards:  59%|█████▉    | 19/32 [00:33<00:17,  1.32s/it][A
+Writing model shards:  62%|██████▎   | 20/32 [00:34<00:15,  1.26s/it][A
+Writing model shards:  66%|██████▌   | 21/32 [00:36<00:16,  1.49s/it][A
+Writing model shards:  69%|██████▉   | 22/32 [00:37<00:14,  1.44s/it][A
+Writing model shards:  72%|███████▏  | 23/32 [00:38<00:12,  1.40s/it][A
+Writing model shards:  75%|███████▌  | 24/32 [00:39<00:08,  1.09s/it][A
+Writing model shards:  78%|███████▊  | 25/32 [00:41<00:09,  1.38s/it][A
+Writing model shards:  81%|████████▏ | 26/32 [00:42<00:08,  1.34s/it][A
+Writing model shards:  84%|████████▍ | 27/32 [00:43<00:06,  1.33s/it][A
+Writing model shards:  88%|████████▊ | 28/32 [00:45<00:05,  1.26s/it][A
+Writing model shards:  91%|█████████ | 29/32 [00:46<00:03,  1.27s/it][A
+Writing model shards:  94%|█████████▍| 30/32 [00:47<00:02,  1.30s/it][A
+Writing model shards:  97%|█████████▋| 31/32 [00:48<00:01,  1.31s/it][A
+Writing model shards: 100%|██████████| 32/32 [00:49<00:00,  1.21s/it][AWriting model shards: 100%|██████████| 32/32 [00:49<00:00,  1.56s/it]
+ 36%|███▌      | 301/841 [6:42:11<21:24:43, 142.75s/it] 36%|███▌      | 302/841 [6:42:58<17:05:04, 114.11s/it] 36%|███▌      | 303/841 [6:43:32<13:28:19, 90.15s/it]  36%|███▌      | 304/841 [6:44:38<12:21:24, 82.84s/it] 36%|███▋      | 305/841 [6:45:41<11:27:45, 76.99s/it]                                                       36%|███▋      | 305/841 [6:45:41<11:27:45, 76.99s/it] 36%|███▋      | 306/841 [6:46:36<10:27:38, 70.39s/it] 37%|███▋      | 307/841 [6:48:02<11:06:24, 74.88s/it] 37%|███▋      | 308/841 [6:48:38<9:22:29, 63.32s/it]  37%|███▋      | 309/841 [6:48:53<7:13:06, 48.85s/it] 37%|███▋      | 310/841 [6:50:39<9:44:24, 66.04s/it]                                                      37%|███▋      | 310/841 [6:50:39<9:44:24, 66.04s/it] 37%|███▋      | 311/841 [6:51:02<7:47:36, 52.94s/it] 37%|███▋      | 312/841 [6:51:24<6:25:53, 43.77s/it] 37%|███▋      | 313/841 [6:53:33<10:11:17, 69.46s/it] 37%|███▋      | 314/841 [6:57:54<18:34:50, 126.93s/it] 37%|███▋      | 315/841 [6:58:58<15:46:36, 107.98s/it]                                                        37%|███▋      | 315/841 [6:58:58<15:46:36, 107.98s/it] 38%|███▊      | 316/841 [7:00:01<13:46:25, 94.45s/it]  38%|███▊      | 317/841 [7:00:42<11:24:38, 78.39s/it] 38%|███▊      | 318/841 [7:04:00<16:37:03, 114.39s/it] 38%|███▊      | 319/841 [7:05:06<14:28:48, 99.86s/it]  38%|███▊      | 320/841 [7:05:28<11:04:38, 76.54s/it]                                                       38%|███▊      | 320/841 [7:05:28<11:04:38, 76.54s/it] 38%|███▊      | 321/841 [7:06:52<11:20:31, 78.52s/it] 38%|███▊      | 322/841 [7:08:27<12:02:07, 83.48s/it] 38%|███▊      | 323/841 [7:09:23<10:51:10, 75.43s/it] 39%|███▊      | 324/841 [7:09:51<8:47:25, 61.21s/it]  39%|███▊      | 325/841 [7:10:19<7:19:03, 51.05s/it]                                                      39%|███▊      | 325/841 [7:10:19<7:19:03, 51.05s/it] 39%|███▉      | 326/841 [7:14:33<16:02:23, 112.12s/it] 39%|███▉      | 327/841 [7:15:18<13:07:54, 91.97s/it]  39%|███▉      | 328/841 [7:16:35<12:27:53, 87.47s/it] 39%|███▉      | 329/841 [7:19:11<15:22:13, 108.07s/it] 39%|███▉      | 330/841 [7:19:39<11:55:44, 84.04s/it]                                                        39%|███▉      | 330/841 [7:19:39<11:55:44, 84.04s/it] 39%|███▉      | 331/841 [7:20:40<10:55:18, 77.10s/it] 39%|███▉      | 332/841 [7:21:27<9:37:39, 68.09s/it]  40%|███▉      | 333/841 [7:23:38<12:16:34, 87.00s/it] 40%|███▉      | 334/841 [7:24:01<9:31:04, 67.58s/it]  40%|███▉      | 335/841 [7:28:21<17:38:31, 125.52s/it]                                                        40%|███▉      | 335/841 [7:28:21<17:38:31, 125.52s/it] 40%|███▉      | 336/841 [7:29:03<14:04:53, 100.38s/it] 40%|████      | 337/841 [7:31:02<14:48:51, 105.82s/it] 40%|████      | 338/841 [7:32:05<13:00:27, 93.10s/it]  40%|████      | 339/841 [7:32:31<10:09:18, 72.83s/it] 40%|████      | 340/841 [7:34:15<11:27:55, 82.39s/it]                                                       40%|████      | 340/841 [7:34:15<11:27:55, 82.39s/it] 41%|████      | 341/841 [7:35:39<11:30:15, 82.83s/it] 41%|████      | 342/841 [7:36:01<8:55:54, 64.44s/it]  41%|████      | 343/841 [7:37:11<9:09:08, 66.16s/it] 41%|████      | 344/841 [7:41:32<17:11:58, 124.58s/it] 41%|████      | 345/841 [7:41:56<13:01:42, 94.56s/it]                                                        41%|████      | 345/841 [7:41:56<13:01:42, 94.56s/it] 41%|████      | 346/841 [7:43:05<11:55:16, 86.70s/it] 41%|████▏     | 347/841 [7:43:30<9:23:15, 68.41s/it]  41%|████▏     | 348/841 [7:45:07<10:30:48, 76.77s/it] 41%|████▏     | 349/841 [7:45:38<8:36:57, 63.04s/it]  42%|████▏     | 350/841 [7:46:12<7:24:20, 54.30s/it]                                                      42%|████▏     | 350/841 [7:46:12<7:24:20, 54.30s/it]Checkpoint post-save memory: rss_mib=2644.9, mem_avail_mib=73520.7, torch_peak_reserved_mib=109658.0, nvidia_used_mib=41953.0
+{'loss': '0.393', 'grad_norm': '3.812', 'learning_rate': '6.789e-06', 'epoch': '0.3627'}
+{'loss': '0.3648', 'grad_norm': '2.828', 'learning_rate': '6.726e-06', 'epoch': '0.3686'}
+{'loss': '0.3799', 'grad_norm': '3.469', 'learning_rate': '6.662e-06', 'epoch': '0.3746'}
+{'loss': '0.3154', 'grad_norm': '6.688', 'learning_rate': '6.599e-06', 'epoch': '0.3805'}
+{'loss': '0.4059', 'grad_norm': '7.594', 'learning_rate': '6.536e-06', 'epoch': '0.3864'}
+{'loss': '0.3242', 'grad_norm': '5.844', 'learning_rate': '6.473e-06', 'epoch': '0.3924'}
+{'loss': '0.2598', 'grad_norm': '0.7891', 'learning_rate': '6.41e-06', 'epoch': '0.3983'}
+{'loss': '0.3732', 'grad_norm': '3.078', 'learning_rate': '6.346e-06', 'epoch': '0.4043'}
+{'loss': '0.3895', 'grad_norm': '6.938', 'learning_rate': '6.283e-06', 'epoch': '0.4102'}
+Checkpoint pre-save memory: rss_mib=2634.9, mem_avail_mib=14384.0, torch_peak_reserved_mib=109660.0, nvidia_used_mib=101105.0
+Checkpoint pre-save action: gc.collect()
+Checkpoint pre-save action: torch.cuda.empty_cache()
+Checkpoint pre-save memory (after cleanup): rss_mib=2634.9, mem_avail_mib=74756.7, torch_peak_reserved_mib=109660.0, nvidia_used_mib=41951.0
+{'loss': '0.3252', 'grad_norm': '6.219', 'learning_rate': '6.22e-06', 'epoch': '0.4162'}
+
+Writing model shards:   0%|          | 0/32 [00:00<?, ?it/s][A
+Writing model shards:   3%|▎         | 1/32 [00:10<05:11, 10.05s/it][A
+Writing model shards:   6%|▋         | 2/32 [00:11<02:31,  5.06s/it][A
+Writing model shards:   9%|▉         | 3/32 [00:13<01:42,  3.52s/it][A
+Writing model shards:  12%|█▎        | 4/32 [00:15<01:19,  2.82s/it][A
+Writing model shards:  16%|█▌        | 5/32 [00:16<01:00,  2.25s/it][A
+Writing model shards:  19%|█▉        | 6/32 [00:18<00:59,  2.27s/it][A
+Writing model shards:  22%|██▏       | 7/32 [00:20<00:49,  1.99s/it][A
+Writing model shards:  25%|██▌       | 8/32 [00:21<00:43,  1.82s/it][A
+Writing model shards:  28%|██▊       | 9/32 [00:21<00:31,  1.37s/it][A
+Writing model shards:  31%|███▏      | 10/32 [00:24<00:36,  1.65s/it][A
+Writing model shards:  34%|███▍      | 11/32 [00:25<00:33,  1.58s/it][A
+Writing model shards:  38%|███▊      | 12/32 [00:26<00:30,  1.53s/it][A
+Writing model shards:  41%|████      | 13/32 [00:28<00:26,  1.42s/it][A
+Writing model shards:  44%|████▍     | 14/32 [00:29<00:25,  1.41s/it][A
+Writing model shards:  47%|████▋     | 15/32 [00:31<00:24,  1.44s/it][A
+Writing model shards:  50%|█████     | 16/32 [00:32<00:23,  1.45s/it][A
+Writing model shards:  53%|█████▎    | 17/32 [00:33<00:21,  1.44s/it][A
+Writing model shards:  56%|█████▋    | 18/32 [00:35<00:20,  1.44s/it][A
+Writing model shards:  59%|█████▉    | 19/32 [00:36<00:18,  1.45s/it][A
+Writing model shards:  62%|██████▎   | 20/32 [00:38<00:16,  1.37s/it][A
+Writing model shards:  66%|██████▌   | 21/32 [00:40<00:17,  1.63s/it][A
+Writing model shards:  69%|██████▉   | 22/32 [00:41<00:15,  1.56s/it][A
+Writing model shards:  72%|███████▏  | 23/32 [00:43<00:13,  1.54s/it][A
+Writing model shards:  75%|███████▌  | 24/32 [00:43<00:09,  1.20s/it][A
+Writing model shards:  78%|███████▊  | 25/32 [00:45<00:10,  1.52s/it][A
+Writing model shards:  81%|████████▏ | 26/32 [00:47<00:08,  1.50s/it][A
+Writing model shards:  84%|████████▍ | 27/32 [00:48<00:07,  1.49s/it][A
+Writing model shards:  88%|████████▊ | 28/32 [00:49<00:05,  1.40s/it][A
+Writing model shards:  91%|█████████ | 29/32 [00:51<00:04,  1.43s/it][A
+Writing model shards:  94%|█████████▍| 30/32 [00:52<00:02,  1.44s/it][A
+Writing model shards:  97%|█████████▋| 31/32 [00:54<00:01,  1.45s/it][A
+Writing model shards: 100%|██████████| 32/32 [00:55<00:00,  1.33s/it][AWriting model shards: 100%|██████████| 32/32 [00:55<00:00,  1.73s/it]
+ 42%|████▏     | 351/841 [7:48:10<10:01:00, 73.59s/it] 42%|████▏     | 352/841 [7:48:36<8:02:23, 59.19s/it]  42%|████▏     | 353/841 [7:53:09<16:44:28, 123.50s/it] 42%|████▏     | 354/841 [7:55:35<17:36:11, 130.13s/it] 42%|████▏     | 355/841 [7:59:57<22:54:12, 169.66s/it]                                                        42%|████▏     | 355/841 [7:59:57<22:54:12, 169.66s/it] 42%|████▏     | 356/841 [8:01:07<18:50:50, 139.90s/it] 42%|████▏     | 357/841 [8:01:31<14:08:19, 105.17s/it] 43%|████▎     | 358/841 [8:02:42<12:44:20, 94.95s/it]  43%|████▎     | 359/841 [8:05:00<14:24:18, 107.59s/it] 43%|████▎     | 360/841 [8:05:23<11:00:09, 82.35s/it]                                                        43%|████▎     | 360/841 [8:05:23<11:00:09, 82.35s/it] 43%|████▎     | 361/841 [8:05:47<8:39:53, 64.99s/it]  43%|████▎     | 362/841 [8:06:10<6:56:24, 52.16s/it] 43%|████▎     | 363/841 [8:06:58<6:45:25, 50.89s/it] 43%|████▎     | 364/841 [8:07:23<5:44:05, 43.28s/it] 43%|████▎     | 365/841 [8:07:49<5:02:58, 38.19s/it]                                                      43%|████▎     | 365/841 [8:07:49<5:02:58, 38.19s/it] 44%|████▎     | 366/841 [8:08:12<4:25:50, 33.58s/it] 44%|████▎     | 367/841 [8:10:48<9:15:12, 70.28s/it] 44%|████▍     | 368/841 [8:11:32<8:12:20, 62.45s/it] 44%|████▍     | 369/841 [8:15:54<16:01:56, 122.28s/it] 44%|████▍     | 370/841 [8:18:05<16:19:51, 124.82s/it]                                                        44%|████▍     | 370/841 [8:18:05<16:19:51, 124.82s/it] 44%|████▍     | 371/841 [8:18:29<12:21:02, 94.60s/it]  44%|████▍     | 372/841 [8:22:52<18:54:51, 145.18s/it] 44%|████▍     | 373/841 [8:24:35<17:13:04, 132.45s/it] 44%|████▍     | 374/841 [8:26:17<15:58:52, 123.20s/it] 45%|████▍     | 375/841 [8:30:37<21:17:12, 164.45s/it]                                                        45%|████▍     | 375/841 [8:30:37<21:17:12, 164.45s/it] 45%|████▍     | 376/841 [8:31:20<16:31:58, 128.00s/it] 45%|████▍     | 377/841 [8:32:14<13:36:33, 105.59s/it] 45%|████▍     | 378/841 [8:32:39<10:29:08, 81.53s/it]  45%|████▌     | 379/841 [8:33:07<8:23:33, 65.40s/it]  45%|████▌     | 380/841 [8:37:28<15:53:13, 124.06s/it]                                                        45%|████▌     | 380/841 [8:37:28<15:53:13, 124.06s/it] 45%|████▌     | 381/841 [8:38:30<13:28:23, 105.44s/it] 45%|████▌     | 382/841 [8:39:44<12:15:55, 96.20s/it]  46%|████▌     | 383/841 [8:41:05<11:39:23, 91.62s/it] 46%|████▌     | 384/841 [8:41:30<9:04:14, 71.46s/it]  46%|████▌     | 385/841 [8:43:02<9:49:51, 77.61s/it]                                                      46%|████▌     | 385/841 [8:43:02<9:49:51, 77.61s/it] 46%|████▌     | 386/841 [8:43:22<7:37:12, 60.29s/it] 46%|████▌     | 387/841 [8:44:25<7:43:10, 61.21s/it] 46%|████▌     | 388/841 [8:45:10<7:06:24, 56.48s/it] 46%|████▋     | 389/841 [8:46:01<6:51:46, 54.66s/it] 46%|████▋     | 390/841 [8:47:08<7:19:09, 58.42s/it]                                                      46%|████▋     | 390/841 [8:47:08<7:19:09, 58.42s/it] 46%|████▋     | 391/841 [8:51:28<14:52:53, 119.05s/it] 47%|████▋     | 392/841 [8:51:52<11:15:31, 90.27s/it]  47%|████▋     | 393/841 [8:53:34<11:40:42, 93.85s/it] 47%|████▋     | 394/841 [8:57:44<17:27:36, 140.62s/it] 47%|████▋     | 395/841 [8:58:39<14:16:11, 115.18s/it]                                                        47%|████▋     | 395/841 [8:58:39<14:16:11, 115.18s/it] 47%|████▋     | 396/841 [8:59:29<11:48:08, 95.48s/it]  47%|████▋     | 397/841 [9:00:13<9:52:37, 80.08s/it]  47%|████▋     | 398/841 [9:00:57<8:31:02, 69.22s/it] 47%|████▋     | 399/841 [9:01:31<7:13:20, 58.82s/it] 48%|████▊     | 400/841 [9:02:37<7:27:25, 60.87s/it]                                                      48%|████▊     | 400/841 [9:02:37<7:27:25, 60.87s/it]Checkpoint post-save memory: rss_mib=2651.6, mem_avail_mib=73438.6, torch_peak_reserved_mib=109660.0, nvidia_used_mib=41951.0
+{'loss': '0.3056', 'grad_norm': '1.289', 'learning_rate': '6.157e-06', 'epoch': '0.4221'}
+{'loss': '0.3187', 'grad_norm': '8.25', 'learning_rate': '6.094e-06', 'epoch': '0.4281'}
+{'loss': '0.475', 'grad_norm': '7.812', 'learning_rate': '6.03e-06', 'epoch': '0.434'}
+{'loss': '0.2456', 'grad_norm': '2.5', 'learning_rate': '5.967e-06', 'epoch': '0.44'}
+{'loss': '0.2977', 'grad_norm': '1.109', 'learning_rate': '5.904e-06', 'epoch': '0.4459'}
+{'loss': '0.4165', 'grad_norm': '1.188', 'learning_rate': '5.841e-06', 'epoch': '0.4518'}
+{'loss': '0.282', 'grad_norm': '3', 'learning_rate': '5.777e-06', 'epoch': '0.4578'}
+{'loss': '0.3311', 'grad_norm': '3.609', 'learning_rate': '5.714e-06', 'epoch': '0.4637'}
+{'loss': '0.2359', 'grad_norm': '4.625', 'learning_rate': '5.651e-06', 'epoch': '0.4697'}
+Checkpoint pre-save memory: rss_mib=2639.3, mem_avail_mib=44245.4, torch_peak_reserved_mib=109660.0, nvidia_used_mib=71741.0
+Checkpoint pre-save action: gc.collect()
+Checkpoint pre-save action: torch.cuda.empty_cache()
+Checkpoint pre-save memory (after cleanup): rss_mib=2639.3, mem_avail_mib=74636.5, torch_peak_reserved_mib=109660.0, nvidia_used_mib=41953.0
+{'loss': '0.4832', 'grad_norm': '5.906', 'learning_rate': '5.588e-06', 'epoch': '0.4756'}
+
+Writing model shards:   0%|          | 0/32 [00:00<?, ?it/s][A
+Writing model shards:   3%|▎         | 1/32 [00:10<05:14, 10.13s/it][A
+Writing model shards:   6%|▋         | 2/32 [00:11<02:30,  5.01s/it][A
+Writing model shards:   9%|▉         | 3/32 [00:13<01:42,  3.53s/it][A
+Writing model shards:  12%|█▎        | 4/32 [00:15<01:18,  2.82s/it][A
+Writing model shards:  16%|█▌        | 5/32 [00:16<01:00,  2.25s/it][A
+Writing model shards:  19%|█▉        | 6/32 [00:18<00:59,  2.28s/it][A
+Writing model shards:  22%|██▏       | 7/32 [00:20<00:50,  2.00s/it][A
+Writing model shards:  25%|██▌       | 8/32 [00:21<00:43,  1.82s/it][A
+Writing model shards:  28%|██▊       | 9/32 [00:21<00:31,  1.38s/it][A
+Writing model shards:  31%|███▏      | 10/32 [00:24<00:36,  1.68s/it][A
+Writing model shards:  34%|███▍      | 11/32 [00:25<00:34,  1.63s/it][A
+Writing model shards:  38%|███▊      | 12/32 [00:27<00:31,  1.58s/it][A
+Writing model shards:  41%|████      | 13/32 [00:28<00:27,  1.47s/it][A
+Writing model shards:  44%|████▍     | 14/32 [00:29<00:26,  1.48s/it][A
+Writing model shards:  47%|████▋     | 15/32 [00:31<00:25,  1.49s/it][A
+Writing model shards:  50%|█████     | 16/32 [00:32<00:23,  1.49s/it][A
+Writing model shards:  53%|█████▎    | 17/32 [00:34<00:22,  1.48s/it][A
+Writing model shards:  56%|█████▋    | 18/32 [00:35<00:20,  1.48s/it][A
+Writing model shards:  59%|█████▉    | 19/32 [00:37<00:19,  1.47s/it][A
+Writing model shards:  62%|██████▎   | 20/32 [00:38<00:16,  1.41s/it][A
+Writing model shards:  66%|██████▌   | 21/32 [00:40<00:18,  1.67s/it][A
+Writing model shards:  69%|██████▉   | 22/32 [00:42<00:15,  1.59s/it][A
+Writing model shards:  72%|███████▏  | 23/32 [00:43<00:13,  1.53s/it][A
+Writing model shards:  75%|███████▌  | 24/32 [00:44<00:09,  1.19s/it][A
+Writing model shards:  78%|███████▊  | 25/32 [00:46<00:10,  1.51s/it][A
+Writing model shards:  81%|████████▏ | 26/32 [00:47<00:09,  1.50s/it][A
+Writing model shards:  84%|████████▍ | 27/32 [00:49<00:07,  1.49s/it][A
+Writing model shards:  88%|████████▊ | 28/32 [00:50<00:05,  1.42s/it][A
+Writing model shards:  91%|█████████ | 29/32 [00:51<00:04,  1.42s/it][A
+Writing model shards:  94%|█████████▍| 30/32 [00:53<00:02,  1.45s/it][A
+Writing model shards:  97%|█████████▋| 31/32 [00:54<00:01,  1.45s/it][A
+Writing model shards: 100%|██████████| 32/32 [00:55<00:00,  1.33s/it][AWriting model shards: 100%|██████████| 32/32 [00:55<00:00,  1.75s/it]
+ 48%|████▊     | 401/841 [9:05:57<12:31:52, 102.53s/it] 48%|████▊     | 402/841 [9:06:38<10:14:54, 84.04s/it]  48%|████▊     | 403/841 [9:07:41<9:27:37, 77.76s/it]  48%|████▊     | 404/841 [9:09:07<9:43:48, 80.16s/it] 48%|████▊     | 405/841 [9:09:29<7:36:30, 62.82s/it]                                                      48%|████▊     | 405/841 [9:09:29<7:36:30, 62.82s/it] 48%|████▊     | 406/841 [9:12:11<11:10:20, 92.46s/it] 48%|████▊     | 407/841 [9:16:31<17:13:09, 142.83s/it] 49%|████▊     | 408/841 [9:17:16<13:39:41, 113.58s/it] 49%|████▊     | 409/841 [9:18:03<11:13:47, 93.58s/it]  49%|████▉     | 410/841 [9:19:00<9:52:26, 82.47s/it]                                                       49%|████▉     | 410/841 [9:19:00<9:52:26, 82.47s/it] 49%|████▉     | 411/841 [9:20:27<10:01:12, 83.89s/it] 49%|████▉     | 412/841 [9:21:31<9:17:38, 77.99s/it]  49%|████▉     | 413/841 [9:22:10<7:51:53, 66.15s/it] 49%|████▉     | 414/841 [9:26:32<14:50:11, 125.09s/it] 49%|████▉     | 415/841 [9:26:51<11:02:00, 93.24s/it]                                                        49%|████▉     | 415/841 [9:26:51<11:02:00, 93.24s/it] 49%|████▉     | 416/841 [9:27:17<8:36:21, 72.90s/it]  50%|████▉     | 417/841 [9:30:18<12:25:18, 105.47s/it] 50%|████▉     | 418/841 [9:31:41<11:35:59, 98.72s/it]  50%|████▉     | 419/841 [9:34:09<13:17:25, 113.38s/it] 50%|████▉     | 420/841 [9:38:29<18:25:42, 157.58s/it]                                                        50%|████▉     | 420/841 [9:38:29<18:25:42, 157.58s/it] 50%|█████     | 421/841 [9:39:09<14:15:12, 122.17s/it] 50%|█████     | 422/841 [9:39:34<10:48:58, 92.93s/it]  50%|█████     | 423/841 [9:39:58<8:23:35, 72.29s/it]  50%|█████     | 424/841 [9:40:40<7:19:22, 63.22s/it] 51%|█████     | 425/841 [9:41:15<6:19:10, 54.69s/it]                                                      51%|█████     | 425/841 [9:41:15<6:19:10, 54.69s/it] 51%|█████     | 426/841 [9:42:37<7:15:29, 62.96s/it] 51%|█████     | 427/841 [9:42:57<5:45:05, 50.01s/it] 51%|█████     | 428/841 [9:44:24<7:01:15, 61.20s/it] 51%|█████     | 429/841 [9:45:03<6:14:26, 54.53s/it] 51%|█████     | 430/841 [9:47:27<9:16:29, 81.24s/it]                                                      51%|█████     | 430/841 [9:47:27<9:16:29, 81.24s/it] 51%|█████     | 431/841 [9:51:48<15:23:35, 135.16s/it] 51%|█████▏    | 432/841 [9:52:14<11:39:20, 102.59s/it] 51%|█████▏    | 433/841 [9:53:02<9:46:26, 86.24s/it]   52%|█████▏    | 434/841 [9:55:13<11:16:08, 99.68s/it] 52%|█████▏    | 435/841 [9:55:34<8:34:24, 76.02s/it]                                                       52%|█████▏    | 435/841 [9:55:34<8:34:24, 76.02s/it] 52%|█████▏    | 436/841 [9:56:00<6:50:44, 60.85s/it] 52%|█████▏    | 437/841 [9:56:21<5:29:38, 48.96s/it] 52%|█████▏    | 438/841 [10:00:41<12:34:58, 112.40s/it] 52%|█████▏    | 439/841 [10:01:02<9:30:00, 85.08s/it]   52%|█████▏    | 440/841 [10:02:28<9:29:13, 85.17s/it]                                                       52%|█████▏    | 440/841 [10:02:28<9:29:13, 85.17s/it] 52%|█████▏    | 441/841 [10:03:45<9:11:57, 82.79s/it] 53%|█████▎    | 442/841 [10:04:34<8:03:11, 72.66s/it] 53%|█████▎    | 443/841 [10:05:25<7:18:30, 66.11s/it] 53%|█████▎    | 444/841 [10:07:39<9:32:35, 86.54s/it] 53%|█████▎    | 445/841 [10:08:39<8:37:19, 78.38s/it]                                                       53%|█████▎    | 445/841 [10:08:39<8:37:19, 78.38s/it] 53%|█████▎    | 446/841 [10:10:29<9:39:38, 88.05s/it] 53%|█████▎    | 447/841 [10:11:33<8:51:29, 80.94s/it] 53%|█████▎    | 448/841 [10:13:40<10:20:31, 94.74s/it] 53%|█████▎    | 449/841 [10:14:03<7:57:44, 73.12s/it]  54%|█████▎    | 450/841 [10:14:33<6:32:03, 60.16s/it]                                                       54%|█████▎    | 450/841 [10:14:33<6:32:03, 60.16s/it]Checkpoint post-save memory: rss_mib=2655.5, mem_avail_mib=73375.5, torch_peak_reserved_mib=109660.0, nvidia_used_mib=41953.0
+{'loss': '0.358', 'grad_norm': '9.125', 'learning_rate': '5.525e-06', 'epoch': '0.4816'}
+{'loss': '0.3158', 'grad_norm': '4.531', 'learning_rate': '5.461e-06', 'epoch': '0.4875'}
+{'loss': '0.3079', 'grad_norm': '10.12', 'learning_rate': '5.398e-06', 'epoch': '0.4935'}
+{'loss': '0.2534', 'grad_norm': '1.523', 'learning_rate': '5.335e-06', 'epoch': '0.4994'}
+{'loss': '0.4223', 'grad_norm': '4.906', 'learning_rate': '5.272e-06', 'epoch': '0.5054'}
+{'loss': '0.3654', 'grad_norm': '2.562', 'learning_rate': '5.209e-06', 'epoch': '0.5113'}
+{'loss': '0.3242', 'grad_norm': '7.281', 'learning_rate': '5.145e-06', 'epoch': '0.5172'}
+{'loss': '0.3428', 'grad_norm': '3.172', 'learning_rate': '5.082e-06', 'epoch': '0.5232'}
+{'loss': '0.3391', 'grad_norm': '4.719', 'learning_rate': '5.019e-06', 'epoch': '0.5291'}
+Checkpoint pre-save memory: rss_mib=2646.3, mem_avail_mib=45871.9, torch_peak_reserved_mib=109660.0, nvidia_used_mib=70263.0
+Checkpoint pre-save action: gc.collect()
+Checkpoint pre-save action: torch.cuda.empty_cache()
+Checkpoint pre-save memory (after cleanup): rss_mib=2646.3, mem_avail_mib=74764.3, torch_peak_reserved_mib=109660.0, nvidia_used_mib=41953.0
+{'loss': '0.2602', 'grad_norm': '6.75', 'learning_rate': '4.956e-06', 'epoch': '0.5351'}
+
+Writing model shards:   0%|          | 0/32 [00:00<?, ?it/s][A
+Writing model shards:   3%|▎         | 1/32 [00:09<04:58,  9.61s/it][A
+Writing model shards:   6%|▋         | 2/32 [00:11<02:24,  4.81s/it][A
+Writing model shards:   9%|▉         | 3/32 [00:12<01:36,  3.34s/it][A
+Writing model shards:  12%|█▎        | 4/32 [00:14<01:15,  2.69s/it][A
+Writing model shards:  16%|█▌        | 5/32 [00:15<00:57,  2.14s/it][A
+Writing model shards:  19%|█▉        | 6/32 [00:17<00:56,  2.18s/it][A
+Writing model shards:  22%|██▏       | 7/32 [00:19<00:47,  1.91s/it][A
+Writing model shards:  25%|██▌       | 8/32 [00:20<00:41,  1.73s/it][A
+Writing model shards:  28%|██▊       | 9/32 [00:20<00:29,  1.30s/it][A
+Writing model shards:  31%|███▏      | 10/32 [00:22<00:34,  1.56s/it][A
+Writing model shards:  34%|███▍      | 11/32 [00:24<00:31,  1.50s/it][A
+Writing model shards:  38%|███▊      | 12/32 [00:25<00:29,  1.46s/it][A
+Writing model shards:  41%|████      | 13/32 [00:26<00:26,  1.38s/it][A
+Writing model shards:  44%|████▍     | 14/32 [00:28<00:24,  1.39s/it][A
+Writing model shards:  47%|████▋     | 15/32 [00:29<00:24,  1.42s/it][A
+Writing model shards:  50%|█████     | 16/32 [00:31<00:22,  1.43s/it][A
+Writing model shards:  53%|█████▎    | 17/32 [00:32<00:21,  1.43s/it][A
+Writing model shards:  56%|█████▋    | 18/32 [00:34<00:19,  1.42s/it][A
+Writing model shards:  59%|█████▉    | 19/32 [00:35<00:18,  1.42s/it][A
+Writing model shards:  62%|██████▎   | 20/32 [00:36<00:16,  1.36s/it][A
+Writing model shards:  66%|██████▌   | 21/32 [00:39<00:18,  1.64s/it][A
+Writing model shards:  69%|██████▉   | 22/32 [00:40<00:15,  1.57s/it][A
+Writing model shards:  72%|███████▏  | 23/32 [00:41<00:13,  1.51s/it][A
+Writing model shards:  75%|███████▌  | 24/32 [00:42<00:09,  1.18s/it][A
+Writing model shards:  78%|███████▊  | 25/32 [00:44<00:10,  1.47s/it][A
+Writing model shards:  81%|████████▏ | 26/32 [00:45<00:08,  1.45s/it][A
+Writing model shards:  84%|████████▍ | 27/32 [00:47<00:07,  1.43s/it][A
+Writing model shards:  88%|████████▊ | 28/32 [00:48<00:05,  1.36s/it][A
+Writing model shards:  91%|█████████ | 29/32 [00:49<00:04,  1.37s/it][A
+Writing model shards:  94%|█████████▍| 30/32 [00:51<00:02,  1.39s/it][A
+Writing model shards:  97%|█████████▋| 31/32 [00:52<00:01,  1.39s/it][A
+Writing model shards: 100%|██████████| 32/32 [00:53<00:00,  1.28s/it][AWriting model shards: 100%|██████████| 32/32 [00:53<00:00,  1.67s/it]
+ 54%|█████▎    | 451/841 [10:16:37<8:35:50, 79.36s/it] 54%|█████▎    | 452/841 [10:17:02<6:49:20, 63.14s/it] 54%|█████▍    | 453/841 [10:17:30<5:39:38, 52.52s/it] 54%|█████▍    | 454/841 [10:22:05<12:48:00, 119.07s/it] 54%|█████▍    | 455/841 [10:22:58<10:39:49, 99.46s/it]                                                         54%|█████▍    | 455/841 [10:22:58<10:39:49, 99.46s/it] 54%|█████▍    | 456/841 [10:23:18<8:04:40, 75.53s/it]  54%|█████▍    | 457/841 [10:24:10<7:17:41, 68.39s/it] 54%|█████▍    | 458/841 [10:28:37<13:37:12, 128.02s/it] 55%|█████▍    | 459/841 [10:29:02<10:18:05, 97.08s/it]  55%|█████▍    | 460/841 [10:29:58<8:58:05, 84.74s/it]                                                        55%|█████▍    | 460/841 [10:29:58<8:58:05, 84.74s/it] 55%|█████▍    | 461/841 [10:30:52<7:59:44, 75.75s/it] 55%|█████▍    | 462/841 [10:32:26<8:31:48, 81.02s/it] 55%|█████▌    | 463/841 [10:33:03<7:08:37, 68.04s/it] 55%|█████▌    | 464/841 [10:33:55<6:36:27, 63.10s/it] 55%|█████▌    | 465/841 [10:35:46<8:05:00, 77.40s/it]                                                       55%|█████▌    | 465/841 [10:35:46<8:05:00, 77.40s/it] 55%|█████▌    | 466/841 [10:36:19<6:39:57, 63.99s/it] 56%|█████▌    | 467/841 [10:37:24<6:42:10, 64.52s/it] 56%|█████▌    | 468/841 [10:37:50<5:28:03, 52.77s/it] 56%|█████▌    | 469/841 [10:38:12<4:30:04, 43.56s/it] 56%|█████▌    | 470/841 [10:39:00<4:37:13, 44.83s/it]                                                       56%|█████▌    | 470/841 [10:39:00<4:37:13, 44.83s/it] 56%|█████▌    | 471/841 [10:40:14<5:31:52, 53.82s/it] 56%|█████▌    | 472/841 [10:41:38<6:25:13, 62.64s/it] 56%|█████▌    | 473/841 [10:43:13<7:25:03, 72.56s/it] 56%|█████▋    | 474/841 [10:44:03<6:41:27, 65.63s/it] 56%|█████▋    | 475/841 [10:44:26<5:22:49, 52.92s/it]                                                       56%|█████▋    | 475/841 [10:44:26<5:22:49, 52.92s/it] 57%|█████▋    | 476/841 [10:45:22<5:28:23, 53.98s/it] 57%|█████▋    | 477/841 [10:45:38<4:17:49, 42.50s/it] 57%|█████▋    | 478/841 [10:46:17<4:10:16, 41.37s/it] 57%|█████▋    | 479/841 [10:47:03<4:19:04, 42.94s/it] 57%|█████▋    | 480/841 [10:48:58<6:28:02, 64.50s/it]                                                       57%|█████▋    | 480/841 [10:48:58<6:28:02, 64.50s/it] 57%|█████▋    | 481/841 [10:49:37<5:40:50, 56.81s/it] 57%|█████▋    | 482/841 [10:51:29<7:18:59, 73.37s/it] 57%|█████▋    | 483/841 [10:55:50<12:53:52, 129.70s/it] 58%|█████▊    | 484/841 [10:56:12<9:38:56, 97.30s/it]   58%|█████▊    | 485/841 [10:56:31<7:17:17, 73.70s/it]                                                       58%|█████▊    | 485/841 [10:56:31<7:17:17, 73.70s/it] 58%|█████▊    | 486/841 [10:58:08<7:58:38, 80.90s/it] 58%|█████▊    | 487/841 [10:59:50<8:33:18, 87.00s/it] 58%|█████▊    | 488/841 [11:00:17<6:46:03, 69.02s/it] 58%|█████▊    | 489/841 [11:00:36<5:18:25, 54.28s/it] 58%|█████▊    | 490/841 [11:04:58<11:20:42, 116.36s/it]                                                         58%|█████▊    | 490/841 [11:04:58<11:20:42, 116.36s/it] 58%|█████▊    | 491/841 [11:06:18<10:16:19, 105.66s/it] 59%|█████▊    | 492/841 [11:07:13<8:45:57, 90.42s/it]   59%|█████▊    | 493/841 [11:09:58<10:52:58, 112.58s/it] 59%|█████▊    | 494/841 [11:10:27<8:27:01, 87.67s/it]   59%|█████▉    | 495/841 [11:10:51<6:35:08, 68.52s/it]                                                       59%|█████▉    | 495/841 [11:10:51<6:35:08, 68.52s/it] 59%|█████▉    | 496/841 [11:11:42<6:04:18, 63.36s/it] 59%|█████▉    | 497/841 [11:12:14<5:08:09, 53.75s/it] 59%|█████▉    | 498/841 [11:13:22<5:32:41, 58.20s/it] 59%|█████▉    | 499/841 [11:14:51<6:23:43, 67.32s/it] 59%|█████▉    | 500/841 [11:15:17<5:13:06, 55.09s/it]                                                       59%|█████▉    | 500/841 [11:15:17<5:13:06, 55.09s/it]Checkpoint post-save memory: rss_mib=2662.2, mem_avail_mib=74014.6, torch_peak_reserved_mib=109660.0, nvidia_used_mib=41953.0
+{'loss': '0.4158', 'grad_norm': '4.938', 'learning_rate': '4.893e-06', 'epoch': '0.541'}
+{'loss': '0.4072', 'grad_norm': '4.656', 'learning_rate': '4.829e-06', 'epoch': '0.547'}
+{'loss': '0.3629', 'grad_norm': '3.5', 'learning_rate': '4.766e-06', 'epoch': '0.5529'}
+{'loss': '0.4008', 'grad_norm': '4.156', 'learning_rate': '4.703e-06', 'epoch': '0.5589'}
+{'loss': '0.3504', 'grad_norm': '7.844', 'learning_rate': '4.64e-06', 'epoch': '0.5648'}
+{'loss': '0.271', 'grad_norm': '2.719', 'learning_rate': '4.576e-06', 'epoch': '0.5707'}
+{'loss': '0.3613', 'grad_norm': '7.281', 'learning_rate': '4.513e-06', 'epoch': '0.5767'}
+{'loss': '0.365', 'grad_norm': '0.9453', 'learning_rate': '4.45e-06', 'epoch': '0.5826'}
+{'loss': '0.408', 'grad_norm': '13.62', 'learning_rate': '4.387e-06', 'epoch': '0.5886'}
+Checkpoint pre-save memory: rss_mib=1674.2, mem_avail_mib=9783.3, torch_peak_reserved_mib=109660.0, nvidia_used_mib=106565.0
+Checkpoint pre-save action: gc.collect()
+Checkpoint pre-save action: torch.cuda.empty_cache()
+Checkpoint pre-save memory (after cleanup): rss_mib=1674.3, mem_avail_mib=75726.2, torch_peak_reserved_mib=109660.0, nvidia_used_mib=41953.0
+{'loss': '0.3668', 'grad_norm': '9.25', 'learning_rate': '4.324e-06', 'epoch': '0.5945'}
+
+Writing model shards:   0%|          | 0/32 [00:00<?, ?it/s][A
+Writing model shards:   3%|▎         | 1/32 [00:18<09:41, 18.75s/it][A
+Writing model shards:   6%|▋         | 2/32 [00:20<04:16,  8.55s/it][A
+Writing model shards:   9%|▉         | 3/32 [00:21<02:38,  5.45s/it][A
+Writing model shards:  12%|█▎        | 4/32 [00:23<01:51,  3.99s/it][A
+Writing model shards:  16%|█▌        | 5/32 [00:24<01:21,  3.01s/it][A
+Writing model shards:  19%|█▉        | 6/32 [00:27<01:12,  2.78s/it][A
+Writing model shards:  22%|██▏       | 7/32 [00:28<00:58,  2.34s/it][A
+Writing model shards:  25%|██▌       | 8/32 [00:30<00:48,  2.03s/it][A
+Writing model shards:  28%|██▊       | 9/32 [00:30<00:34,  1.51s/it][A
+Writing model shards:  31%|███▏      | 10/32 [00:32<00:38,  1.75s/it][A
+Writing model shards:  34%|███▍      | 11/32 [00:34<00:34,  1.65s/it][A
+Writing model shards:  38%|███▊      | 12/32 [00:35<00:31,  1.59s/it][A
+Writing model shards:  41%|████      | 13/32 [00:36<00:28,  1.48s/it][A
+Writing model shards:  44%|████▍     | 14/32 [00:38<00:26,  1.47s/it][A
+Writing model shards:  47%|████▋     | 15/32 [00:39<00:25,  1.47s/it][A
+Writing model shards:  50%|█████     | 16/32 [00:41<00:23,  1.46s/it][A
+Writing model shards:  53%|█████▎    | 17/32 [00:42<00:21,  1.45s/it][A
+Writing model shards:  56%|█████▋    | 18/32 [00:44<00:20,  1.43s/it][A
+Writing model shards:  59%|█████▉    | 19/32 [00:45<00:18,  1.44s/it][A
+Writing model shards:  62%|██████▎   | 20/32 [00:46<00:16,  1.37s/it][A
+Writing model shards:  66%|██████▌   | 21/32 [00:48<00:18,  1.64s/it][A
+Writing model shards:  69%|██████▉   | 22/32 [00:50<00:15,  1.54s/it][A
+Writing model shards:  72%|███████▏  | 23/32 [00:51<00:13,  1.48s/it][A
+Writing model shards:  75%|███████▌  | 24/32 [00:51<00:09,  1.15s/it][A
+Writing model shards:  78%|███████▊  | 25/32 [00:54<00:10,  1.47s/it][A
+Writing model shards:  81%|████████▏ | 26/32 [00:55<00:08,  1.46s/it][A
+Writing model shards:  84%|████████▍ | 27/32 [00:57<00:07,  1.45s/it][A
+Writing model shards:  88%|████████▊ | 28/32 [00:58<00:05,  1.38s/it][A
+Writing model shards:  91%|█████████ | 29/32 [00:59<00:04,  1.40s/it][A
+Writing model shards:  94%|█████████▍| 30/32 [01:01<00:02,  1.41s/it][A
+Writing model shards:  97%|█████████▋| 31/32 [01:02<00:01,  1.44s/it][A
+Writing model shards: 100%|██████████| 32/32 [01:03<00:00,  1.33s/it][AWriting model shards: 100%|██████████| 32/32 [01:03<00:00,  1.99s/it]
+ 60%|█████▉    | 501/841 [11:17:59<8:13:46, 87.14s/it] 60%|█████▉    | 502/841 [11:18:28<6:33:01, 69.56s/it] 60%|█████▉    | 503/841 [11:18:47<5:06:52, 54.47s/it] 60%|█████▉    | 504/841 [11:23:10<10:56:57, 116.97s/it] 60%|██████    | 505/841 [11:25:48<12:04:31, 129.38s/it]                                                         60%|██████    | 505/841 [11:25:48<12:04:31, 129.38s/it] 60%|██████    | 506/841 [11:26:34<9:43:11, 104.45s/it]  60%|██████    | 507/841 [11:30:55<14:02:28, 151.34s/it] 60%|██████    | 508/841 [11:31:19<10:27:05, 112.99s/it] 61%|██████    | 509/841 [11:32:25<9:08:08, 99.06s/it]   61%|██████    | 510/841 [11:32:46<6:57:13, 75.63s/it]                                                       61%|██████    | 510/841 [11:32:46<6:57:13, 75.63s/it] 61%|██████    | 511/841 [11:33:10<5:29:59, 60.00s/it] 61%|██████    | 512/841 [11:34:53<6:39:36, 72.88s/it] 61%|██████    | 513/841 [11:35:12<5:10:35, 56.81s/it] 61%|██████    | 514/841 [11:36:07<5:07:05, 56.35s/it] 61%|██████    | 515/841 [11:37:01<5:02:23, 55.65s/it]                                                       61%|██████    | 515/841 [11:37:01<5:02:23, 55.65s/it] 61%|██████▏   | 516/841 [11:37:46<4:42:56, 52.23s/it] 61%|██████▏   | 517/841 [11:38:08<3:53:19, 43.21s/it] 62%|██████▏   | 518/841 [11:38:43<3:40:29, 40.96s/it] 62%|██████▏   | 519/841 [11:40:17<5:05:17, 56.89s/it] 62%|██████▏   | 520/841 [11:41:30<5:29:30, 61.59s/it]                                                       62%|██████▏   | 520/841 [11:41:30<5:29:30, 61.59s/it] 62%|██████▏   | 521/841 [11:43:34<7:08:20, 80.31s/it] 62%|██████▏   | 522/841 [11:44:20<6:12:08, 70.00s/it] 62%|██████▏   | 523/841 [11:45:50<6:42:26, 75.93s/it] 62%|██████▏   | 524/841 [11:50:11<11:35:26, 131.63s/it] 62%|██████▏   | 525/841 [11:50:36<8:44:29, 99.59s/it]                                                         62%|██████▏   | 525/841 [11:50:36<8:44:29, 99.59s/it] 63%|██████▎   | 526/841 [11:51:28<7:27:34, 85.25s/it] 63%|██████▎   | 527/841 [11:52:50<7:20:53, 84.25s/it] 63%|██████▎   | 528/841 [11:53:12<5:42:28, 65.65s/it] 63%|██████▎   | 529/841 [11:53:39<4:40:43, 53.99s/it] 63%|██████▎   | 530/841 [11:54:04<3:54:40, 45.27s/it]                                                       63%|██████▎   | 530/841 [11:54:04<3:54:40, 45.27s/it] 63%|██████▎   | 531/841 [11:54:27<3:18:57, 38.51s/it] 63%|██████▎   | 532/841 [11:58:47<9:01:52, 105.22s/it] 63%|██████▎   | 533/841 [11:59:04<6:43:36, 78.62s/it]  63%|██████▎   | 534/841 [12:00:59<7:37:35, 89.43s/it] 64%|██████▎   | 535/841 [12:02:40<7:54:45, 93.09s/it]                                                       64%|██████▎   | 535/841 [12:02:40<7:54:45, 93.09s/it] 64%|██████▎   | 536/841 [12:03:48<7:13:52, 85.35s/it] 64%|██████▍   | 537/841 [12:04:17<5:47:51, 68.66s/it] 64%|██████▍   | 538/841 [12:08:39<10:38:35, 126.46s/it] 64%|██████▍   | 539/841 [12:10:08<9:39:55, 115.22s/it]  64%|██████▍   | 540/841 [12:10:32<7:21:27, 88.00s/it]                                                        64%|██████▍   | 540/841 [12:10:32<7:21:27, 88.00s/it] 64%|██████▍   | 541/841 [12:11:55<7:12:45, 86.55s/it] 64%|██████▍   | 542/841 [12:12:14<5:30:22, 66.30s/it] 65%|██████▍   | 543/841 [12:12:39<4:27:32, 53.87s/it] 65%|██████▍   | 544/841 [12:13:35<4:30:14, 54.60s/it] 65%|██████▍   | 545/841 [12:14:41<4:45:34, 57.89s/it]                                                       65%|██████▍   | 545/841 [12:14:41<4:45:34, 57.89s/it] 65%|██████▍   | 546/841 [12:14:59<3:45:17, 45.82s/it] 65%|██████▌   | 547/841 [12:15:24<3:14:37, 39.72s/it] 65%|██████▌   | 548/841 [12:16:15<3:29:59, 43.00s/it] 65%|██████▌   | 549/841 [12:17:51<4:46:52, 58.95s/it] 65%|██████▌   | 550/841 [12:18:14<3:54:08, 48.28s/it]                                                       65%|██████▌   | 550/841 [12:18:14<3:54:08, 48.28s/it]Checkpoint post-save memory: rss_mib=2660.1, mem_avail_mib=73483.8, torch_peak_reserved_mib=109660.0, nvidia_used_mib=41953.0
+{'loss': '0.3229', 'grad_norm': '2.469', 'learning_rate': '4.26e-06', 'epoch': '0.6005'}
+{'loss': '0.4406', 'grad_norm': '8.438', 'learning_rate': '4.197e-06', 'epoch': '0.6064'}
+{'loss': '0.4469', 'grad_norm': '9.062', 'learning_rate': '4.134e-06', 'epoch': '0.6124'}
+{'loss': '0.3891', 'grad_norm': '3.344', 'learning_rate': '4.071e-06', 'epoch': '0.6183'}
+{'loss': '0.2342', 'grad_norm': '6.625', 'learning_rate': '4.008e-06', 'epoch': '0.6243'}
+{'loss': '0.3816', 'grad_norm': '7.781', 'learning_rate': '3.944e-06', 'epoch': '0.6302'}
+{'loss': '0.2766', 'grad_norm': '3.453', 'learning_rate': '3.881e-06', 'epoch': '0.6361'}
+{'loss': '0.3055', 'grad_norm': '9.375', 'learning_rate': '3.818e-06', 'epoch': '0.6421'}
+{'loss': '0.3186', 'grad_norm': '3.406', 'learning_rate': '3.755e-06', 'epoch': '0.648'}
+Checkpoint pre-save memory: rss_mib=2649.2, mem_avail_mib=17973.8, torch_peak_reserved_mib=109660.0, nvidia_used_mib=97545.0
+Checkpoint pre-save action: gc.collect()
+Checkpoint pre-save action: torch.cuda.empty_cache()
+Checkpoint pre-save memory (after cleanup): rss_mib=2649.2, mem_avail_mib=74689.3, torch_peak_reserved_mib=109660.0, nvidia_used_mib=41955.0
+{'loss': '0.4191', 'grad_norm': '10.56', 'learning_rate': '3.692e-06', 'epoch': '0.654'}
+
+Writing model shards:   0%|          | 0/32 [00:00<?, ?it/s][A
+Writing model shards:   3%|▎         | 1/32 [00:09<05:05,  9.87s/it][A
+Writing model shards:   6%|▋         | 2/32 [00:11<02:29,  4.98s/it][A
+Writing model shards:   9%|▉         | 3/32 [00:13<01:41,  3.50s/it][A
+Writing model shards:  12%|█▎        | 4/32 [00:14<01:17,  2.76s/it][A
+Writing model shards:  16%|█▌        | 5/32 [00:15<00:59,  2.20s/it][A
+Writing model shards:  19%|█▉        | 6/32 [00:18<00:58,  2.25s/it][A
+Writing model shards:  22%|██▏       | 7/32 [00:19<00:49,  1.98s/it][A
+Writing model shards:  25%|██▌       | 8/32 [00:21<00:43,  1.82s/it][A
+Writing model shards:  28%|██▊       | 9/32 [00:21<00:31,  1.37s/it][A
+Writing model shards:  31%|███▏      | 10/32 [00:23<00:35,  1.63s/it][A
+Writing model shards:  34%|███▍      | 11/32 [00:25<00:33,  1.58s/it][A
+Writing model shards:  38%|███▊      | 12/32 [00:26<00:30,  1.54s/it][A
+Writing model shards:  41%|████      | 13/32 [00:28<00:27,  1.45s/it][A
+Writing model shards:  44%|████▍     | 14/32 [00:29<00:26,  1.47s/it][A
+Writing model shards:  47%|████▋     | 15/32 [00:30<00:24,  1.47s/it][A
+Writing model shards:  50%|█████     | 16/32 [00:32<00:23,  1.45s/it][A
+Writing model shards:  53%|█████▎    | 17/32 [00:33<00:21,  1.42s/it][A
+Writing model shards:  56%|█████▋    | 18/32 [00:35<00:19,  1.41s/it][A
+Writing model shards:  59%|█████▉    | 19/32 [00:36<00:18,  1.41s/it][A
+Writing model shards:  62%|██████▎   | 20/32 [00:37<00:15,  1.33s/it][A
+Writing model shards:  66%|██████▌   | 21/32 [00:39<00:17,  1.58s/it][A
+Writing model shards:  69%|██████▉   | 22/32 [00:41<00:15,  1.52s/it][A
+Writing model shards:  72%|███████▏  | 23/32 [00:42<00:13,  1.49s/it][A
+Writing model shards:  75%|███████▌  | 24/32 [00:43<00:09,  1.16s/it][A
+Writing model shards:  78%|███████▊  | 25/32 [00:45<00:10,  1.47s/it][A
+Writing model shards:  81%|████████▏ | 26/32 [00:46<00:08,  1.46s/it][A
+Writing model shards:  84%|████████▍ | 27/32 [00:48<00:07,  1.46s/it][A
+Writing model shards:  88%|████████▊ | 28/32 [00:49<00:05,  1.37s/it][A
+Writing model shards:  91%|█████████ | 29/32 [00:50<00:04,  1.38s/it][A
+Writing model shards:  94%|█████████▍| 30/32 [00:52<00:02,  1.40s/it][A
+Writing model shards:  97%|█████████▋| 31/32 [00:53<00:01,  1.40s/it][A
+Writing model shards: 100%|██████████| 32/32 [00:54<00:00,  1.29s/it][AWriting model shards: 100%|██████████| 32/32 [00:54<00:00,  1.70s/it]
+ 66%|██████▌   | 551/841 [12:19:54<5:07:29, 63.62s/it] 66%|██████▌   | 552/841 [12:21:15<5:31:16, 68.78s/it] 66%|██████▌   | 553/841 [12:21:34<4:19:38, 54.09s/it] 66%|██████▌   | 554/841 [12:22:57<4:59:48, 62.68s/it] 66%|██████▌   | 555/841 [12:24:26<5:36:23, 70.57s/it]                                                       66%|██████▌   | 555/841 [12:24:26<5:36:23, 70.57s/it] 66%|██████▌   | 556/841 [12:25:49<5:53:14, 74.37s/it] 66%|██████▌   | 557/841 [12:26:22<4:53:12, 61.94s/it] 66%|██████▋   | 558/841 [12:28:17<6:06:36, 77.73s/it] 66%|██████▋   | 559/841 [12:29:06<5:25:06, 69.17s/it] 67%|██████▋   | 560/841 [12:34:37<11:31:42, 147.70s/it]                                                         67%|██████▋   | 560/841 [12:34:37<11:31:42, 147.70s/it] 67%|██████▋   | 561/841 [12:35:00<8:34:26, 110.24s/it]  67%|██████▋   | 562/841 [12:35:42<6:57:19, 89.75s/it]  67%|██████▋   | 563/841 [12:37:10<6:53:15, 89.19s/it] 67%|██████▋   | 564/841 [12:39:21<7:50:09, 101.84s/it] 67%|██████▋   | 565/841 [12:40:27<6:59:36, 91.22s/it]                                                        67%|██████▋   | 565/841 [12:40:27<6:59:36, 91.22s/it] 67%|██████▋   | 566/841 [12:42:42<7:57:07, 104.10s/it] 67%|██████▋   | 567/841 [12:43:02<6:00:12, 78.88s/it]  68%|██████▊   | 568/841 [12:45:13<7:10:28, 94.61s/it] 68%|██████▊   | 569/841 [12:48:08<8:57:43, 118.62s/it] 68%|██████▊   | 570/841 [12:50:08<8:58:11, 119.16s/it]                                                        68%|██████▊   | 570/841 [12:50:08<8:58:11, 119.16s/it] 68%|██████▊   | 571/841 [12:50:38<6:55:32, 92.34s/it]  68%|██████▊   | 572/841 [12:52:39<7:32:39, 100.96s/it] 68%|██████▊   | 573/841 [12:53:21<6:11:44, 83.23s/it]  68%|██████▊   | 574/841 [12:53:49<4:56:37, 66.66s/it] 68%|██████▊   | 575/841 [12:54:38<4:32:02, 61.36s/it]                                                       68%|██████▊   | 575/841 [12:54:38<4:32:02, 61.36s/it] 68%|██████▊   | 576/841 [12:55:05<3:45:47, 51.12s/it] 69%|██████▊   | 577/841 [12:55:37<3:19:36, 45.36s/it] 69%|██████▊   | 578/841 [12:56:22<3:18:38, 45.32s/it] 69%|██████▉   | 579/841 [12:56:41<2:42:54, 37.31s/it] 69%|██████▉   | 580/841 [12:58:01<3:38:58, 50.34s/it]                                                       69%|██████▉   | 580/841 [12:58:01<3:38:58, 50.34s/it] 69%|██████▉   | 581/841 [13:02:23<8:12:30, 113.66s/it] 69%|██████▉   | 582/841 [13:03:11<6:46:06, 94.08s/it]  69%|██████▉   | 583/841 [13:04:20<6:12:05, 86.53s/it] 69%|██████▉   | 584/841 [13:04:41<4:46:31, 66.89s/it] 70%|██████▉   | 585/841 [13:05:34<4:27:41, 62.74s/it]                                                       70%|██████▉   | 585/841 [13:05:34<4:27:41, 62.74s/it] 70%|██████▉   | 586/841 [13:07:43<5:50:50, 82.55s/it] 70%|██████▉   | 587/841 [13:08:30<5:04:08, 71.85s/it] 70%|██████▉   | 588/841 [13:11:38<7:30:27, 106.83s/it] 70%|███████   | 589/841 [13:12:19<6:04:51, 86.87s/it]  70%|███████   | 590/841 [13:16:41<9:43:03, 139.38s/it]                                                        70%|███████   | 590/841 [13:16:41<9:43:03, 139.38s/it] 70%|███████   | 591/841 [13:17:00<7:10:17, 103.27s/it] 70%|███████   | 592/841 [13:17:26<5:32:33, 80.14s/it]  71%|███████   | 593/841 [13:19:08<5:58:52, 86.83s/it] 71%|███████   | 594/841 [13:20:46<6:11:36, 90.27s/it] 71%|███████   | 595/841 [13:22:37<6:34:55, 96.32s/it]                                                       71%|███████   | 595/841 [13:22:37<6:34:55, 96.32s/it] 71%|███████   | 596/841 [13:26:58<9:55:01, 145.72s/it] 71%|███████   | 597/841 [13:27:55<8:04:55, 119.24s/it] 71%|███████   | 598/841 [13:29:47<7:54:06, 117.06s/it] 71%|███████   | 599/841 [13:31:32<7:36:46, 113.25s/it] 71%|███████▏  | 600/841 [13:32:57<7:01:32, 104.95s/it]                                                        71%|███████▏  | 600/841 [13:32:57<7:01:32, 104.95s/it]Checkpoint post-save memory: rss_mib=2666.2, mem_avail_mib=73199.6, torch_peak_reserved_mib=109660.0, nvidia_used_mib=41955.0
+{'loss': '0.3189', 'grad_norm': '4.156', 'learning_rate': '3.628e-06', 'epoch': '0.6599'}
+{'loss': '0.2505', 'grad_norm': '1.172', 'learning_rate': '3.565e-06', 'epoch': '0.6659'}
+{'loss': '0.3301', 'grad_norm': '3.547', 'learning_rate': '3.502e-06', 'epoch': '0.6718'}
+{'loss': '0.2473', 'grad_norm': '2.406', 'learning_rate': '3.439e-06', 'epoch': '0.6778'}
+{'loss': '0.3037', 'grad_norm': '5.375', 'learning_rate': '3.375e-06', 'epoch': '0.6837'}
+{'loss': '0.4803', 'grad_norm': '3.344', 'learning_rate': '3.312e-06', 'epoch': '0.6897'}
+{'loss': '0.2545', 'grad_norm': '3.953', 'learning_rate': '3.249e-06', 'epoch': '0.6956'}
+{'loss': '0.2287', 'grad_norm': '1.141', 'learning_rate': '3.186e-06', 'epoch': '0.7015'}
+{'loss': '0.308', 'grad_norm': '3.281', 'learning_rate': '3.123e-06', 'epoch': '0.7075'}
+Checkpoint pre-save memory: rss_mib=2652.2, mem_avail_mib=49429.1, torch_peak_reserved_mib=109668.0, nvidia_used_mib=66643.0
+Checkpoint pre-save action: gc.collect()
+Checkpoint pre-save action: torch.cuda.empty_cache()
+Checkpoint pre-save memory (after cleanup): rss_mib=2652.2, mem_avail_mib=74608.6, torch_peak_reserved_mib=109668.0, nvidia_used_mib=41955.0
+{'loss': '0.274', 'grad_norm': '3.609', 'learning_rate': '3.059e-06', 'epoch': '0.7134'}
+
+Writing model shards:   0%|          | 0/32 [00:00<?, ?it/s][A
+Writing model shards:   3%|▎         | 1/32 [00:10<05:13, 10.10s/it][A
+Writing model shards:   6%|▋         | 2/32 [00:11<02:32,  5.07s/it][A
+Writing model shards:   9%|▉         | 3/32 [00:13<01:44,  3.59s/it][A
+Writing model shards:  12%|█▎        | 4/32 [00:15<01:21,  2.90s/it][A
+Writing model shards:  16%|█▌        | 5/32 [00:16<01:02,  2.31s/it][A
+Writing model shards:  19%|█▉        | 6/32 [00:18<01:00,  2.34s/it][A
+Writing model shards:  22%|██▏       | 7/32 [00:20<00:51,  2.05s/it][A
+Writing model shards:  25%|██▌       | 8/32 [00:21<00:44,  1.86s/it][A
+Writing model shards:  28%|██▊       | 9/32 [00:22<00:32,  1.39s/it][A
+Writing model shards:  31%|███▏      | 10/32 [00:24<00:36,  1.67s/it][A
+Writing model shards:  34%|███▍      | 11/32 [00:25<00:33,  1.60s/it][A
+Writing model shards:  38%|███▊      | 12/32 [00:27<00:30,  1.54s/it][A
+Writing model shards:  41%|████      | 13/32 [00:28<00:27,  1.44s/it][A
+Writing model shards:  44%|████▍     | 14/32 [00:29<00:25,  1.42s/it][A
+Writing model shards:  47%|████▋     | 15/32 [00:31<00:24,  1.44s/it][A
+Writing model shards:  50%|█████     | 16/32 [00:32<00:23,  1.45s/it][A
+Writing model shards:  53%|█████▎    | 17/32 [00:34<00:21,  1.47s/it][A
+Writing model shards:  56%|█████▋    | 18/32 [00:35<00:20,  1.46s/it][A
+Writing model shards:  59%|█████▉    | 19/32 [00:37<00:18,  1.45s/it][A
+Writing model shards:  62%|██████▎   | 20/32 [00:38<00:16,  1.37s/it][A
+Writing model shards:  66%|██████▌   | 21/32 [00:40<00:18,  1.64s/it][A
+Writing model shards:  69%|██████▉   | 22/32 [00:42<00:15,  1.57s/it][A
+Writing model shards:  72%|███████▏  | 23/32 [00:43<00:13,  1.53s/it][A
+Writing model shards:  75%|███████▌  | 24/32 [00:44<00:09,  1.19s/it][A
+Writing model shards:  78%|███████▊  | 25/32 [00:46<00:10,  1.51s/it][A
+Writing model shards:  81%|████████▏ | 26/32 [00:47<00:08,  1.47s/it][A
+Writing model shards:  84%|████████▍ | 27/32 [00:49<00:07,  1.46s/it][A
+Writing model shards:  88%|████████▊ | 28/32 [00:50<00:05,  1.39s/it][A
+Writing model shards:  91%|█████████ | 29/32 [00:51<00:04,  1.40s/it][A
+Writing model shards:  94%|█████████▍| 30/32 [00:53<00:02,  1.41s/it][A
+Writing model shards:  97%|█████████▋| 31/32 [00:54<00:01,  1.43s/it][A
+Writing model shards: 100%|██████████| 32/32 [00:55<00:00,  1.32s/it][AWriting model shards: 100%|██████████| 32/32 [00:55<00:00,  1.74s/it]
+ 71%|███████▏  | 601/841 [13:34:43<7:00:11, 105.05s/it] 72%|███████▏  | 602/841 [13:39:04<10:04:55, 151.87s/it] 72%|███████▏  | 603/841 [13:39:35<7:38:58, 115.71s/it]  72%|███████▏  | 604/841 [13:40:35<6:30:33, 98.88s/it]  72%|███████▏  | 605/841 [13:44:55<9:39:29, 147.33s/it]                                                        72%|███████▏  | 605/841 [13:44:55<9:39:29, 147.33s/it] 72%|███████▏  | 606/841 [13:45:29<7:24:20, 113.45s/it] 72%|███████▏  | 607/841 [13:46:33<6:24:12, 98.51s/it]  72%|███████▏  | 608/841 [13:48:18<6:30:32, 100.57s/it] 72%|███████▏  | 609/841 [13:48:41<4:57:54, 77.04s/it]  73%|███████▎  | 610/841 [13:49:39<4:35:07, 71.46s/it]                                                       73%|███████▎  | 610/841 [13:49:39<4:35:07, 71.46s/it] 73%|███████▎  | 611/841 [13:50:09<3:46:11, 59.01s/it] 73%|███████▎  | 612/841 [13:50:47<3:20:55, 52.64s/it] 73%|███████▎  | 613/841 [13:52:20<4:06:16, 64.81s/it] 73%|███████▎  | 614/841 [13:52:54<3:30:46, 55.71s/it] 73%|███████▎  | 615/841 [13:53:25<3:01:36, 48.21s/it]                                                       73%|███████▎  | 615/841 [13:53:25<3:01:36, 48.21s/it] 73%|███████▎  | 616/841 [13:54:05<2:50:54, 45.58s/it] 73%|███████▎  | 617/841 [13:54:24<2:20:56, 37.75s/it] 73%|███████▎  | 618/841 [13:55:09<2:28:36, 39.98s/it] 74%|███████▎  | 619/841 [13:55:38<2:15:43, 36.68s/it] 74%|███████▎  | 620/841 [14:00:00<6:24:15, 104.33s/it]                                                        74%|███████▎  | 620/841 [14:00:00<6:24:15, 104.33s/it] 74%|███████▍  | 621/841 [14:00:44<5:15:27, 86.03s/it]  74%|███████▍  | 622/841 [14:03:27<6:39:03, 109.33s/it] 74%|███████▍  | 623/841 [14:05:50<7:12:57, 119.16s/it] 74%|███████▍  | 624/841 [14:06:42<5:58:44, 99.19s/it]  74%|███████▍  | 625/841 [14:08:14<5:49:04, 96.97s/it]                                                       74%|███████▍  | 625/841 [14:08:14<5:49:04, 96.97s/it] 74%|███████▍  | 626/841 [14:10:16<6:14:27, 104.50s/it] 75%|███████▍  | 627/841 [14:14:37<9:00:02, 151.41s/it] 75%|███████▍  | 628/841 [14:18:52<10:48:19, 182.63s/it] 75%|███████▍  | 629/841 [14:19:34<8:16:08, 140.42s/it]  75%|███████▍  | 630/841 [14:20:21<6:35:18, 112.41s/it]                                                        75%|███████▍  | 630/841 [14:20:21<6:35:18, 112.41s/it] 75%|███████▌  | 631/841 [14:20:55<5:10:41, 88.77s/it]  75%|███████▌  | 632/841 [14:21:29<4:11:43, 72.27s/it] 75%|███████▌  | 633/841 [14:21:56<3:23:18, 58.65s/it] 75%|███████▌  | 634/841 [14:23:29<3:58:46, 69.21s/it] 76%|███████▌  | 635/841 [14:25:08<4:28:00, 78.06s/it]                                                       76%|███████▌  | 635/841 [14:25:08<4:28:00, 78.06s/it] 76%|███████▌  | 636/841 [14:25:39<3:38:30, 63.95s/it] 76%|███████▌  | 637/841 [14:27:21<4:16:24, 75.41s/it] 76%|███████▌  | 638/841 [14:31:42<7:22:48, 130.88s/it] 76%|███████▌  | 639/841 [14:32:43<6:10:26, 110.03s/it] 76%|███████▌  | 640/841 [14:33:02<4:37:34, 82.86s/it]                                                        76%|███████▌  | 640/841 [14:33:02<4:37:34, 82.86s/it] 76%|███████▌  | 641/841 [14:33:21<3:32:18, 63.69s/it] 76%|███████▋  | 642/841 [14:34:41<3:47:25, 68.57s/it] 76%|███████▋  | 643/841 [14:36:34<4:29:46, 81.75s/it] 77%|███████▋  | 644/841 [14:36:55<3:29:13, 63.72s/it] 77%|███████▋  | 645/841 [14:38:40<4:07:53, 75.89s/it]                                                       77%|███████▋  | 645/841 [14:38:40<4:07:53, 75.89s/it] 77%|███████▋  | 646/841 [14:40:31<4:41:28, 86.61s/it] 77%|███████▋  | 647/841 [14:40:53<3:36:39, 67.01s/it] 77%|███████▋  | 648/841 [14:45:14<6:43:01, 125.29s/it] 77%|███████▋  | 649/841 [14:49:47<9:02:20, 169.48s/it] 77%|███████▋  | 650/841 [14:50:16<6:46:03, 127.56s/it]                                                        77%|███████▋  | 650/841 [14:50:16<6:46:03, 127.56s/it]
+Writing model shards:   0%|          | 0/32 [00:00<?, ?it/s][ACheckpoint post-save memory: rss_mib=2668.5, mem_avail_mib=73446.0, torch_peak_reserved_mib=109668.0, nvidia_used_mib=41955.0
+{'loss': '0.3851', 'grad_norm': '2.016', 'learning_rate': '2.996e-06', 'epoch': '0.7194'}
+{'loss': '0.4402', 'grad_norm': '4.781', 'learning_rate': '2.933e-06', 'epoch': '0.7253'}
+{'loss': '0.3445', 'grad_norm': '6.906', 'learning_rate': '2.87e-06', 'epoch': '0.7313'}
+{'loss': '0.3066', 'grad_norm': '0.9219', 'learning_rate': '2.807e-06', 'epoch': '0.7372'}
+{'loss': '0.2244', 'grad_norm': '3.25', 'learning_rate': '2.743e-06', 'epoch': '0.7432'}
+{'loss': '0.205', 'grad_norm': '4.812', 'learning_rate': '2.68e-06', 'epoch': '0.7491'}
+{'loss': '0.2633', 'grad_norm': '3.047', 'learning_rate': '2.617e-06', 'epoch': '0.7551'}
+{'loss': '0.3274', 'grad_norm': '9.312', 'learning_rate': '2.554e-06', 'epoch': '0.761'}
+{'loss': '0.2265', 'grad_norm': '3.312', 'learning_rate': '2.491e-06', 'epoch': '0.7669'}
+Checkpoint pre-save memory: rss_mib=2657.0, mem_avail_mib=10879.0, torch_peak_reserved_mib=109668.0, nvidia_used_mib=104467.0
+Checkpoint pre-save action: gc.collect()
+Checkpoint pre-save action: torch.cuda.empty_cache()
+Checkpoint pre-save memory (after cleanup): rss_mib=2657.0, mem_avail_mib=74662.4, torch_peak_reserved_mib=109668.0, nvidia_used_mib=41955.0
+{'loss': '0.1455', 'grad_norm': '8.5', 'learning_rate': '2.427e-06', 'epoch': '0.7729'}
+
+Writing model shards:   3%|▎         | 1/32 [00:10<05:10, 10.02s/it][A
+Writing model shards:   6%|▋         | 2/32 [00:11<02:31,  5.06s/it][A
+Writing model shards:   9%|▉         | 3/32 [00:13<01:42,  3.55s/it][A
+Writing model shards:  12%|█▎        | 4/32 [00:15<01:19,  2.83s/it][A
+Writing model shards:  16%|█▌        | 5/32 [00:16<01:01,  2.26s/it][A
+Writing model shards:  19%|█▉        | 6/32 [00:18<00:59,  2.29s/it][A
+Writing model shards:  22%|██▏       | 7/32 [00:20<00:50,  2.00s/it][A
+Writing model shards:  25%|██▌       | 8/32 [00:21<00:43,  1.82s/it][A
+Writing model shards:  28%|██▊       | 9/32 [00:21<00:31,  1.37s/it][A
+Writing model shards:  31%|███▏      | 10/32 [00:24<00:36,  1.65s/it][A
+Writing model shards:  34%|███▍      | 11/32 [00:25<00:33,  1.59s/it][A
+Writing model shards:  38%|███▊      | 12/32 [00:27<00:30,  1.54s/it][A
+Writing model shards:  41%|████      | 13/32 [00:28<00:27,  1.45s/it][A
+Writing model shards:  44%|████▍     | 14/32 [00:29<00:26,  1.45s/it][A
+Writing model shards:  47%|████▋     | 15/32 [00:31<00:24,  1.45s/it][A
+Writing model shards:  50%|█████     | 16/32 [00:32<00:23,  1.46s/it][A
+Writing model shards:  53%|█████▎    | 17/32 [00:34<00:21,  1.45s/it][A
+Writing model shards:  56%|█████▋    | 18/32 [00:35<00:20,  1.46s/it][A
+Writing model shards:  59%|█████▉    | 19/32 [00:37<00:18,  1.45s/it][A
+Writing model shards:  62%|██████▎   | 20/32 [00:38<00:16,  1.39s/it][A
+Writing model shards:  66%|██████▌   | 21/32 [00:40<00:18,  1.67s/it][A
+Writing model shards:  69%|██████▉   | 22/32 [00:41<00:15,  1.59s/it][A
+Writing model shards:  72%|███████▏  | 23/32 [00:43<00:13,  1.55s/it][A
+Writing model shards:  75%|███████▌  | 24/32 [00:43<00:09,  1.21s/it][A
+Writing model shards:  78%|███████▊  | 25/32 [00:46<00:10,  1.54s/it][A
+Writing model shards:  81%|████████▏ | 26/32 [00:47<00:09,  1.52s/it][A
+Writing model shards:  84%|████████▍ | 27/32 [00:49<00:07,  1.50s/it][A
+Writing model shards:  88%|████████▊ | 28/32 [00:50<00:05,  1.42s/it][A
+Writing model shards:  91%|█████████ | 29/32 [00:51<00:04,  1.44s/it][A
+Writing model shards:  94%|█████████▍| 30/32 [00:53<00:02,  1.45s/it][A
+Writing model shards:  97%|█████████▋| 31/32 [00:54<00:01,  1.46s/it][A
+Writing model shards: 100%|██████████| 32/32 [00:55<00:00,  1.35s/it][AWriting model shards: 100%|██████████| 32/32 [00:55<00:00,  1.75s/it]
+ 77%|███████▋  | 651/841 [14:53:34<7:50:13, 148.49s/it] 78%|███████▊  | 652/841 [14:55:12<7:00:33, 133.51s/it] 78%|███████▊  | 653/841 [14:55:54<5:32:12, 106.02s/it] 78%|███████▊  | 654/841 [14:56:50<4:43:54, 91.09s/it]  78%|███████▊  | 655/841 [14:57:12<3:37:27, 70.15s/it]                                                       78%|███████▊  | 655/841 [14:57:12<3:37:27, 70.15s/it] 78%|███████▊  | 656/841 [14:57:36<2:53:36, 56.31s/it] 78%|███████▊  | 657/841 [14:59:17<3:34:06, 69.82s/it] 78%|███████▊  | 658/841 [15:00:05<3:13:01, 63.29s/it] 78%|███████▊  | 659/841 [15:02:04<4:02:48, 80.05s/it] 78%|███████▊  | 660/841 [15:03:30<4:06:21, 81.67s/it]                                                       78%|███████▊  | 660/841 [15:03:30<4:06:21, 81.67s/it] 79%|███████▊  | 661/841 [15:06:23<5:27:39, 109.22s/it] 79%|███████▊  | 662/841 [15:07:30<4:48:07, 96.58s/it]  79%|███████▉  | 663/841 [15:08:00<3:46:47, 76.45s/it] 79%|███████▉  | 664/841 [15:08:42<3:14:54, 66.07s/it] 79%|███████▉  | 665/841 [15:12:26<5:33:10, 113.58s/it]                                                        79%|███████▉  | 665/841 [15:12:26<5:33:10, 113.58s/it] 79%|███████▉  | 666/841 [15:13:21<4:40:18, 96.11s/it]  79%|███████▉  | 667/841 [15:13:57<3:46:07, 77.97s/it] 79%|███████▉  | 668/841 [15:15:24<3:52:39, 80.69s/it] 80%|███████▉  | 669/841 [15:15:47<3:01:54, 63.46s/it] 80%|███████▉  | 670/841 [15:16:54<3:04:03, 64.58s/it]                                                       80%|███████▉  | 670/841 [15:16:54<3:04:03, 64.58s/it] 80%|███████▉  | 671/841 [15:17:53<2:58:01, 62.84s/it] 80%|███████▉  | 672/841 [15:18:29<2:33:52, 54.63s/it] 80%|████████  | 673/841 [15:19:16<2:26:48, 52.43s/it] 80%|████████  | 674/841 [15:20:47<2:58:10, 64.01s/it] 80%|████████  | 675/841 [15:22:17<3:18:15, 71.66s/it]                                                       80%|████████  | 675/841 [15:22:17<3:18:15, 71.66s/it] 80%|████████  | 676/841 [15:26:38<5:53:43, 128.63s/it] 80%|████████  | 677/841 [15:27:05<4:27:57, 98.03s/it]  81%|████████  | 678/841 [15:27:52<3:45:18, 82.93s/it] 81%|████████  | 679/841 [15:31:47<5:46:42, 128.41s/it] 81%|████████  | 680/841 [15:32:08<4:18:03, 96.17s/it]                                                        81%|████████  | 680/841 [15:32:08<4:18:03, 96.17s/it] 81%|████████  | 681/841 [15:37:24<7:12:45, 162.29s/it] 81%|████████  | 682/841 [15:37:57<5:27:12, 123.48s/it] 81%|████████  | 683/841 [15:39:44<5:12:10, 118.55s/it] 81%|████████▏ | 684/841 [15:40:52<4:30:14, 103.28s/it] 81%|████████▏ | 685/841 [15:41:29<3:36:35, 83.30s/it]                                                        81%|████████▏ | 685/841 [15:41:29<3:36:35, 83.30s/it] 82%|████████▏ | 686/841 [15:42:54<3:37:05, 84.03s/it] 82%|████████▏ | 687/841 [15:43:09<2:42:29, 63.31s/it] 82%|████████▏ | 688/841 [15:45:21<3:33:43, 83.81s/it] 82%|████████▏ | 689/841 [15:46:20<3:13:34, 76.41s/it] 82%|████████▏ | 690/841 [15:47:30<3:07:24, 74.46s/it]                                                       82%|████████▏ | 690/841 [15:47:30<3:07:24, 74.46s/it] 82%|████████▏ | 691/841 [15:49:13<3:27:46, 83.11s/it] 82%|████████▏ | 692/841 [15:53:33<5:38:03, 136.13s/it] 82%|████████▏ | 693/841 [15:53:53<4:09:39, 101.21s/it] 83%|████████▎ | 694/841 [15:54:52<3:37:06, 88.62s/it]  83%|████████▎ | 695/841 [15:55:37<3:03:54, 75.58s/it]                                                       83%|████████▎ | 695/841 [15:55:37<3:03:54, 75.58s/it] 83%|████████▎ | 696/841 [15:57:13<3:17:11, 81.60s/it] 83%|████████▎ | 697/841 [15:57:32<2:30:28, 62.70s/it] 83%|████████▎ | 698/841 [15:57:54<2:00:28, 50.55s/it] 83%|████████▎ | 699/841 [15:59:40<2:38:49, 67.11s/it] 83%|████████▎ | 700/841 [16:04:00<4:54:04, 125.14s/it]                                                        83%|████████▎ | 700/841 [16:04:00<4:54:04, 125.14s/it]Checkpoint post-save memory: rss_mib=2672.9, mem_avail_mib=73539.2, torch_peak_reserved_mib=109668.0, nvidia_used_mib=41955.0
+{'loss': '0.3304', 'grad_norm': '12.5', 'learning_rate': '2.364e-06', 'epoch': '0.7788'}
+{'loss': '0.2941', 'grad_norm': '3.406', 'learning_rate': '2.301e-06', 'epoch': '0.7848'}
+{'loss': '0.25', 'grad_norm': '2.281', 'learning_rate': '2.238e-06', 'epoch': '0.7907'}
+{'loss': '0.3322', 'grad_norm': '4.188', 'learning_rate': '2.174e-06', 'epoch': '0.7967'}
+{'loss': '0.2252', 'grad_norm': '3.078', 'learning_rate': '2.111e-06', 'epoch': '0.8026'}
+{'loss': '0.3059', 'grad_norm': '9.812', 'learning_rate': '2.048e-06', 'epoch': '0.8086'}
+{'loss': '0.2803', 'grad_norm': '6.812', 'learning_rate': '1.985e-06', 'epoch': '0.8145'}
+{'loss': '0.3539', 'grad_norm': '4.781', 'learning_rate': '1.922e-06', 'epoch': '0.8205'}
+{'loss': '0.2605', 'grad_norm': '5.094', 'learning_rate': '1.858e-06', 'epoch': '0.8264'}
+Checkpoint pre-save memory: rss_mib=2662.4, mem_avail_mib=27011.7, torch_peak_reserved_mib=109668.0, nvidia_used_mib=88623.0
+Checkpoint pre-save action: gc.collect()
+Checkpoint pre-save action: torch.cuda.empty_cache()
+Checkpoint pre-save memory (after cleanup): rss_mib=2662.4, mem_avail_mib=74628.0, torch_peak_reserved_mib=109668.0, nvidia_used_mib=41953.0
+{'loss': '0.353', 'grad_norm': '1.531', 'learning_rate': '1.795e-06', 'epoch': '0.8323'}
+
+Writing model shards:   0%|          | 0/32 [00:00<?, ?it/s][A
+Writing model shards:   3%|▎         | 1/32 [00:09<05:03,  9.79s/it][A
+Writing model shards:   6%|▋         | 2/32 [00:11<02:23,  4.80s/it][A
+Writing model shards:   9%|▉         | 3/32 [00:12<01:38,  3.38s/it][A
+Writing model shards:  12%|█▎        | 4/32 [00:14<01:16,  2.73s/it][A
+Writing model shards:  16%|█▌        | 5/32 [00:15<00:58,  2.15s/it][A
+Writing model shards:  19%|█▉        | 6/32 [00:17<00:55,  2.14s/it][A
+Writing model shards:  22%|██▏       | 7/32 [00:19<00:46,  1.87s/it][A
+Writing model shards:  25%|██▌       | 8/32 [00:20<00:40,  1.69s/it][A
+Writing model shards:  28%|██▊       | 9/32 [00:20<00:29,  1.28s/it][A
+Writing model shards:  31%|███▏      | 10/32 [00:22<00:33,  1.51s/it][A
+Writing model shards:  34%|███▍      | 11/32 [00:24<00:30,  1.44s/it][A
+Writing model shards:  38%|███▊      | 12/32 [00:25<00:28,  1.40s/it][A
+Writing model shards:  41%|████      | 13/32 [00:26<00:25,  1.32s/it][A
+Writing model shards:  44%|████▍     | 14/32 [00:27<00:23,  1.33s/it][A
+Writing model shards:  47%|████▋     | 15/32 [00:29<00:22,  1.33s/it][A
+Writing model shards:  50%|█████     | 16/32 [00:30<00:21,  1.33s/it][A
+Writing model shards:  53%|█████▎    | 17/32 [00:31<00:19,  1.32s/it][A
+Writing model shards:  56%|█████▋    | 18/32 [00:33<00:18,  1.31s/it][A
+Writing model shards:  59%|█████▉    | 19/32 [00:34<00:17,  1.31s/it][A
+Writing model shards:  62%|██████▎   | 20/32 [00:35<00:14,  1.25s/it][A
+Writing model shards:  66%|██████▌   | 21/32 [00:37<00:16,  1.48s/it][A
+Writing model shards:  69%|██████▉   | 22/32 [00:38<00:14,  1.42s/it][A
+Writing model shards:  72%|███████▏  | 23/32 [00:40<00:12,  1.38s/it][A
+Writing model shards:  75%|███████▌  | 24/32 [00:40<00:08,  1.07s/it][A
+Writing model shards:  78%|███████▊  | 25/32 [00:42<00:09,  1.37s/it][A
+Writing model shards:  81%|████████▏ | 26/32 [00:43<00:08,  1.34s/it][A
+Writing model shards:  84%|████████▍ | 27/32 [00:45<00:06,  1.33s/it][A
+Writing model shards:  88%|████████▊ | 28/32 [00:46<00:05,  1.26s/it][A
+Writing model shards:  91%|█████████ | 29/32 [00:47<00:03,  1.28s/it][A
+Writing model shards:  94%|█████████▍| 30/32 [00:48<00:02,  1.31s/it][A
+Writing model shards:  97%|█████████▋| 31/32 [00:50<00:01,  1.31s/it][A
+Writing model shards: 100%|██████████| 32/32 [00:51<00:00,  1.21s/it][AWriting model shards: 100%|██████████| 32/32 [00:51<00:00,  1.60s/it]
+ 83%|████████▎ | 701/841 [16:09:38<7:20:36, 188.83s/it] 83%|████████▎ | 702/841 [16:10:44<5:52:14, 152.05s/it] 84%|████████▎ | 703/841 [16:11:22<4:31:11, 117.91s/it] 84%|████████▎ | 704/841 [16:11:41<3:21:15, 88.14s/it]  84%|████████▍ | 705/841 [16:12:05<2:36:02, 68.84s/it]                                                       84%|████████▍ | 705/841 [16:12:05<2:36:02, 68.84s/it] 84%|████████▍ | 706/841 [16:13:21<2:39:58, 71.10s/it] 84%|████████▍ | 707/841 [16:13:43<2:05:56, 56.40s/it] 84%|████████▍ | 708/841 [16:14:39<2:04:30, 56.17s/it] 84%|████████▍ | 709/841 [16:15:37<2:04:42, 56.69s/it] 84%|████████▍ | 710/841 [16:16:19<1:54:28, 52.43s/it]                                                       84%|████████▍ | 710/841 [16:16:19<1:54:28, 52.43s/it] 85%|████████▍ | 711/841 [16:16:42<1:34:38, 43.68s/it] 85%|████████▍ | 712/841 [16:19:13<2:42:43, 75.69s/it] 85%|████████▍ | 713/841 [16:21:14<3:10:41, 89.38s/it] 85%|████████▍ | 714/841 [16:23:18<3:30:55, 99.65s/it] 85%|████████▌ | 715/841 [16:23:57<2:51:33, 81.70s/it]                                                       85%|████████▌ | 715/841 [16:23:57<2:51:33, 81.70s/it] 85%|████████▌ | 716/841 [16:24:38<2:24:43, 69.47s/it] 85%|████████▌ | 717/841 [16:24:55<1:51:06, 53.77s/it] 85%|████████▌ | 718/841 [16:25:27<1:36:49, 47.23s/it] 85%|████████▌ | 719/841 [16:26:13<1:34:52, 46.66s/it] 86%|████████▌ | 720/841 [16:28:21<2:23:12, 71.02s/it]                                                       86%|████████▌ | 720/841 [16:28:21<2:23:12, 71.02s/it] 86%|████████▌ | 721/841 [16:29:25<2:18:07, 69.06s/it] 86%|████████▌ | 722/841 [16:30:42<2:21:50, 71.52s/it] 86%|████████▌ | 723/841 [16:31:25<2:03:52, 62.98s/it] 86%|████████▌ | 724/841 [16:31:52<1:41:13, 51.91s/it] 86%|████████▌ | 725/841 [16:32:23<1:28:33, 45.81s/it]                                                       86%|████████▌ | 725/841 [16:32:23<1:28:33, 45.81s/it] 86%|████████▋ | 726/841 [16:32:57<1:20:43, 42.12s/it] 86%|████████▋ | 727/841 [16:33:17<1:07:33, 35.56s/it] 87%|████████▋ | 728/841 [16:37:38<3:14:34, 103.32s/it] 87%|████████▋ | 729/841 [16:37:54<2:24:02, 77.17s/it]  87%|████████▋ | 730/841 [16:38:49<2:10:27, 70.52s/it]                                                       87%|████████▋ | 730/841 [16:38:49<2:10:27, 70.52s/it] 87%|████████▋ | 731/841 [16:39:21<1:47:37, 58.70s/it] 87%|████████▋ | 732/841 [16:43:41<3:36:26, 119.14s/it] 87%|████████▋ | 733/841 [16:44:13<2:47:26, 93.02s/it]  87%|████████▋ | 734/841 [16:44:46<2:13:47, 75.03s/it] 87%|████████▋ | 735/841 [16:46:28<2:26:41, 83.04s/it]                                                       87%|████████▋ | 735/841 [16:46:28<2:26:41, 83.04s/it] 88%|████████▊ | 736/841 [16:46:59<1:58:04, 67.47s/it] 88%|████████▊ | 737/841 [16:49:36<2:43:33, 94.36s/it] 88%|████████▊ | 738/841 [16:50:25<2:18:46, 80.84s/it] 88%|████████▊ | 739/841 [16:51:01<1:54:16, 67.22s/it] 88%|████████▊ | 740/841 [16:55:22<3:31:14, 125.49s/it]                                                        88%|████████▊ | 740/841 [16:55:22<3:31:14, 125.49s/it] 88%|████████▊ | 741/841 [16:55:45<2:38:07, 94.87s/it]  88%|████████▊ | 742/841 [16:57:51<2:51:37, 104.01s/it] 88%|████████▊ | 743/841 [17:02:11<4:06:34, 150.97s/it] 88%|████████▊ | 744/841 [17:02:36<3:02:52, 113.12s/it] 89%|████████▊ | 745/841 [17:03:56<2:45:06, 103.20s/it]                                                        89%|████████▊ | 745/841 [17:03:56<2:45:06, 103.20s/it] 89%|████████▊ | 746/841 [17:04:16<2:03:55, 78.27s/it]  89%|████████▉ | 747/841 [17:05:01<1:46:52, 68.21s/it] 89%|████████▉ | 748/841 [17:05:21<1:23:05, 53.61s/it] 89%|████████▉ | 749/841 [17:05:54<1:13:08, 47.71s/it] 89%|████████▉ | 750/841 [17:06:50<1:15:43, 49.93s/it]                                                       89%|████████▉ | 750/841 [17:06:50<1:15:43, 49.93s/it]Checkpoint post-save memory: rss_mib=2678.7, mem_avail_mib=73419.1, torch_peak_reserved_mib=109668.0, nvidia_used_mib=41953.0
+{'loss': '0.3753', 'grad_norm': '8.188', 'learning_rate': '1.732e-06', 'epoch': '0.8383'}
+{'loss': '0.3729', 'grad_norm': '6.781', 'learning_rate': '1.669e-06', 'epoch': '0.8442'}
+{'loss': '0.268', 'grad_norm': '6.062', 'learning_rate': '1.606e-06', 'epoch': '0.8502'}
+{'loss': '0.2771', 'grad_norm': '2.281', 'learning_rate': '1.542e-06', 'epoch': '0.8561'}
+{'loss': '0.3566', 'grad_norm': '5.156', 'learning_rate': '1.479e-06', 'epoch': '0.8621'}
+{'loss': '0.3154', 'grad_norm': '4.344', 'learning_rate': '1.416e-06', 'epoch': '0.868'}
+{'loss': '0.299', 'grad_norm': '3.812', 'learning_rate': '1.353e-06', 'epoch': '0.874'}
+{'loss': '0.2619', 'grad_norm': '0.9961', 'learning_rate': '1.29e-06', 'epoch': '0.8799'}
+{'loss': '0.2687', 'grad_norm': '3.469', 'learning_rate': '1.226e-06', 'epoch': '0.8859'}
+Checkpoint pre-save memory: rss_mib=1677.6, mem_avail_mib=37500.1, torch_peak_reserved_mib=109668.0, nvidia_used_mib=79171.0
+Checkpoint pre-save action: gc.collect()
+Checkpoint pre-save action: torch.cuda.empty_cache()
+Checkpoint pre-save memory (after cleanup): rss_mib=1677.6, mem_avail_mib=75515.2, torch_peak_reserved_mib=109668.0, nvidia_used_mib=41955.0
+{'loss': '0.3551', 'grad_norm': '4.031', 'learning_rate': '1.163e-06', 'epoch': '0.8918'}
+
+Writing model shards:   0%|          | 0/32 [00:00<?, ?it/s][A
+Writing model shards:   3%|▎         | 1/32 [00:17<09:17, 17.99s/it][A
+Writing model shards:   6%|▋         | 2/32 [00:19<04:10,  8.33s/it][A
+Writing model shards:   9%|▉         | 3/32 [00:21<02:32,  5.25s/it][A
+Writing model shards:  12%|█▎        | 4/32 [00:22<01:47,  3.84s/it][A
+Writing model shards:  16%|█▌        | 5/32 [00:23<01:17,  2.87s/it][A
+Writing model shards:  19%|█▉        | 6/32 [00:26<01:08,  2.62s/it][A
+Writing model shards:  22%|██▏       | 7/32 [00:27<00:55,  2.22s/it][A
+Writing model shards:  25%|██▌       | 8/32 [00:28<00:47,  1.97s/it][A
+Writing model shards:  28%|██▊       | 9/32 [00:29<00:34,  1.48s/it][A
+Writing model shards:  31%|███▏      | 10/32 [00:31<00:37,  1.73s/it][A
+Writing model shards:  34%|███▍      | 11/32 [00:33<00:34,  1.63s/it][A
+Writing model shards:  38%|███▊      | 12/32 [00:34<00:31,  1.57s/it][A
+Writing model shards:  41%|████      | 13/32 [00:35<00:27,  1.46s/it][A
+Writing model shards:  44%|████▍     | 14/32 [00:37<00:25,  1.44s/it][A
+Writing model shards:  47%|████▋     | 15/32 [00:38<00:24,  1.45s/it][A
+Writing model shards:  50%|█████     | 16/32 [00:39<00:23,  1.45s/it][A
+Writing model shards:  53%|█████▎    | 17/32 [00:41<00:21,  1.43s/it][A
+Writing model shards:  56%|█████▋    | 18/32 [00:42<00:19,  1.40s/it][A
+Writing model shards:  59%|█████▉    | 19/32 [00:44<00:18,  1.39s/it][A
+Writing model shards:  62%|██████▎   | 20/32 [00:45<00:16,  1.35s/it][A
+Writing model shards:  66%|██████▌   | 21/32 [00:47<00:17,  1.63s/it][A
+Writing model shards:  69%|██████▉   | 22/32 [00:49<00:15,  1.57s/it][A
+Writing model shards:  72%|███████▏  | 23/32 [00:50<00:13,  1.54s/it][A
+Writing model shards:  75%|███████▌  | 24/32 [00:50<00:09,  1.20s/it][A
+Writing model shards:  78%|███████▊  | 25/32 [00:53<00:10,  1.54s/it][A
+Writing model shards:  81%|████████▏ | 26/32 [00:54<00:09,  1.52s/it][A
+Writing model shards:  84%|████████▍ | 27/32 [00:56<00:07,  1.51s/it][A
+Writing model shards:  88%|████████▊ | 28/32 [00:57<00:05,  1.43s/it][A
+Writing model shards:  91%|█████████ | 29/32 [00:58<00:04,  1.43s/it][A
+Writing model shards:  94%|█████████▍| 30/32 [01:00<00:02,  1.46s/it][A
+Writing model shards:  97%|█████████▋| 31/32 [01:01<00:01,  1.45s/it][A
+Writing model shards: 100%|██████████| 32/32 [01:02<00:00,  1.32s/it][AWriting model shards: 100%|██████████| 32/32 [01:02<00:00,  1.96s/it]
+ 89%|████████▉ | 751/841 [17:09:00<1:51:10, 74.11s/it] 89%|████████▉ | 752/841 [17:10:00<1:43:35, 69.84s/it] 90%|████████▉ | 753/841 [17:11:45<1:57:49, 80.34s/it] 90%|████████▉ | 754/841 [17:12:12<1:33:18, 64.35s/it] 90%|████████▉ | 755/841 [17:16:33<2:56:56, 123.45s/it]                                                        90%|████████▉ | 755/841 [17:16:33<2:56:56, 123.45s/it] 90%|████████▉ | 756/841 [17:18:56<3:03:11, 129.31s/it] 90%|█████████ | 757/841 [17:19:18<2:16:01, 97.16s/it]  90%|█████████ | 758/841 [17:20:09<1:54:57, 83.10s/it] 90%|█████████ | 759/841 [17:20:42<1:33:11, 68.19s/it] 90%|█████████ | 760/841 [17:22:34<1:49:54, 81.41s/it]                                                       90%|█████████ | 760/841 [17:22:34<1:49:54, 81.41s/it] 90%|█████████ | 761/841 [17:23:24<1:35:52, 71.91s/it] 91%|█████████ | 762/841 [17:24:07<1:23:20, 63.29s/it] 91%|█████████ | 763/841 [17:26:34<1:54:42, 88.24s/it] 91%|█████████ | 764/841 [17:27:13<1:34:24, 73.57s/it] 91%|█████████ | 765/841 [17:28:09<1:26:37, 68.39s/it]                                                       91%|█████████ | 765/841 [17:28:09<1:26:37, 68.39s/it] 91%|█████████ | 766/841 [17:32:45<2:43:13, 130.57s/it] 91%|█████████ | 767/841 [17:34:22<2:28:30, 120.41s/it] 91%|█████████▏| 768/841 [17:35:19<2:03:23, 101.42s/it] 91%|█████████▏| 769/841 [17:36:09<1:43:14, 86.04s/it]  92%|█████████▏| 770/841 [17:36:53<1:26:53, 73.44s/it]                                                       92%|█████████▏| 770/841 [17:36:53<1:26:53, 73.44s/it] 92%|█████████▏| 771/841 [17:37:13<1:07:00, 57.43s/it] 92%|█████████▏| 772/841 [17:41:46<2:20:29, 122.16s/it] 92%|█████████▏| 773/841 [17:42:06<1:43:40, 91.48s/it]  92%|█████████▏| 774/841 [17:43:53<1:47:12, 96.00s/it] 92%|█████████▏| 775/841 [17:44:15<1:21:21, 73.97s/it]                                                       92%|█████████▏| 775/841 [17:44:15<1:21:21, 73.97s/it] 92%|█████████▏| 776/841 [17:44:36<1:02:54, 58.06s/it] 92%|█████████▏| 777/841 [17:44:54<49:07, 46.05s/it]   93%|█████████▎| 778/841 [17:46:07<56:51, 54.15s/it] 93%|█████████▎| 779/841 [17:46:55<53:53, 52.15s/it] 93%|█████████▎| 780/841 [17:50:52<1:49:24, 107.61s/it]                                                        93%|█████████▎| 780/841 [17:50:52<1:49:24, 107.61s/it] 93%|█████████▎| 781/841 [17:55:12<2:33:28, 153.48s/it] 93%|█████████▎| 782/841 [17:59:34<3:02:44, 185.85s/it] 93%|█████████▎| 783/841 [18:00:33<2:22:52, 147.80s/it] 93%|█████████▎| 784/841 [18:03:30<2:28:57, 156.79s/it] 93%|█████████▎| 785/841 [18:04:36<2:00:44, 129.36s/it]                                                        93%|█████████▎| 785/841 [18:04:36<2:00:44, 129.36s/it] 93%|█████████▎| 786/841 [18:05:40<1:40:33, 109.69s/it] 94%|█████████▎| 787/841 [18:10:00<2:19:24, 154.91s/it] 94%|█████████▎| 788/841 [18:12:55<2:22:03, 160.81s/it] 94%|█████████▍| 789/841 [18:17:15<2:45:13, 190.64s/it] 94%|█████████▍| 790/841 [18:19:28<2:27:18, 173.30s/it]                                                        94%|█████████▍| 790/841 [18:19:28<2:27:18, 173.30s/it] 94%|█████████▍| 791/841 [18:20:36<1:58:10, 141.81s/it] 94%|█████████▍| 792/841 [18:21:18<1:31:25, 111.95s/it] 94%|█████████▍| 793/841 [18:22:23<1:18:11, 97.73s/it]  94%|█████████▍| 794/841 [18:23:47<1:13:20, 93.62s/it] 95%|█████████▍| 795/841 [18:26:44<1:31:02, 118.75s/it]                                                        95%|█████████▍| 795/841 [18:26:44<1:31:02, 118.75s/it] 95%|█████████▍| 796/841 [18:27:07<1:07:21, 89.82s/it]  95%|█████████▍| 797/841 [18:28:26<1:03:38, 86.78s/it] 95%|█████████▍| 798/841 [18:28:48<48:07, 67.15s/it]   95%|█████████▌| 799/841 [18:31:34<1:07:52, 96.95s/it] 95%|█████████▌| 800/841 [18:32:56<1:03:07, 92.39s/it]                                                       95%|█████████▌| 800/841 [18:32:56<1:03:07, 92.39s/it]Checkpoint post-save memory: rss_mib=2663.8, mem_avail_mib=73328.5, torch_peak_reserved_mib=109668.0, nvidia_used_mib=41955.0
+{'loss': '0.2419', 'grad_norm': '1.164', 'learning_rate': '1.1e-06', 'epoch': '0.8977'}
+{'loss': '0.2656', 'grad_norm': '2.422', 'learning_rate': '1.037e-06', 'epoch': '0.9037'}
+{'loss': '0.2971', 'grad_norm': '6.281', 'learning_rate': '9.735e-07', 'epoch': '0.9096'}
+{'loss': '0.3531', 'grad_norm': '6.219', 'learning_rate': '9.102e-07', 'epoch': '0.9156'}
+{'loss': '0.387', 'grad_norm': '8.562', 'learning_rate': '8.47e-07', 'epoch': '0.9215'}
+{'loss': '0.4174', 'grad_norm': '2.031', 'learning_rate': '7.838e-07', 'epoch': '0.9275'}
+{'loss': '0.1748', 'grad_norm': '4.188', 'learning_rate': '7.206e-07', 'epoch': '0.9334'}
+{'loss': '0.2141', 'grad_norm': '3.969', 'learning_rate': '6.574e-07', 'epoch': '0.9394'}
+{'loss': '0.2518', 'grad_norm': '2', 'learning_rate': '5.942e-07', 'epoch': '0.9453'}
+Checkpoint pre-save memory: rss_mib=2654.5, mem_avail_mib=17495.1, torch_peak_reserved_mib=109668.0, nvidia_used_mib=97803.0
+Checkpoint pre-save action: gc.collect()
+Checkpoint pre-save action: torch.cuda.empty_cache()
+Checkpoint pre-save memory (after cleanup): rss_mib=2654.5, mem_avail_mib=74506.8, torch_peak_reserved_mib=109668.0, nvidia_used_mib=41953.0
+{'loss': '0.3279', 'grad_norm': '3.578', 'learning_rate': '5.31e-07', 'epoch': '0.9512'}
+
+Writing model shards:   0%|          | 0/32 [00:00<?, ?it/s][A
+Writing model shards:   3%|▎         | 1/32 [00:08<04:38,  8.99s/it][A
+Writing model shards:   6%|▋         | 2/32 [00:10<02:16,  4.55s/it][A
+Writing model shards:   9%|▉         | 3/32 [00:11<01:31,  3.14s/it][A
+Writing model shards:  12%|█▎        | 4/32 [00:13<01:10,  2.53s/it][A
+Writing model shards:  16%|█▌        | 5/32 [00:14<00:54,  2.02s/it][A
+Writing model shards:  19%|█▉        | 6/32 [00:16<00:53,  2.07s/it][A
+Writing model shards:  22%|██▏       | 7/32 [00:18<00:45,  1.82s/it][A
+Writing model shards:  25%|██▌       | 8/32 [00:19<00:39,  1.65s/it][A
+Writing model shards:  28%|██▊       | 9/32 [00:19<00:28,  1.25s/it][A
+Writing model shards:  31%|███▏      | 10/32 [00:21<00:32,  1.50s/it][A
+Writing model shards:  34%|███▍      | 11/32 [00:23<00:30,  1.43s/it][A
+Writing model shards:  38%|███▊      | 12/32 [00:24<00:27,  1.38s/it][A
+Writing model shards:  41%|████      | 13/32 [00:25<00:24,  1.29s/it][A
+Writing model shards:  44%|████▍     | 14/32 [00:26<00:23,  1.30s/it][A
+Writing model shards:  47%|████▋     | 15/32 [00:28<00:22,  1.32s/it][A
+Writing model shards:  50%|█████     | 16/32 [00:29<00:21,  1.32s/it][A
+Writing model shards:  53%|█████▎    | 17/32 [00:30<00:19,  1.32s/it][A
+Writing model shards:  56%|█████▋    | 18/32 [00:32<00:18,  1.31s/it][A
+Writing model shards:  59%|█████▉    | 19/32 [00:33<00:16,  1.29s/it][A
+Writing model shards:  62%|██████▎   | 20/32 [00:34<00:14,  1.24s/it][A
+Writing model shards:  66%|██████▌   | 21/32 [00:36<00:16,  1.48s/it][A
+Writing model shards:  69%|██████▉   | 22/32 [00:37<00:14,  1.42s/it][A
+Writing model shards:  72%|███████▏  | 23/32 [00:38<00:12,  1.37s/it][A
+Writing model shards:  75%|███████▌  | 24/32 [00:39<00:08,  1.06s/it][A
+Writing model shards:  78%|███████▊  | 25/32 [00:41<00:09,  1.35s/it][A
+Writing model shards:  81%|████████▏ | 26/32 [00:42<00:08,  1.34s/it][A
+Writing model shards:  84%|████████▍ | 27/32 [00:43<00:06,  1.32s/it][A
+Writing model shards:  88%|████████▊ | 28/32 [00:44<00:05,  1.25s/it][A
+Writing model shards:  91%|█████████ | 29/32 [00:46<00:03,  1.27s/it][A
+Writing model shards:  94%|█████████▍| 30/32 [00:47<00:02,  1.29s/it][A
+Writing model shards:  97%|█████████▋| 31/32 [00:48<00:01,  1.30s/it][A
+Writing model shards: 100%|██████████| 32/32 [00:49<00:00,  1.20s/it][AWriting model shards: 100%|██████████| 32/32 [00:49<00:00,  1.56s/it]
+ 95%|█████████▌| 801/841 [18:35:11<1:10:10, 105.26s/it] 95%|█████████▌| 802/841 [18:35:36<52:42, 81.08s/it]    95%|█████████▌| 803/841 [18:36:19<44:07, 69.66s/it] 96%|█████████▌| 804/841 [18:40:41<1:18:34, 127.43s/it] 96%|█████████▌| 805/841 [18:40:58<56:30, 94.18s/it]                                                        96%|█████████▌| 805/841 [18:40:58<56:30, 94.18s/it] 96%|█████████▌| 806/841 [18:41:18<41:56, 71.90s/it] 96%|█████████▌| 807/841 [18:42:03<36:15, 63.98s/it] 96%|█████████▌| 808/841 [18:43:15<36:33, 66.48s/it] 96%|█████████▌| 809/841 [18:43:36<28:09, 52.79s/it] 96%|█████████▋| 810/841 [18:44:09<24:13, 46.88s/it]                                                     96%|█████████▋| 810/841 [18:44:09<24:13, 46.88s/it] 96%|█████████▋| 811/841 [18:44:37<20:29, 40.98s/it] 97%|█████████▋| 812/841 [18:44:58<16:55, 35.02s/it] 97%|█████████▋| 813/841 [18:46:09<21:28, 46.03s/it] 97%|█████████▋| 814/841 [18:46:32<17:31, 38.93s/it] 97%|█████████▋| 815/841 [18:47:25<18:46, 43.33s/it]                                                     97%|█████████▋| 815/841 [18:47:25<18:46, 43.33s/it] 97%|█████████▋| 816/841 [18:48:08<17:56, 43.07s/it] 97%|█████████▋| 817/841 [18:50:34<29:37, 74.07s/it] 97%|█████████▋| 818/841 [18:53:02<36:51, 96.16s/it] 97%|█████████▋| 819/841 [18:55:49<43:03, 117.43s/it] 98%|█████████▊| 820/841 [18:58:08<43:24, 124.00s/it]                                                      98%|█████████▊| 820/841 [18:58:08<43:24, 124.00s/it] 98%|█████████▊| 821/841 [18:58:50<33:05, 99.30s/it]  98%|█████████▊| 822/841 [19:01:32<37:26, 118.26s/it] 98%|█████████▊| 823/841 [19:03:48<37:02, 123.45s/it] 98%|█████████▊| 824/841 [19:05:15<31:54, 112.62s/it] 98%|█████████▊| 825/841 [19:05:53<24:01, 90.08s/it]                                                      98%|█████████▊| 825/841 [19:05:53<24:01, 90.08s/it] 98%|█████████▊| 826/841 [19:06:42<19:26, 77.74s/it] 98%|█████████▊| 827/841 [19:07:51<17:32, 75.20s/it] 98%|█████████▊| 828/841 [19:08:31<13:58, 64.51s/it] 99%|█████████▊| 829/841 [19:12:52<24:42, 123.53s/it] 99%|█████████▊| 830/841 [19:13:57<19:24, 105.86s/it]                                                      99%|█████████▊| 830/841 [19:13:57<19:24, 105.86s/it] 99%|█████████▉| 831/841 [19:18:18<25:24, 152.40s/it] 99%|█████████▉| 832/841 [19:19:07<18:12, 121.44s/it] 99%|█████████▉| 833/841 [19:19:28<12:10, 91.26s/it]  99%|█████████▉| 834/841 [19:20:50<10:20, 88.64s/it] 99%|█████████▉| 835/841 [19:21:17<07:00, 70.04s/it]                                                     99%|█████████▉| 835/841 [19:21:17<07:00, 70.04s/it] 99%|█████████▉| 836/841 [19:22:25<05:48, 69.65s/it]100%|█████████▉| 837/841 [19:23:28<04:30, 67.50s/it]100%|█████████▉| 838/841 [19:23:57<02:47, 55.92s/it]100%|█████████▉| 839/841 [19:25:12<02:03, 61.56s/it]100%|█████████▉| 840/841 [19:25:31<00:48, 48.92s/it]                                                    100%|█████████▉| 840/841 [19:25:31<00:48, 48.92s/it]100%|██████████| 841/841 [19:26:39<00:00, 54.78s/it]
+Writing model shards:   0%|          | 0/32 [00:00<?, ?it/s][ACheckpoint post-save memory: rss_mib=2670.9, mem_avail_mib=73299.5, torch_peak_reserved_mib=109668.0, nvidia_used_mib=41953.0
+{'loss': '0.3322', 'grad_norm': '9.25', 'learning_rate': '4.678e-07', 'epoch': '0.9572'}
+{'loss': '0.3959', 'grad_norm': '6', 'learning_rate': '4.046e-07', 'epoch': '0.9631'}
+{'loss': '0.3434', 'grad_norm': '4.781', 'learning_rate': '3.413e-07', 'epoch': '0.9691'}
+{'loss': '0.2368', 'grad_norm': '2.938', 'learning_rate': '2.781e-07', 'epoch': '0.975'}
+{'loss': '0.2962', 'grad_norm': '7.812', 'learning_rate': '2.149e-07', 'epoch': '0.981'}
+{'loss': '0.3028', 'grad_norm': '4.75', 'learning_rate': '1.517e-07', 'epoch': '0.9869'}
+{'loss': '0.3509', 'grad_norm': '8.75', 'learning_rate': '8.85e-08', 'epoch': '0.9929'}
+{'loss': '0.2457', 'grad_norm': '7.156', 'learning_rate': '2.528e-08', 'epoch': '0.9988'}
+Checkpoint pre-save memory: rss_mib=2656.2, mem_avail_mib=48793.0, torch_peak_reserved_mib=109668.0, nvidia_used_mib=67203.0
+Checkpoint pre-save action: gc.collect()
+Checkpoint pre-save action: torch.cuda.empty_cache()
+Checkpoint pre-save memory (after cleanup): rss_mib=2656.2, mem_avail_mib=74556.7, torch_peak_reserved_mib=109668.0, nvidia_used_mib=41953.0
+
+Writing model shards:   3%|▎         | 1/32 [00:10<05:16, 10.19s/it][A
+Writing model shards:   6%|▋         | 2/32 [00:11<02:34,  5.14s/it][A
+Writing model shards:   9%|▉         | 3/32 [00:13<01:45,  3.64s/it][A
+Writing model shards:  12%|█▎        | 4/32 [00:15<01:21,  2.91s/it][A
+Writing model shards:  16%|█▌        | 5/32 [00:16<01:02,  2.32s/it][A
+Writing model shards:  19%|█▉        | 6/32 [00:19<01:00,  2.32s/it][A
+Writing model shards:  22%|██▏       | 7/32 [00:20<00:50,  2.00s/it][A
+Writing model shards:  25%|██▌       | 8/32 [00:21<00:43,  1.82s/it][A
+Writing model shards:  28%|██▊       | 9/32 [00:22<00:32,  1.40s/it][A
+Writing model shards:  31%|███▏      | 10/32 [00:24<00:36,  1.67s/it][A
+Writing model shards:  34%|███▍      | 11/32 [00:25<00:33,  1.59s/it][A
+Writing model shards:  38%|███▊      | 12/32 [00:27<00:31,  1.55s/it][A
+Writing model shards:  41%|████      | 13/32 [00:28<00:27,  1.45s/it][A
+Writing model shards:  44%|████▍     | 14/32 [00:30<00:26,  1.44s/it][A
+Writing model shards:  47%|████▋     | 15/32 [00:31<00:24,  1.46s/it][A
+Writing model shards:  50%|█████     | 16/32 [00:33<00:23,  1.45s/it][A
+Writing model shards:  53%|█████▎    | 17/32 [00:34<00:21,  1.45s/it][A
+Writing model shards:  56%|█████▋    | 18/32 [00:35<00:20,  1.46s/it][A
+Writing model shards:  59%|█████▉    | 19/32 [00:37<00:18,  1.46s/it][A
+Writing model shards:  62%|██████▎   | 20/32 [00:38<00:16,  1.41s/it][A
+Writing model shards:  66%|██████▌   | 21/32 [00:40<00:18,  1.67s/it][A
+Writing model shards:  69%|██████▉   | 22/32 [00:42<00:15,  1.59s/it][A
+Writing model shards:  72%|███████▏  | 23/32 [00:43<00:13,  1.52s/it][A
+Writing model shards:  75%|███████▌  | 24/32 [00:44<00:09,  1.18s/it][A
+Writing model shards:  78%|███████▊  | 25/32 [00:46<00:10,  1.50s/it][A
+Writing model shards:  81%|████████▏ | 26/32 [00:47<00:08,  1.48s/it][A
+Writing model shards:  84%|████████▍ | 27/32 [00:49<00:07,  1.48s/it][A
+Writing model shards:  88%|████████▊ | 28/32 [00:50<00:05,  1.41s/it][A
+Writing model shards:  91%|█████████ | 29/32 [00:51<00:04,  1.42s/it][A
+Writing model shards:  94%|█████████▍| 30/32 [00:53<00:02,  1.44s/it][A
+Writing model shards:  97%|█████████▋| 31/32 [00:54<00:01,  1.44s/it][A
+Writing model shards: 100%|██████████| 32/32 [00:55<00:00,  1.33s/it][AWriting model shards: 100%|██████████| 32/32 [00:55<00:00,  1.75s/it]
+                                                    100%|██████████| 841/841 [19:28:01<00:00, 54.78s/it]100%|██████████| 841/841 [19:28:01<00:00, 83.33s/it]
+Checkpoint post-save memory: rss_mib=2672.2, mem_avail_mib=73115.2, torch_peak_reserved_mib=109668.0, nvidia_used_mib=41953.0
+{'train_runtime': '7.008e+04', 'train_samples_per_second': '0.012', 'train_steps_per_second': '0.012', 'train_loss': '0.3686', 'epoch': '1'}
+Saving full model to: /home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260506_045018_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1/artifacts/full_model
+Writing model shards:   0%|          | 0/32 [00:00<?, ?it/s]Writing model shards:   3%|▎         | 1/32 [00:09<05:08,  9.96s/it]Writing model shards:   6%|▋         | 2/32 [00:11<02:27,  4.93s/it]Writing model shards:   9%|▉         | 3/32 [00:12<01:39,  3.42s/it]Writing model shards:  12%|█▎        | 4/32 [00:14<01:16,  2.74s/it]Writing model shards:  16%|█▌        | 5/32 [00:15<00:58,  2.17s/it]Writing model shards:  19%|█▉        | 6/32 [00:18<00:57,  2.20s/it]Writing model shards:  22%|██▏       | 7/32 [00:19<00:48,  1.94s/it]Writing model shards:  25%|██▌       | 8/32 [00:20<00:42,  1.77s/it]Writing model shards:  28%|██▊       | 9/32 [00:21<00:30,  1.33s/it]Writing model shards:  31%|███▏      | 10/32 [00:23<00:35,  1.61s/it]Writing model shards:  34%|███▍      | 11/32 [00:24<00:32,  1.54s/it]Writing model shards:  38%|███▊      | 12/32 [00:26<00:30,  1.51s/it]Writing model shards:  41%|████      | 13/32 [00:27<00:27,  1.44s/it]Writing model shards:  44%|████▍     | 14/32 [00:29<00:25,  1.44s/it]Writing model shards:  47%|████▋     | 15/32 [00:30<00:24,  1.43s/it]Writing model shards:  50%|█████     | 16/32 [00:31<00:22,  1.43s/it]Writing model shards:  53%|█████▎    | 17/32 [00:33<00:21,  1.41s/it]Writing model shards:  56%|█████▋    | 18/32 [00:34<00:19,  1.38s/it]Writing model shards:  59%|█████▉    | 19/32 [00:36<00:18,  1.41s/it]Writing model shards:  62%|██████▎   | 20/32 [00:37<00:16,  1.35s/it]Writing model shards:  66%|██████▌   | 21/32 [00:39<00:17,  1.64s/it]Writing model shards:  69%|██████▉   | 22/32 [00:41<00:15,  1.59s/it]Writing model shards:  72%|███████▏  | 23/32 [00:42<00:13,  1.55s/it]Writing model shards:  75%|███████▌  | 24/32 [00:42<00:09,  1.21s/it]Writing model shards:  78%|███████▊  | 25/32 [00:45<00:10,  1.55s/it]Writing model shards:  81%|████████▏ | 26/32 [00:46<00:09,  1.50s/it]Writing model shards:  84%|████████▍ | 27/32 [00:48<00:07,  1.48s/it]Writing model shards:  88%|████████▊ | 28/32 [00:49<00:05,  1.39s/it]Writing model shards:  91%|█████████ | 29/32 [00:50<00:04,  1.38s/it]Writing model shards:  94%|█████████▍| 30/32 [00:52<00:02,  1.41s/it]Writing model shards:  97%|█████████▋| 31/32 [00:53<00:01,  1.42s/it]Writing model shards: 100%|██████████| 32/32 [00:54<00:00,  1.32s/it]Writing model shards: 100%|██████████| 32/32 [00:54<00:00,  1.71s/it]
+Training session completed
+Session dir: /home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260506_045018_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1
+[2026-05-06T17:22:01-07:00] training command exited successfully

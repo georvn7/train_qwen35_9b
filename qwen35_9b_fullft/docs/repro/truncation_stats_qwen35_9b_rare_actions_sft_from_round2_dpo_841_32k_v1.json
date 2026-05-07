@@ -1,0 +1,10 @@
+{
+  "enabled": true,
+  "max_seq_length": 32768,
+  "truncation_side": "left",
+  "total_rows": 841,
+  "rows_truncated": 76,
+  "pct_rows_truncated": 9.0369,
+  "max_original_tokens": 115527,
+  "max_final_tokens": 32768
+}
