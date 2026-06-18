@@ -266,3 +266,34 @@ Train `Qwen3.5 9B` with full-weight fine-tuning using the same session/manifest/
   - full-FT candidate (`artifacts/full_model`): `0.7175`
   - untouched `Qwen/Qwen3.5-9B` instruct baseline: `0.6425`
   - net gain from full-FT: `+0.075` absolute (`~+11.7%` relative).
+
+## 2026-06-17 Hayabusa V3 Rare-Actions Final-Only SFT
+
+- Added explicit SFT loss-target mode in `scripts/train_session.py`:
+  - `--loss-target final_assistant`
+  - pre-tokenizes rows into `input_ids` + `labels`
+  - masks every token before the final assistant message with `-100`
+  - preserves final assistant `thinking` / `reasoning_content` when present
+  - records decoded supervised-span previews for audit
+- Added launcher:
+  - `scripts/run_train_hayabusa_9b_v3_rare_actions_from_v3_main_final_only_safe.sh`
+- Training dataset for this run:
+  - `qwen35_9b_fullft/data/super-debug-v3-rare-actions-no-assistant-thinking.jsonl`
+- Reference-only with-thinking file is not trained in this run:
+  - `super-debug-v3/super-debug-v3-rare-actions-with-assistant-thinking.jsonl`
+- Tokenizer-only validation before training:
+  - rows: `562`
+  - left-truncated rows at 32K: `13`
+  - partially truncated final assistant targets: `0`
+  - average supervised final-target tokens: `200.6708`
+- 1-step full-FT smoke test passed:
+  - session `20260617_163019_hayabusa-9b_v3_rare_actions_finalonly_smoke1_20260617_093019`
+  - loss `1.164`
+  - final save skipped
+- Full run launched from completed v3 main model:
+  - session `20260617_163331_hayabusa-9b_v3_rare_actions_sft_562_from_v3_main_32k_finalonly_v1`
+  - model display name `hayabusa-9b`
+  - full fine-tuning confirmed: `8,953,803,264 / 8,953,803,264` trainable parameters
+  - checkpoints every `50` steps, keeping last `4`
+- Detailed recipe doc:
+  - `docs/HAYABUSA_V3_RARE_ACTIONS_FINAL_ONLY_20260617.md`

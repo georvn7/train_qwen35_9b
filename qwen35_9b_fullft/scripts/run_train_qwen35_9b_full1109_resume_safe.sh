@@ -28,6 +28,9 @@ CHECKPOINT_PRESAVE_GC="${CHECKPOINT_PRESAVE_GC:-1}"
 CHECKPOINT_PRESAVE_EMPTY_CACHE="${CHECKPOINT_PRESAVE_EMPTY_CACHE:-1}"
 CHECKPOINT_PRESAVE_DISABLE_CUDA_HISTORY="${CHECKPOINT_PRESAVE_DISABLE_CUDA_HISTORY:-1}"
 RESUME_TORCH_LOAD_MMAP="${RESUME_TORCH_LOAD_MMAP:-1}"
+LOSS_TARGET="${LOSS_TARGET:-assistant_all}"
+FINAL_ASSISTANT_PREVIEW_ROWS="${FINAL_ASSISTANT_PREVIEW_ROWS:-5}"
+FINAL_ASSISTANT_PREVIEW_MAX_CHARS="${FINAL_ASSISTANT_PREVIEW_MAX_CHARS:-1800}"
 
 EXTERNAL_GPU_GUARD_MIB=$((EXTERNAL_GPU_GUARD_GIB * 1024))
 
@@ -121,6 +124,7 @@ log "retry_policy: max_stagnant_failures=$MAX_STAGNANT_FAILURES max_total_attemp
 log "failure_tracking: ledger=$FAIL_LEDGER todo=$FAILED_STEPS_TODO"
 log "memory_safety: internal_gpu_guard_gib=$MAX_GPU_MEMORY_GIB external_gpu_guard_gib=$EXTERNAL_GPU_GUARD_GIB min_mem_avail_mib=$MIN_MEM_AVAIL_MIB"
 log "memory_tuning: cuda_memory_fraction=$CUDA_MEMORY_FRACTION cuda_alloc_conf=$CUDA_ALLOC_CONF causal_loss_mode=$CAUSAL_LOSS_MODE causal_loss_chunk_tokens=$CAUSAL_LOSS_CHUNK_TOKENS checkpoint_max_shard_size=$CHECKPOINT_MAX_SHARD_SIZE checkpoint_safe_serialization=$CHECKPOINT_SAFE_SERIALIZATION checkpoint_presave_gc=$CHECKPOINT_PRESAVE_GC checkpoint_presave_empty_cache=$CHECKPOINT_PRESAVE_EMPTY_CACHE checkpoint_presave_disable_cuda_history=$CHECKPOINT_PRESAVE_DISABLE_CUDA_HISTORY resume_torch_load_mmap=$RESUME_TORCH_LOAD_MMAP"
+log "loss_target: loss_target=$LOSS_TARGET final_assistant_preview_rows=$FINAL_ASSISTANT_PREVIEW_ROWS final_assistant_preview_max_chars=$FINAL_ASSISTANT_PREVIEW_MAX_CHARS"
 
 build_train_cmd() {
   local checkpoint_arg="$1"
@@ -161,6 +165,9 @@ build_train_cmd() {
     --disable-cce
     --no-packing
     --assistant-only-loss
+    --loss-target "$LOSS_TARGET"
+    --final-assistant-preview-rows "$FINAL_ASSISTANT_PREVIEW_ROWS"
+    --final-assistant-preview-max-chars "$FINAL_ASSISTANT_PREVIEW_MAX_CHARS"
     --group-by-length
     --skip-merged-export
     --skip-gguf-export

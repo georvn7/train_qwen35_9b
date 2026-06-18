@@ -412,6 +412,28 @@ def parse_args() -> argparse.Namespace:
         action="store_false",
     )
     parser.add_argument(
+        "--loss-target",
+        default="assistant_all",
+        choices=["assistant_all", "final_assistant"],
+        help=(
+            "Which tokens receive labels for SFT. "
+            "'assistant_all' keeps the trainer's existing assistant-only behavior. "
+            "'final_assistant' pre-tokenizes rows and labels only the final assistant turn."
+        ),
+    )
+    parser.add_argument(
+        "--final-assistant-preview-rows",
+        type=int,
+        default=3,
+        help="Number of decoded final-assistant supervised spans to save in metadata.",
+    )
+    parser.add_argument(
+        "--final-assistant-preview-max-chars",
+        type=int,
+        default=1600,
+        help="Maximum decoded supervised-span characters per metadata preview row.",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Validate manifest/dataset/config pipeline without loading model or training.",
@@ -949,6 +971,263 @@ def truncate_text_batch_to_max_tokens(
     }
 
 
+
+def _chat_template_fallback_text(messages: list[dict[str, Any]], add_generation_prompt: bool) -> str:
+    lines: list[str] = []
+    for msg in messages:
+        role = str(msg.get("role", "unknown"))
+        reasoning = msg.get("reasoning_content") or msg.get("thinking")
+        if isinstance(reasoning, str) and reasoning.strip():
+            lines.append(f"{role}.thinking: {reasoning.strip()}")
+        motivation = msg.get("motivation")
+        if isinstance(motivation, str) and motivation.strip():
+            lines.append(f"{role}.motivation: {motivation.strip()}")
+        lines.append(f"{role}: {msg.get('content', '')}")
+    if add_generation_prompt:
+        lines.append("assistant:")
+    return "\n".join(lines)
+
+
+def normalize_messages_for_chat_template(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    normalized: list[dict[str, Any]] = []
+    for raw_msg in messages:
+        msg = dict(raw_msg)
+        if str(msg.get("role", "")).lower() == "assistant":
+            existing_reasoning = msg.get("reasoning_content")
+            if not (isinstance(existing_reasoning, str) and existing_reasoning.strip()):
+                reasoning_parts: list[str] = []
+                thinking = msg.get("thinking")
+                if isinstance(thinking, str) and thinking.strip():
+                    reasoning_parts.append(thinking.strip())
+                motivation = msg.get("motivation")
+                content = msg.get("content")
+                content_text = content if isinstance(content, str) else ""
+                if (
+                    isinstance(motivation, str)
+                    and motivation.strip()
+                    and '"motivation"' not in content_text
+                    and "motivation:" not in content_text.lower()
+                ):
+                    reasoning_parts.append(f"Motivation: {motivation.strip()}")
+                if reasoning_parts:
+                    msg["reasoning_content"] = "\n\n".join(reasoning_parts)
+        normalized.append(msg)
+    return normalized
+
+
+def apply_chat_template_token_ids(
+    messages: list[dict[str, Any]],
+    tokenizer: Any,
+    reasoning_effort: str,
+    add_generation_prompt: bool,
+) -> list[int]:
+    kwargs: dict[str, Any] = {
+        "tokenize": True,
+        "add_generation_prompt": add_generation_prompt,
+    }
+    if reasoning_effort:
+        kwargs["reasoning_effort"] = reasoning_effort
+    try:
+        output = tokenizer.apply_chat_template(messages, **kwargs)
+    except TypeError:
+        kwargs.pop("reasoning_effort", None)
+        output = tokenizer.apply_chat_template(messages, **kwargs)
+    except ValueError as exc:
+        message = str(exc).lower()
+        fallback_markers = (
+            "chat template",
+            "incorrect image source",
+            "must be a valid url",
+            "base64",
+            "image source",
+        )
+        if not any(marker in message for marker in fallback_markers):
+            raise
+        text = _chat_template_fallback_text(messages, add_generation_prompt=add_generation_prompt)
+        return tokenizer(text, add_special_tokens=False)["input_ids"]
+
+    if isinstance(output, dict) or (hasattr(output, "keys") and "input_ids" in output):
+        output = output["input_ids"]
+    if output and isinstance(output[0], list):
+        output = output[0]
+    return [int(token_id) for token_id in output]
+
+
+def build_final_assistant_only_dataset(
+    dataset: Any,
+    template_tokenizer: Any,
+    decode_tokenizer: Any,
+    max_seq_length: int,
+    truncation_side: str,
+    reasoning_effort: str,
+    metadata_dir: Path,
+    preview_rows: int,
+    preview_max_chars: int,
+) -> tuple[Any, dict[str, Any]]:
+    from datasets import Dataset
+
+    tokenized_rows: list[dict[str, list[int]]] = []
+    previews: list[dict[str, Any]] = []
+    original_lengths: list[int] = []
+    final_lengths: list[int] = []
+    supervised_lengths_before: list[int] = []
+    supervised_lengths_after: list[int] = []
+    prefix_lengths: list[int] = []
+    truncated_rows = 0
+    target_truncated_rows = 0
+    boundary_adjusted_rows = 0
+    max_boundary_adjustment_tokens = 0
+
+    for row_index, row in enumerate(dataset):
+        messages = row.get("messages")
+        if not isinstance(messages, list) or not messages:
+            raise ValueError(f"Row {row_index} has no messages list; final_assistant loss requires messages data.")
+
+        final_assistant_index = -1
+        for msg_index in range(len(messages) - 1, -1, -1):
+            if str(messages[msg_index].get("role", "")).lower() == "assistant":
+                final_assistant_index = msg_index
+                break
+        if final_assistant_index < 0:
+            raise ValueError(f"Row {row_index} has no assistant message to supervise.")
+        if final_assistant_index != len(messages) - 1:
+            raise ValueError(
+                f"Row {row_index} has messages after the final assistant turn; refusing ambiguous target."
+            )
+
+        normalized_messages = normalize_messages_for_chat_template(messages)
+        context_messages = normalized_messages[:final_assistant_index]
+        full_messages = normalized_messages[: final_assistant_index + 1]
+        prefix_ids = apply_chat_template_token_ids(
+            context_messages,
+            template_tokenizer,
+            reasoning_effort=reasoning_effort,
+            add_generation_prompt=True,
+        )
+        full_ids = apply_chat_template_token_ids(
+            full_messages,
+            template_tokenizer,
+            reasoning_effort=reasoning_effort,
+            add_generation_prompt=False,
+        )
+        target_start = len(prefix_ids)
+        if full_ids[: len(prefix_ids)] != prefix_ids:
+            common_prefix = 0
+            for left, right in zip(full_ids, prefix_ids):
+                if left != right:
+                    break
+                common_prefix += 1
+            boundary_adjustment = len(prefix_ids) - common_prefix
+            if boundary_adjustment < 0 or boundary_adjustment > 8:
+                raise ValueError(
+                    f"Row {row_index} final-assistant prefix mismatch: "
+                    f"prompt_prefix_tokens={len(prefix_ids)} common_prefix_tokens={common_prefix} "
+                    f"full_tokens={len(full_ids)} boundary_adjustment_tokens={boundary_adjustment}"
+                )
+            target_start = common_prefix
+            boundary_adjusted_rows += 1
+            max_boundary_adjustment_tokens = max(max_boundary_adjustment_tokens, boundary_adjustment)
+
+        labels = [-100] * len(full_ids)
+        for pos in range(target_start, len(full_ids)):
+            labels[pos] = int(full_ids[pos])
+
+        original_len = len(full_ids)
+        supervised_before = sum(1 for value in labels if value != -100)
+        if supervised_before <= 0:
+            raise ValueError(f"Row {row_index} produced zero supervised target tokens before truncation.")
+
+        if original_len > max_seq_length:
+            truncated_rows += 1
+            if truncation_side == "left":
+                start = original_len - max_seq_length
+                input_ids = full_ids[start:]
+                row_labels = labels[start:]
+            else:
+                input_ids = full_ids[:max_seq_length]
+                row_labels = labels[:max_seq_length]
+        else:
+            input_ids = full_ids
+            row_labels = labels
+
+        supervised_after = sum(1 for value in row_labels if value != -100)
+        if supervised_after <= 0:
+            raise ValueError(
+                f"Row {row_index} produced zero supervised target tokens after truncation; "
+                "the final assistant answer was fully clipped."
+            )
+        if supervised_after < supervised_before:
+            target_truncated_rows += 1
+
+        tokenized_rows.append({"input_ids": input_ids, "labels": row_labels})
+        original_lengths.append(original_len)
+        final_lengths.append(len(input_ids))
+        prefix_lengths.append(len(prefix_ids))
+        supervised_lengths_before.append(supervised_before)
+        supervised_lengths_after.append(supervised_after)
+
+        if len(previews) < max(0, preview_rows):
+            supervised_ids = [token_id for token_id, label in zip(input_ids, row_labels) if label != -100]
+            decoded = decode_tokenizer.decode(
+                supervised_ids,
+                skip_special_tokens=False,
+                clean_up_tokenization_spaces=False,
+            )
+            if len(decoded) > preview_max_chars:
+                decoded = decoded[:preview_max_chars] + "...<truncated-preview>"
+            previews.append(
+                {
+                    "row_index": row_index,
+                    "message_count": len(messages),
+                    "final_assistant_index": final_assistant_index,
+                    "original_tokens": original_len,
+                    "final_tokens": len(input_ids),
+                    "supervised_tokens_before_truncation": supervised_before,
+                    "supervised_tokens_after_truncation": supervised_after,
+                    "decoded_supervised_span": decoded,
+                }
+            )
+
+    total_rows = len(tokenized_rows)
+    stats = {
+        "mode": "final_assistant",
+        "total_rows": total_rows,
+        "max_seq_length": int(max_seq_length),
+        "truncation_side": truncation_side,
+        "rows_truncated": int(truncated_rows),
+        "pct_rows_truncated": round((truncated_rows / total_rows) * 100.0, 4) if total_rows else 0.0,
+        "rows_with_target_partially_truncated": int(target_truncated_rows),
+        "max_original_tokens": int(max(original_lengths)) if original_lengths else 0,
+        "max_final_tokens": int(max(final_lengths)) if final_lengths else 0,
+        "min_supervised_tokens_after_truncation": int(min(supervised_lengths_after)) if supervised_lengths_after else 0,
+        "max_supervised_tokens_after_truncation": int(max(supervised_lengths_after)) if supervised_lengths_after else 0,
+        "avg_supervised_tokens_after_truncation": round(
+            sum(supervised_lengths_after) / len(supervised_lengths_after), 4
+        )
+        if supervised_lengths_after
+        else 0.0,
+        "max_prefix_tokens": int(max(prefix_lengths)) if prefix_lengths else 0,
+        "boundary_adjusted_rows": int(boundary_adjusted_rows),
+        "max_boundary_adjustment_tokens": int(max_boundary_adjustment_tokens),
+    }
+    save_json(metadata_dir / "final_assistant_loss_stats.json", stats)
+    preview_path = metadata_dir / "final_assistant_supervised_span_previews.jsonl"
+    with preview_path.open("w", encoding="utf-8") as handle:
+        for preview in previews:
+            handle.write(json.dumps(preview, ensure_ascii=False) + "\n")
+    stats["preview_path"] = str(preview_path)
+    print(
+        "Final-assistant-only label stats: "
+        f"rows={total_rows}, rows_truncated={truncated_rows}, "
+        f"target_partially_truncated={target_truncated_rows}, "
+        f"max_original_tokens={stats['max_original_tokens']}, "
+        f"max_final_tokens={stats['max_final_tokens']}, "
+        f"avg_supervised_tokens={stats['avg_supervised_tokens_after_truncation']}"
+    )
+    print(f"Saved final-assistant supervised-span previews: {preview_path}")
+    return Dataset.from_list(tokenized_rows), stats
+
+
 def configure_causal_lm_loss(
     model: Any,
     mode: str,
@@ -1317,6 +1596,9 @@ def main() -> None:
         raise ValueError(
             f"Dataset columns must include 'messages' or 'text'. Got: {dataset.column_names}"
         )
+    effective_assistant_only_loss = bool(
+        args.assistant_only_loss and args.loss_target != "final_assistant"
+    )
 
     target_modules = [
         module.strip()
@@ -1358,6 +1640,10 @@ def main() -> None:
             "group_by_length": args.group_by_length,
             "packing": args.packing,
             "assistant_only_loss": args.assistant_only_loss,
+            "effective_assistant_only_loss": effective_assistant_only_loss,
+            "loss_target": args.loss_target,
+            "final_assistant_preview_rows": args.final_assistant_preview_rows,
+            "final_assistant_preview_max_chars": args.final_assistant_preview_max_chars,
             "precision": args.precision,
             "torch_dtype": args.torch_dtype,
             "load_in_4bit": args.load_in_4bit,
@@ -1548,59 +1834,92 @@ def main() -> None:
             loftq_config=None,
         )
 
-    if "messages" in dataset.column_names:
-        dataset = dataset.map(
-            lambda batch: render_messages_as_text(batch, tokenizer, args.reasoning_effort),
-            batched=True,
-            desc="Rendering chat template",
+    loss_target_stats: dict[str, Any] = {"mode": args.loss_target}
+    if args.loss_target == "final_assistant":
+        if "messages" not in dataset.column_names:
+            raise ValueError("--loss-target final_assistant requires a messages-format dataset.")
+        if args.packing:
+            raise ValueError("--loss-target final_assistant is incompatible with packing.")
+        dataset, loss_target_stats = build_final_assistant_only_dataset(
+            dataset=dataset,
+            template_tokenizer=tokenizer,
+            decode_tokenizer=text_tokenizer,
+            max_seq_length=args.max_seq_length,
+            truncation_side=args.truncation_side,
+            reasoning_effort=args.reasoning_effort,
+            metadata_dir=metadata_dir,
+            preview_rows=args.final_assistant_preview_rows,
+            preview_max_chars=args.final_assistant_preview_max_chars,
         )
         dataset_text_field = "text"
-
-    truncation_stats = {
-        "enabled": bool(args.truncate_overlength_samples),
-        "max_seq_length": int(args.max_seq_length),
-        "truncation_side": args.truncation_side,
-        "total_rows": int(len(dataset)),
-        "rows_truncated": 0,
-        "pct_rows_truncated": 0.0,
-        "max_original_tokens": 0,
-        "max_final_tokens": 0,
-    }
-    if args.truncate_overlength_samples and dataset_text_field == "text":
-        dataset = dataset.map(
-            lambda batch: truncate_text_batch_to_max_tokens(
-                batch,
-                text_tokenizer,
-                args.max_seq_length,
-                args.truncation_side,
-            ),
-            batched=True,
-            desc="Applying max_seq_length truncation",
-        )
-        orig_tokens = dataset["__orig_tokens"]
-        final_tokens = dataset["__final_tokens"]
-        truncated_flags = dataset["__was_truncated"]
-        rows_truncated = int(sum(int(flag) for flag in truncated_flags))
-        total_rows = int(len(dataset))
         truncation_stats = {
             "enabled": True,
+            "mode": "pretokenized_final_assistant",
             "max_seq_length": int(args.max_seq_length),
             "truncation_side": args.truncation_side,
-            "total_rows": total_rows,
-            "rows_truncated": rows_truncated,
-            "pct_rows_truncated": round((rows_truncated / total_rows) * 100.0, 4)
-            if total_rows > 0
-            else 0.0,
-            "max_original_tokens": int(max(orig_tokens)) if orig_tokens else 0,
-            "max_final_tokens": int(max(final_tokens)) if final_tokens else 0,
+            "total_rows": int(loss_target_stats.get("total_rows", len(dataset))),
+            "rows_truncated": int(loss_target_stats.get("rows_truncated", 0)),
+            "pct_rows_truncated": float(loss_target_stats.get("pct_rows_truncated", 0.0)),
+            "max_original_tokens": int(loss_target_stats.get("max_original_tokens", 0)),
+            "max_final_tokens": int(loss_target_stats.get("max_final_tokens", 0)),
+            "rows_with_target_partially_truncated": int(
+                loss_target_stats.get("rows_with_target_partially_truncated", 0)
+            ),
         }
-        print(
-            "Pre-truncation stats: "
-            f"rows_truncated={rows_truncated}/{total_rows}, "
-            f"max_original_tokens={truncation_stats['max_original_tokens']}, "
-            f"max_final_tokens={truncation_stats['max_final_tokens']}"
-        )
-        dataset = dataset.remove_columns(["__orig_tokens", "__final_tokens", "__was_truncated"])
+    else:
+        if "messages" in dataset.column_names:
+            dataset = dataset.map(
+                lambda batch: render_messages_as_text(batch, tokenizer, args.reasoning_effort),
+                batched=True,
+                desc="Rendering chat template",
+            )
+            dataset_text_field = "text"
+
+        truncation_stats = {
+            "enabled": bool(args.truncate_overlength_samples),
+            "max_seq_length": int(args.max_seq_length),
+            "truncation_side": args.truncation_side,
+            "total_rows": int(len(dataset)),
+            "rows_truncated": 0,
+            "pct_rows_truncated": 0.0,
+            "max_original_tokens": 0,
+            "max_final_tokens": 0,
+        }
+        if args.truncate_overlength_samples and dataset_text_field == "text":
+            dataset = dataset.map(
+                lambda batch: truncate_text_batch_to_max_tokens(
+                    batch,
+                    text_tokenizer,
+                    args.max_seq_length,
+                    args.truncation_side,
+                ),
+                batched=True,
+                desc="Applying max_seq_length truncation",
+            )
+            orig_tokens = dataset["__orig_tokens"]
+            final_tokens = dataset["__final_tokens"]
+            truncated_flags = dataset["__was_truncated"]
+            rows_truncated = int(sum(int(flag) for flag in truncated_flags))
+            total_rows = int(len(dataset))
+            truncation_stats = {
+                "enabled": True,
+                "max_seq_length": int(args.max_seq_length),
+                "truncation_side": args.truncation_side,
+                "total_rows": total_rows,
+                "rows_truncated": rows_truncated,
+                "pct_rows_truncated": round((rows_truncated / total_rows) * 100.0, 4)
+                if total_rows > 0
+                else 0.0,
+                "max_original_tokens": int(max(orig_tokens)) if orig_tokens else 0,
+                "max_final_tokens": int(max(final_tokens)) if final_tokens else 0,
+            }
+            print(
+                "Pre-truncation stats: "
+                f"rows_truncated={rows_truncated}/{total_rows}, "
+                f"max_original_tokens={truncation_stats['max_original_tokens']}, "
+                f"max_final_tokens={truncation_stats['max_final_tokens']}"
+            )
+            dataset = dataset.remove_columns(["__orig_tokens", "__final_tokens", "__was_truncated"])
     save_json(metadata_dir / "truncation_stats.json", truncation_stats)
 
     train_dataset = dataset
@@ -1661,7 +1980,7 @@ def main() -> None:
         "fp16": fp16_flag,
         "group_by_length": args.group_by_length,
         "packing": args.packing,
-        "assistant_only_loss": args.assistant_only_loss,
+        "assistant_only_loss": effective_assistant_only_loss,
     }
     if args.torch_empty_cache_steps > 0:
         sft_kwargs["torch_empty_cache_steps"] = args.torch_empty_cache_steps
@@ -1827,6 +2146,9 @@ def main() -> None:
         "group_by_length": args.group_by_length,
         "packing": args.packing,
         "assistant_only_loss": args.assistant_only_loss,
+        "effective_assistant_only_loss": effective_assistant_only_loss,
+        "loss_target": args.loss_target,
+        "loss_target_stats": loss_target_stats,
         "precision": args.precision,
         "torch_dtype": args.torch_dtype,
         "load_in_4bit": args.load_in_4bit,
