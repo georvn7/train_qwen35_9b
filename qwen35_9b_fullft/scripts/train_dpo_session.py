@@ -385,6 +385,48 @@ def save_ref_logprob_cache(
     tmp_meta_path.replace(meta_path)
 
 
+def normalize_dpo_messages_for_chat_template(value: Any) -> Any:
+    """Map Hen reasoning fields to the Qwen chat-template contract."""
+    if not isinstance(value, list):
+        return value
+    normalized: list[Any] = []
+    for raw_message in value:
+        if not isinstance(raw_message, dict):
+            normalized.append(raw_message)
+            continue
+        message = dict(raw_message)
+        if str(message.get("role", "")).lower() == "assistant":
+            existing = message.get("reasoning_content")
+            thinking = message.get("thinking")
+            if (
+                not (isinstance(existing, str) and existing.strip())
+                and isinstance(thinking, str)
+                and thinking.strip()
+            ):
+                message["reasoning_content"] = thinking.strip()
+        normalized.append(message)
+    return normalized
+
+
+def render_dpo_row_for_tokenization(
+    row: dict[str, Any],
+    tokenizer: Any,
+) -> dict[str, str]:
+    """Render conversational DPO fields exactly as TRL would before tokenization."""
+    from trl.data_utils import maybe_apply_chat_template
+
+    fields = {
+        key: normalize_dpo_messages_for_chat_template(row[key])
+        for key in ("prompt", "chosen", "rejected")
+    }
+    rendered = maybe_apply_chat_template(fields, tokenizer)
+    for key in fields:
+        value = rendered.get(key)
+        if not isinstance(value, str) or not value:
+            raise ValueError(f"rendered DPO field {key!r} must be a non-empty string")
+    return rendered
+
+
 def build_tokenized_rows(
     rows: list[dict[str, Any]],
     tokenizer: Any,
@@ -404,9 +446,10 @@ def build_tokenized_rows(
     tokenized_rows: list[dict[str, Any]] = []
 
     for row in rows:
-        prompt_ids = tokenizer(row["prompt"], add_special_tokens=False)["input_ids"]
-        chosen_ids = tokenizer(row["chosen"], add_special_tokens=False)["input_ids"]
-        rejected_ids = tokenizer(row["rejected"], add_special_tokens=False)["input_ids"]
+        rendered = render_dpo_row_for_tokenization(row, tokenizer)
+        prompt_ids = tokenizer(rendered["prompt"], add_special_tokens=False)["input_ids"]
+        chosen_ids = tokenizer(rendered["chosen"], add_special_tokens=False)["input_ids"]
+        rejected_ids = tokenizer(rendered["rejected"], add_special_tokens=False)["input_ids"]
 
         if eos_token_id is not None:
             chosen_ids = chosen_ids + [eos_token_id]

@@ -18,6 +18,7 @@ MAX_NUM_SEQS="${MAX_NUM_SEQS:-1}"
 MAX_NUM_BATCHED_TOKENS="${MAX_NUM_BATCHED_TOKENS:-32768}"
 API_KEY="${API_KEY:-}"
 READY_WAIT_SEC="${READY_WAIT_SEC:-900}"
+ENABLE_THINKING="${ENABLE_THINKING:-false}"
 PY_HEADERS_ROOT="${PY_HEADERS_ROOT:-${WORKSPACE_ROOT}/.local_py312dev/usr/include}"
 
 LOG_DIR="${WORKSPACE_ROOT}/logs"
@@ -71,7 +72,20 @@ if [[ -f "${PID_FILE}" ]]; then
   fi
 fi
 
-CHAT_KWARGS='{"enable_thinking":false}'
+case "${ENABLE_THINKING,,}" in
+  true|1|yes)
+    CHAT_KWARGS='{"enable_thinking":true}'
+    REASONING_ARGS=(--reasoning-parser qwen3)
+    ;;
+  false|0|no)
+    CHAT_KWARGS='{"enable_thinking":false}'
+    REASONING_ARGS=()
+    ;;
+  *)
+    echo "ERROR: ENABLE_THINKING must be true or false"
+    exit 1
+    ;;
+esac
 
 CMD=(
   "${VLLM_BIN}" serve "${MODEL_PATH}"
@@ -87,6 +101,7 @@ CMD=(
   --enforce-eager
   --disable-frontend-multiprocessing
   --language-model-only
+  "${REASONING_ARGS[@]}"
 )
 
 if [[ -n "${API_KEY}" ]]; then

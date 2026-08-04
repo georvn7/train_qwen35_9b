@@ -19,8 +19,11 @@ Published dataset on Hugging Face:
 
 Important:
 
-- HF dataset above contains assistant `thinking` fields.
-- The full-FT run in this repo was trained on the **no-thinking** variant.
+- The Hugging Face dataset above contains assistant `thinking` fields.
+- The original full-FT run documented by this repository used the **no-thinking** variant.
+- Current curriculum jobs support reasoning-aware SFT and DPO. They map Hen
+  `thinking` to Qwen `reasoning_content`, supervise only the final assistant turn
+  during SFT, and compare complete reasoning-plus-answer completions during DPO.
 
 Default training dataset is copied locally to:
 
@@ -79,6 +82,36 @@ qwen35_9b_fullft/scripts/run_train_qwen35_9b_full1109_resume_safe.sh
   - `save_steps=50`, `save_total_limit=4` (large full-FT checkpoints)
   - `precision=bf16`, `optim=adamw_8bit`
 
+## Autonomous Curriculum Training
+
+The production curriculum path uses an immutable job contract and a sequential
+checkpoint chain:
+
+1. Bootstrap cycle: one epoch of full-weight, final-assistant-only SFT followed
+   by one epoch of DPO.
+2. Continuation cycles: DPO-only jobs start from the immediately preceding DPO
+   checkpoint.
+3. Successful jobs validate the checkpoint, deploy it through vLLM, and require
+   an OpenAI-compatible health response before reporting completion.
+
+Thinking-aware jobs require a bounded `thinking` field in the final assistant
+message. Semantic judging is performed on final content only, while both SFT and
+DPO train the model's complete reasoning-plus-answer completion.
+
+Run one submitted job with:
+
+```bash
+./.venv/bin/python qwen35_9b_fullft/scripts/train_job_runner.py \
+  --jobs-root /path/to/jobs \
+  --once
+```
+
+See:
+
+- `docs/DGX_SPARK_TRAINING_RUNNER.md` for the executable job contract.
+- `docs/PORTABLE_CURRICULUM_TRAINING_CONTRACT.md` for framework-porting
+  invariants, including MLX.
+
 ## Schema20 Eval Gate
 
 - Eval cases: `qwen35_9b_fullft/evals/agent_cases_20_schema_final_v1.json`
@@ -115,5 +148,7 @@ qwen35_9b_fullft/scripts/run_train_qwen35_9b_full1109_resume_safe.sh
 - Decision and technical log: `docs/PROJECT_LOG.md`
 - Run records and metrics snapshots: `docs/RUN_HISTORY.md`
 - Current recommended training config: `docs/QUALITY_RECIPE.md`
+- Curriculum job runner: `docs/DGX_SPARK_TRAINING_RUNNER.md`
+- Portable/MLX training contract: `docs/PORTABLE_CURRICULUM_TRAINING_CONTRACT.md`
 - Strict schema benchmark gate: `docs/EVAL_SCHEMA20_GATE.md`
 - Inference stack recommendation: `docs/INFERENCE_ENGINE_RECOMMENDATION.md`

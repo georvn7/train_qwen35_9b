@@ -27,3 +27,16 @@ qwen35_9b_fullft/data/*.jsonl
 
 # Keep docs/repro snapshots tracked
 !qwen35_9b_fullft/docs/repro/**
+
+# Local curriculum jobs, datasets, and machine-specific state
+/jobs/
+/dataset*/
+/super-debug-v*/
+/.local/
+/.local_git_lfs_download/
+qwen35_9b_fullft/metadata/
+qwen35_9b_fullft/data/*.meta.json
+qwen35_9b_fullft/data/*.meta.md
+qwen35_9b_fullft/data/*_preview.txt
+qwen35_9b_fullft/data/*manifest*.tsv
+*.pre_thinking_*

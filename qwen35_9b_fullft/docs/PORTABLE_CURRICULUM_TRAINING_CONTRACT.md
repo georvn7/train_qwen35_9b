@@ -1,0 +1,105 @@
+# Portable Curriculum Training Contract
+
+This document defines the semantic behavior a second training backend, including
+MLX, must preserve. CUDA-, Unsloth-, TRL-, and vLLM-specific implementation
+details may change; the supervised tokens, preference pairs, checkpoint chain,
+and validation gates may not.
+
+## Inputs
+
+A job bundle contains `job.json`, optional `train_sft.jsonl`, required
+`train_dpo.jsonl`, and a `READY` marker written last. The manifest records input
+row counts and SHA-256 hashes. The runner must validate these before claiming
+GPU resources.
+
+Reasoning-aware jobs declare:
+
+```json
+{
+  "assistant_reasoning": {
+    "mode": "required",
+    "field": "thinking",
+    "thinking_max_chars": 1800,
+    "semantic_judging": "final_content_only"
+  }
+}
+```
+
+The dataset remains in Hen's conversational schema on disk. The training backend
+maps final-assistant `thinking` to Qwen's `reasoning_content` only while applying
+the model chat template.
+
+## SFT Semantics
+
+- Perform full-weight language-model fine-tuning, not LoRA or QLoRA.
+- Train for one epoch from `job.json.base_checkpoint`.
+- Render messages with the checkpoint's Qwen chat template.
+- Supervise only the final assistant turn.
+- The supervised span includes both final-assistant reasoning and final content.
+- Earlier assistant messages remain context and receive no loss.
+- Preserve the end of over-length context; do not silently remove or truncate the
+  final assistant target.
+
+Current Spark defaults are batch size 1, gradient accumulation 1, BF16,
+`learning_rate=1e-5`, no packing, and a maximum SFT sequence length supplied by
+the job up to 32K.
+
+## DPO Semantics
+
+Each row contains conversational `prompt`, `chosen`, and `rejected` fields.
+Normalize `thinking` to `reasoning_content`, then render every field through the
+same Qwen chat template used for inference. Do not flatten, reword, or
+chat-template a field twice.
+
+- A bootstrap job starts DPO from its SFT checkpoint.
+- A continuation job starts DPO from the immediately preceding successful DPO
+  checkpoint.
+- Preference loss covers each complete reasoning-plus-answer completion.
+- Prompt tokens are context, not completion targets.
+- Use one epoch, `learning_rate=1e-6`, `beta=0.05`, sigmoid DPO loss, batch size
+  1, and gradient accumulation 1.
+- Current limits are 14,848 prompt tokens, 1,536 completion tokens, and 16,384
+  total tokens with `keep_end` prompt truncation.
+- A completion that exceeds its bound must be reported; it must not be silently
+  relabeled or lose only its reasoning section.
+
+## Sequential Checkpoint Invariant
+
+The training chain is ordered:
+
+```text
+base -> cycle 1 SFT -> cycle 1 DPO -> cycle 2 DPO -> ...
+```
+
+A failed job must not advance the active checkpoint. Every successful result
+must identify the exact output checkpoint and input dataset hashes. The next job
+must name that output as its base checkpoint; filesystem recency is not an
+acceptable substitute.
+
+## Inference Contract
+
+Reasoning-aware checkpoints are served with the Qwen reasoning parser and
+thinking enabled. A deployment health check must require both:
+
+- non-empty separate reasoning; and
+- non-empty final content conforming to the requested response schema.
+
+Training and inference must use the same tokenizer, special tokens, and chat
+template behavior.
+
+## MLX Equivalence Gate
+
+Before replacing the Spark backend, compare a fixed micro-bundle on both stacks:
+
+1. Identical rendered token IDs for representative SFT and DPO rows.
+2. Identical supervised SFT span boundaries.
+3. Identical prompt/chosen/rejected DPO boundaries after truncation.
+4. The same base checkpoint and ordered continuation checkpoint.
+5. Finite loss and gradients with all intended language-model parameters
+   trainable.
+6. A loadable checkpoint that produces separate reasoning and final content.
+7. No mutation of source JSONL files.
+
+Exact floating-point losses need not match across frameworks, but tokenization,
+loss masks, preference direction, and checkpoint ancestry must match. Keep the
+Spark path available as the reference implementation until this gate passes.
