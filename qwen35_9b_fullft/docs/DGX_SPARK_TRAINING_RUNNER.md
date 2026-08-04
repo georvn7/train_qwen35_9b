@@ -45,21 +45,24 @@ The runner owns these state directories:
 /home/georvn/train_qwen35_9b/jobs/runner.lock
 ```
 
-## Transport
+## SSH Target
 
-The runner is host-independent. Transfer each immutable bundle to the selected
-training host using SSH, shared storage, or another authenticated transport. Do
-not commit host addresses, user-specific SSH material, API keys, or private
-checkpoint paths. The producer must write `READY` only after `job.json` and all
-input files have been durably transferred.
+Observed DGX Spark host details:
+
+```text
+spark-08c2
+10.0.0.34
+```
+
+Hen can use the configured SSH alias or `georvn@10.0.0.34`, depending on Mac-side SSH config.
 
 ## Required Base Checkpoint
 
-`job.json.base_checkpoint` is the authoritative starting checkpoint and must be
-an absolute path available on the training host. The runner does not discover or
-hardcode a "latest" model. A bootstrap job starts SFT from this checkpoint and
-then DPO from the SFT output. A continuation job starts DPO directly from the
-previous successful job's checkpoint recorded in `result.json`.
+For the next continuation job, use the latest local Hayabusa checkpoint:
+
+```text
+/home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260713_055248_hayabusa-9b_dataset2_step2_simplec_s0_2_first_byte_dpo24_prepared_from_dataset2_sft11_16k_v1/artifacts/full_model
+```
 
 ## Supported Training Profiles
 
@@ -113,7 +116,7 @@ The runner substitutes only `--session-dir`, `--model-name`, and `--max-seq-leng
   --precision auto \
   --torch-dtype bfloat16 \
   --learning-rate 1e-5 \
-  --save-steps 2 \
+  --save-steps 20 \
   --save-total-limit 4 \
   --max-gpu-memory-gib 110 \
   --cuda-memory-fraction 0.88 \
@@ -127,6 +130,7 @@ The runner substitutes only `--session-dir`, `--model-name`, and `--max-seq-leng
 ```
 
 The actual log contains the full exact command including checkpoint, allocator, and export flags.
+Full checkpoints are saved every 20 optimizer steps plus the mandatory final model export. This bounds recovery loss without repeatedly writing roughly 40 GiB checkpoints during short curriculum jobs.
 `train_session.py` maps Hen `thinking` to Qwen `reasoning_content`; final-
 assistant loss therefore includes both reasoning and final-answer tokens.
 
@@ -148,7 +152,7 @@ The runner substitutes `--session-dir` and `--model-name <sft_checkpoint>`. The 
   --per-device-train-batch-size 1 \
   --gradient-accumulation-steps 1 \
   --learning-rate 1e-6 \
-  --save-steps 5 \
+  --save-steps 20 \
   --save-total-limit 4 \
   --optim adamw_8bit \
   --beta 0.05 \
@@ -238,9 +242,8 @@ concurrent runner lock, SFT failure preventing DPO, DPO failure preventing
 deployment, health failure preventing completion, valid JSON status/result
 after failure, and no repeat of completed jobs.
 
-## Operational Validation
+## Real Micro-Job Status
 
-The runner is exercised by real reasoning-aware bootstrap and DPO-only
-continuation jobs. Runtime job bundles, receipts, datasets, checkpoints, and
-endpoint credentials are external artifacts and are intentionally not stored in
-Git. Fixture tests cover the orchestration contract without requiring a GPU.
+The real six-row SFT/thirteen-pair DPO micro-job has not been launched by this implementation step.
+
+Reason: a resident vLLM server may be active, and the real job needs GPU ownership. The runner is implemented so `deployment.enabled=true` will stop and restart vLLM. Run the real micro-job only when it is acceptable for the runner to own the GPU and reload serving.

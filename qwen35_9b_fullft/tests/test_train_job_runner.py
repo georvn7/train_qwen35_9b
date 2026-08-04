@@ -165,6 +165,44 @@ class TrainJobRunnerTests(unittest.TestCase):
             fixture=runner.FixtureConfig(fail_stage=fail_stage, sleep_seconds=sleep_seconds),
         )
 
+    def test_real_commands_use_twenty_step_checkpoint_interval(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            input_data = runner.ValidatedInput(
+                path=root / "train.jsonl",
+                rows=63,
+                sha256="0" * 64,
+            )
+            job = runner.ValidatedJob(
+                manifest={},
+                job_id="checkpoint-policy",
+                base_checkpoint="base",
+                output_checkpoint="output",
+                max_sequence_length=32768,
+                training_profile="micro_contract_validation",
+                sft_enabled=True,
+                dpo_enabled=True,
+                sft_input=input_data,
+                dpo_input=input_data,
+                deployment_enabled=False,
+                served_model_name="output",
+                assistant_reasoning="disabled",
+                thinking_max_chars=1800,
+            )
+            config = runner.RunnerConfig(
+                jobs_root=root / "jobs",
+                workspace_root=root / "workspace",
+                mode="real",
+            )
+
+            for command in (
+                runner.build_sft_command(config, job, root / "sft"),
+                runner.build_dpo_command(config, job, root / "dpo", "base"),
+            ):
+                save_index = command.index("--save-steps")
+                self.assertEqual(command[save_index + 1], "20")
+                self.assertNotIn("--extra-save-steps", command)
+
     def test_valid_tiny_bundle_reaches_complete(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             config = self.make_config(tmp)

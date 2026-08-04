@@ -29,6 +29,7 @@ from typing import Any, Iterable
 
 FORMAT_VERSION = 1
 MAX_TRAINING_SEQUENCE_LENGTH = 32768
+CHECKPOINT_INTERVAL_STEPS = 20
 DEFAULT_ENDPOINT = "http://127.0.0.1:8002/v1"
 DEFAULT_LAN_ENDPOINT = "http://10.0.0.34:8002/v1"
 SUPPORTED_PROFILES = {"micro_contract_validation"}
@@ -802,7 +803,7 @@ def build_sft_command(config: RunnerConfig, job: ValidatedJob, session_dir: Path
         "--logging-steps",
         "1",
         "--save-steps",
-        "2",
+        str(CHECKPOINT_INTERVAL_STEPS),
         "--save-total-limit",
         "4",
         "--max-gpu-memory-gib",
@@ -848,11 +849,6 @@ def dpo_lengths(max_sequence_length: int) -> tuple[int, int, int]:
     max_completion = min(1536, max(256, max_length // 4))
     max_prompt = max(256, max_length - max_completion)
     return max_prompt, max_completion, max_length
-
-
-def extra_save_steps(rows: int) -> str:
-    steps = [step for step in (2, 4, 10, 20) if step < rows]
-    return ",".join(str(step) for step in steps)
 
 
 def build_dpo_command(
@@ -914,7 +910,7 @@ def build_dpo_command(
         "--logging-steps",
         "1",
         "--save-steps",
-        "5",
+        str(CHECKPOINT_INTERVAL_STEPS),
         "--save-total-limit",
         "4",
         "--optim",
@@ -952,9 +948,6 @@ def build_dpo_command(
         "--checkpoint-presave-gc",
         "--checkpoint-presave-empty-cache",
     ]
-    extras = extra_save_steps(job.dpo_input.rows)
-    if extras:
-        command += ["--extra-save-steps", extras]
     return command
 
 
