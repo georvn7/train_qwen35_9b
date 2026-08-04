@@ -45,24 +45,21 @@ The runner owns these state directories:
 /home/georvn/train_qwen35_9b/jobs/runner.lock
 ```
 
-## SSH Target
+## Transport
 
-Observed DGX Spark host details:
-
-```text
-spark-08c2
-10.0.0.34
-```
-
-Hen can use the configured SSH alias or `georvn@10.0.0.34`, depending on Mac-side SSH config.
+The runner is host-independent. Transfer each immutable bundle to the selected
+training host using SSH, shared storage, or another authenticated transport. Do
+not commit host addresses, user-specific SSH material, API keys, or private
+checkpoint paths. The producer must write `READY` only after `job.json` and all
+input files have been durably transferred.
 
 ## Required Base Checkpoint
 
-For the next continuation job, use the latest local Hayabusa checkpoint:
-
-```text
-/home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260713_055248_hayabusa-9b_dataset2_step2_simplec_s0_2_first_byte_dpo24_prepared_from_dataset2_sft11_16k_v1/artifacts/full_model
-```
+`job.json.base_checkpoint` is the authoritative starting checkpoint and must be
+an absolute path available on the training host. The runner does not discover or
+hardcode a "latest" model. A bootstrap job starts SFT from this checkpoint and
+then DPO from the SFT output. A continuation job starts DPO directly from the
+previous successful job's checkpoint recorded in `result.json`.
 
 ## Supported Training Profiles
 
@@ -242,8 +239,9 @@ concurrent runner lock, SFT failure preventing DPO, DPO failure preventing
 deployment, health failure preventing completion, valid JSON status/result
 after failure, and no repeat of completed jobs.
 
-## Real Micro-Job Status
+## Operational Validation
 
-The real six-row SFT/thirteen-pair DPO micro-job has not been launched by this implementation step.
-
-Reason: a resident vLLM server may be active, and the real job needs GPU ownership. The runner is implemented so `deployment.enabled=true` will stop and restart vLLM. Run the real micro-job only when it is acceptable for the runner to own the GPU and reload serving.
+The runner is exercised by real reasoning-aware bootstrap and DPO-only
+continuation jobs. Runtime job bundles, receipts, datasets, checkpoints, and
+endpoint credentials are external artifacts and are intentionally not stored in
+Git. Fixture tests cover the orchestration contract without requiring a GPU.
