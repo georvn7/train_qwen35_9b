@@ -60,6 +60,14 @@ chat-template a field twice.
   1, and gradient accumulation 1.
 - Current limits are 14,848 prompt tokens, 1,536 completion tokens, and 16,384
   total tokens with `keep_end` prompt truncation.
+- Chat-templated chosen and rejected completions must contain exactly the EOS
+  marker emitted by the template. Do not append another EOS when the rendered
+  completion already ends with one (ignoring trailing whitespace).
+- `keep_end` truncation for conversational prompts must preserve chat framing:
+  retain the system message, drop complete old turns at user boundaries first,
+  and, only when the newest user turn still exceeds the limit, trim the start of
+  that user's content while preserving its role header and newest evidence.
+  Plain-string prompts retain raw token-level `keep_end` compatibility.
 - A completion that exceeds its bound must be reported; it must not be silently
   relabeled or lose only its reasoning section.
 
@@ -94,6 +102,8 @@ Before replacing the Spark backend, compare a fixed micro-bundle on both stacks:
 1. Identical rendered token IDs for representative SFT and DPO rows.
 2. Identical supervised SFT span boundaries.
 3. Identical prompt/chosen/rejected DPO boundaries after truncation.
+   Truncated conversational prompts must still start at a valid chat-role
+   boundary, and rendered completions must not contain a duplicated EOS.
 4. The same base checkpoint and ordered continuation checkpoint.
 5. Finite loss and gradients with all intended language-model parameters
    trainable.

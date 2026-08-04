@@ -14,6 +14,7 @@ SPEC.loader.exec_module(TRAIN_DPO_SESSION)
 
 class FakeTokenizer:
     eos_token_id = 999
+    eos_token = "<eos>"
 
     def apply_chat_template(
         self,
@@ -44,8 +45,31 @@ class FakeTokenizer:
         assert add_special_tokens is False
         return {"input_ids": [ord(character) for character in value]}
 
+    def decode(
+        self,
+        token_ids,
+        *,
+        skip_special_tokens=False,
+        clean_up_tokenization_spaces=False,
+    ):
+        assert skip_special_tokens is False
+        assert clean_up_tokenization_spaces is False
+        return "".join(chr(token_id) for token_id in token_ids)
+
 
 class BuildTokenizedRowsTests(unittest.TestCase):
+    def test_does_not_duplicate_eos_emitted_by_chat_template(self):
+        tokenizer = FakeTokenizer()
+        token_ids = [1, tokenizer.eos_token_id, 10]
+
+        result = TRAIN_DPO_SESSION.append_eos_if_missing(
+            token_ids,
+            "answer<eos>\n",
+            tokenizer,
+        )
+
+        self.assertIs(result, token_ids)
+
     def test_preserves_conversational_fields_while_tokenizing_rendered_text(self):
         row = {
             "prompt": [
@@ -76,6 +100,50 @@ class BuildTokenizedRowsTests(unittest.TestCase):
 
         self.assertEqual(tokenized[0]["prompt_input_ids"], [ord(c) for c in "debug"])
         self.assertEqual(tokenized[0]["chosen_input_ids"], [ord(c) for c in "inspect"] + [999])
+
+    def test_truncates_oversized_user_content_without_losing_role_headers(self):
+        row = {
+            "prompt": [
+                {"role": "system", "content": "stable contract"},
+                {"role": "user", "content": "old evidence " * 80 + "DECISIVE_TAIL"},
+            ],
+            "chosen": [{"role": "assistant", "content": "inspect parser"}],
+            "rejected": [{"role": "assistant", "content": "guess"}],
+        }
+
+        tokenized, stats = TRAIN_DPO_SESSION.build_tokenized_rows(
+            [row], FakeTokenizer(), max_prompt_length=100, max_completion_length=1024
+        )
+        final_prompt = FakeTokenizer().decode(tokenized[0]["prompt_input_ids"])
+
+        self.assertTrue(final_prompt.startswith("<system>stable contract</system><user>"))
+        self.assertIn("DECISIVE_TAIL", final_prompt)
+        self.assertLessEqual(len(tokenized[0]["prompt_input_ids"]), 100)
+        self.assertEqual(stats["prompt_truncation_modes"], {"trim_user_content": 1})
+
+    def test_drops_complete_old_turns_before_trimming_message_content(self):
+        row = {
+            "prompt": [
+                {"role": "system", "content": "stable contract"},
+                {"role": "user", "content": "obsolete evidence " * 30},
+                {"role": "assistant", "content": "obsolete action"},
+                {"role": "user", "content": "current decisive evidence"},
+            ],
+            "chosen": [{"role": "assistant", "content": "inspect parser"}],
+            "rejected": [{"role": "assistant", "content": "guess"}],
+        }
+
+        tokenized, stats = TRAIN_DPO_SESSION.build_tokenized_rows(
+            [row], FakeTokenizer(), max_prompt_length=100, max_completion_length=1024
+        )
+        final_prompt = FakeTokenizer().decode(tokenized[0]["prompt_input_ids"])
+
+        self.assertEqual(
+            final_prompt,
+            "<system>stable contract</system><user>current decisive evidence</user>"
+            "<assistant>",
+        )
+        self.assertEqual(stats["prompt_truncation_modes"], {"drop_messages": 1})
 
     def test_maps_hen_thinking_to_qwen_reasoning_content(self):
         row = {

@@ -427,13 +427,119 @@ def render_dpo_row_for_tokenization(
     return rendered
 
 
+def append_eos_if_missing(
+    token_ids: list[int],
+    rendered_text: str,
+    tokenizer: Any,
+) -> list[int]:
+    """Append EOS only when the chat template did not already emit it."""
+    eos_token_id = tokenizer.eos_token_id
+    if eos_token_id is None:
+        return token_ids
+    eos_token = getattr(tokenizer, "eos_token", None)
+    if isinstance(eos_token, str) and eos_token and rendered_text.rstrip().endswith(eos_token):
+        return token_ids
+    return token_ids + [eos_token_id]
+
+
+def render_prompt_ids(
+    row: dict[str, Any],
+    prompt_messages: list[dict[str, Any]],
+    tokenizer: Any,
+) -> list[int]:
+    candidate = dict(row)
+    candidate["prompt"] = prompt_messages
+    rendered = render_dpo_row_for_tokenization(candidate, tokenizer)["prompt"]
+    return tokenizer(rendered, add_special_tokens=False)["input_ids"]
+
+
+def truncate_prompt_keep_end(
+    row: dict[str, Any],
+    prompt_ids: list[int],
+    tokenizer: Any,
+    max_prompt_length: int,
+) -> tuple[list[int], str]:
+    """Preserve chat-role boundaries while retaining the newest prompt evidence."""
+    if len(prompt_ids) <= max_prompt_length:
+        return prompt_ids, "none"
+
+    raw_messages = row.get("prompt")
+    if not isinstance(raw_messages, list) or not raw_messages:
+        return prompt_ids[-max_prompt_length:], "raw_keep_end"
+    if not all(isinstance(message, dict) for message in raw_messages):
+        raise ValueError("conversational DPO prompt contains a non-object message")
+
+    messages = [dict(message) for message in raw_messages]
+    has_system = str(messages[0].get("role", "")).lower() == "system"
+    system_prefix = [messages[0]] if has_system else []
+    first_non_system = 1 if has_system else 0
+    if first_non_system >= len(messages):
+        raise ValueError(
+            "over-length conversational DPO prompt contains only a system message"
+        )
+
+    # Prefer dropping complete old turns. Start at a user turn so the retained
+    # conversation still has a valid role transition after the system message.
+    user_starts: list[int] = []
+    for start in range(first_non_system, len(messages)):
+        if str(messages[start].get("role", "")).lower() != "user":
+            continue
+        user_starts.append(start)
+        candidate = system_prefix + messages[start:]
+        candidate_ids = render_prompt_ids(row, candidate, tokenizer)
+        if len(candidate_ids) <= max_prompt_length:
+            return candidate_ids, "drop_messages"
+
+    if not user_starts:
+        raise ValueError(
+            "over-length conversational DPO prompt has no user message boundary"
+        )
+
+    # If the newest user turn alone is too large, retain its role header and the
+    # end of its content. This keeps the stable system contract and avoids
+    # starting the model context in untagged source/log text.
+    start = user_starts[-1]
+    candidate = system_prefix + messages[start:]
+    target_index = len(system_prefix)
+    content = candidate[target_index].get("content")
+    if not isinstance(content, str):
+        raise ValueError(
+            "over-length conversational DPO user message has non-string content"
+        )
+    content_ids = tokenizer(content, add_special_tokens=False)["input_ids"]
+
+    best_ids: list[int] | None = None
+    low = 0
+    high = len(content_ids)
+    while low <= high:
+        keep = (low + high) // 2
+        trimmed = [dict(message) for message in candidate]
+        kept_ids = content_ids[-keep:] if keep else []
+        trimmed[target_index]["content"] = tokenizer.decode(
+            kept_ids,
+            skip_special_tokens=False,
+            clean_up_tokenization_spaces=False,
+        )
+        candidate_ids = render_prompt_ids(row, trimmed, tokenizer)
+        if len(candidate_ids) <= max_prompt_length:
+            best_ids = candidate_ids
+            low = keep + 1
+        else:
+            high = keep - 1
+
+    if best_ids is None:
+        raise ValueError(
+            "system and role framing exceed max_prompt_length before user content"
+        )
+    return best_ids, "trim_user_content"
+
+
 def build_tokenized_rows(
     rows: list[dict[str, Any]],
     tokenizer: Any,
     max_prompt_length: int,
     max_completion_length: int,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    eos_token_id = tokenizer.eos_token_id
     prompt_original_lengths: list[int] = []
     chosen_original_lengths: list[int] = []
     rejected_original_lengths: list[int] = []
@@ -443,6 +549,7 @@ def build_tokenized_rows(
     prompt_truncated = 0
     chosen_truncated = 0
     rejected_truncated = 0
+    prompt_truncation_modes: dict[str, int] = {}
     tokenized_rows: list[dict[str, Any]] = []
 
     for row in rows:
@@ -451,15 +558,20 @@ def build_tokenized_rows(
         chosen_ids = tokenizer(rendered["chosen"], add_special_tokens=False)["input_ids"]
         rejected_ids = tokenizer(rendered["rejected"], add_special_tokens=False)["input_ids"]
 
-        if eos_token_id is not None:
-            chosen_ids = chosen_ids + [eos_token_id]
-            rejected_ids = rejected_ids + [eos_token_id]
+        chosen_ids = append_eos_if_missing(chosen_ids, rendered["chosen"], tokenizer)
+        rejected_ids = append_eos_if_missing(rejected_ids, rendered["rejected"], tokenizer)
 
         prompt_original_lengths.append(len(prompt_ids))
         chosen_original_lengths.append(len(chosen_ids))
         rejected_original_lengths.append(len(rejected_ids))
 
-        final_prompt_ids = prompt_ids[-max_prompt_length:]
+        final_prompt_ids, prompt_mode = truncate_prompt_keep_end(
+            row,
+            prompt_ids,
+            tokenizer,
+            max_prompt_length,
+        )
+        prompt_truncation_modes[prompt_mode] = prompt_truncation_modes.get(prompt_mode, 0) + 1
         final_chosen_ids = chosen_ids[:max_completion_length]
         final_rejected_ids = rejected_ids[:max_completion_length]
 
@@ -499,6 +611,7 @@ def build_tokenized_rows(
         "rejected_original_max": max(rejected_original_lengths) if rejected_original_lengths else 0,
         "rejected_final_max": max(rejected_final_lengths) if rejected_final_lengths else 0,
         "prompt_truncated_rows": prompt_truncated,
+        "prompt_truncation_modes": prompt_truncation_modes,
         "chosen_truncated_rows": chosen_truncated,
         "rejected_truncated_rows": rejected_truncated,
     }

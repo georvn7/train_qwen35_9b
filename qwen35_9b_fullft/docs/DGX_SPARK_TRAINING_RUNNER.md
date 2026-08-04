@@ -165,6 +165,15 @@ chosen and rejected messages. The standard DPO objective then covers each
 complete reasoning-plus-answer completion; no DPO hyperparameter changes are
 required.
 
+The tokenizer keeps the single EOS marker already emitted by the Qwen chat
+template instead of appending a duplicate marker. For over-length conversational
+prompts, `keep_end` remains the policy, but truncation preserves chat structure:
+the system message is retained, complete old turns are dropped at user
+boundaries, and only an individually oversized newest user message is trimmed
+from the start. `dpo_tokenization_stats.json` records the resulting
+`prompt_truncation_modes`. Plain-string DPO rows keep the legacy raw token-level
+`keep_end` behavior.
+
 ## Output Mapping
 
 For `output_checkpoint=<name>`, the runner creates:
