@@ -99,6 +99,7 @@ class ValidatedJob:
     served_model_name: str
     assistant_reasoning: str
     thinking_max_chars: int
+    dpo_execution_mode: str = "batched"
 
 
 @dataclass
@@ -185,6 +186,12 @@ def write_success_result(
     endpoint: str,
     health_check: dict[str, Any],
 ) -> None:
+    effective_mode = resolve_dpo_execution_mode(
+        job.dpo_execution_mode, job.max_sequence_length
+    )
+    max_prompt, max_completion, max_length = dpo_lengths(
+        job.max_sequence_length, effective_mode
+    )
     payload = {
         "format_version": FORMAT_VERSION,
         "job_id": job.job_id,
@@ -195,6 +202,14 @@ def write_success_result(
         "served_model_name": job.served_model_name,
         "endpoint": endpoint,
         "health_check": health_check,
+        "dpo_execution": {
+            "requested_mode": job.dpo_execution_mode,
+            "effective_mode": effective_mode,
+            "requested_max_sequence_length": job.max_sequence_length,
+            "effective_max_sequence_length": max_length,
+            "max_prompt_length": max_prompt,
+            "max_completion_length": max_completion,
+        },
         "metrics": {"sft": {}, "dpo": {}},
         "completed_at": utc_now(),
     }
@@ -503,6 +518,12 @@ def validate_manifest(job_dir: Path) -> ValidatedJob:
             "assistant_reasoning.semantic_judging must be 'final_content_only'"
         )
 
+    dpo_execution_mode = manifest.get("dpo_execution_mode", "batched")
+    if dpo_execution_mode not in {"batched", "split_backward", "auto"}:
+        raise ValidationError(
+            "dpo_execution_mode must be 'batched', 'split_backward', or 'auto'"
+        )
+
     sft_input = (
         validate_input(
             job_dir,
@@ -547,6 +568,7 @@ def validate_manifest(job_dir: Path) -> ValidatedJob:
         served_model_name=served_model_name,
         assistant_reasoning=assistant_reasoning,
         thinking_max_chars=thinking_max_chars,
+        dpo_execution_mode=dpo_execution_mode,
     )
 
 
@@ -844,8 +866,25 @@ def build_sft_command(config: RunnerConfig, job: ValidatedJob, session_dir: Path
     ]
 
 
-def dpo_lengths(max_sequence_length: int) -> tuple[int, int, int]:
-    max_length = min(16384, max_sequence_length)
+DPO_BATCHED_MAX_SEQUENCE_LENGTH = 16384
+
+
+def resolve_dpo_execution_mode(requested_mode: str, max_sequence_length: int) -> str:
+    if requested_mode == "auto":
+        return (
+            "split_backward"
+            if max_sequence_length > DPO_BATCHED_MAX_SEQUENCE_LENGTH
+            else "batched"
+        )
+    return requested_mode
+
+
+def dpo_lengths(max_sequence_length: int, effective_mode: str) -> tuple[int, int, int]:
+    max_length = (
+        min(DPO_BATCHED_MAX_SEQUENCE_LENGTH, max_sequence_length)
+        if effective_mode == "batched"
+        else max_sequence_length
+    )
     max_completion = min(1536, max(256, max_length // 4))
     max_prompt = max(256, max_length - max_completion)
     return max_prompt, max_completion, max_length
@@ -875,7 +914,12 @@ def build_dpo_command(
             command += ["--sleep", str(config.fixture.sleep_seconds)]
         return command
 
-    max_prompt, max_completion, max_length = dpo_lengths(job.max_sequence_length)
+    effective_mode = resolve_dpo_execution_mode(
+        job.dpo_execution_mode, job.max_sequence_length
+    )
+    max_prompt, max_completion, max_length = dpo_lengths(
+        job.max_sequence_length, effective_mode
+    )
     command = [
         python_executable(config.workspace_root),
         str(script_path(config.workspace_root, "train_dpo_session.py")),
@@ -895,6 +939,10 @@ def build_dpo_command(
         str(max_length),
         "--truncation-mode",
         "keep_end",
+        "--dpo-execution-mode",
+        effective_mode,
+        "--requested-dpo-execution-mode",
+        job.dpo_execution_mode,
         "--num-train-epochs",
         "1.0",
         "--per-device-train-batch-size",

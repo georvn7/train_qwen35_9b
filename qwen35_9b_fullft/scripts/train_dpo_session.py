@@ -68,6 +68,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--warmup-steps", type=int, default=50)
     parser.add_argument("--weight-decay", type=float, default=0.01)
     parser.add_argument("--logging-steps", type=int, default=10)
+    parser.add_argument("--save-strategy", default="steps", choices=["steps", "no"])
     parser.add_argument("--save-steps", type=int, default=50)
     parser.add_argument("--save-total-limit", type=int, default=4)
     parser.add_argument("--save-only-model", action="store_true", default=False)
@@ -100,6 +101,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--use-logits-to-keep", action="store_true", default=True)
     parser.add_argument("--no-use-logits-to-keep", dest="use_logits_to_keep", action="store_false")
     parser.add_argument("--padding-free", action="store_true", default=False)
+    parser.add_argument(
+        "--dpo-execution-mode",
+        default="batched",
+        choices=["batched", "split_backward"],
+        help="Execute chosen/rejected policy branches together or with serialized backward passes.",
+    )
+    parser.add_argument(
+        "--requested-dpo-execution-mode",
+        default="",
+        choices=["", "batched", "split_backward", "auto"],
+        help="Original job-contract mode, recorded separately when auto resolves to an effective mode.",
+    )
     parser.add_argument("--dataset-num-proc", type=int, default=1)
     parser.add_argument("--max-samples", type=int, default=0)
     parser.add_argument("--precision", default="auto", choices=["auto", "bf16", "fp16", "float32"])
@@ -211,6 +224,21 @@ def current_process_max_reserved_mib() -> float:
         return float(torch.cuda.max_memory_reserved()) / (1024.0**2)
     except Exception:
         return 0.0
+
+
+def cuda_memory_snapshot() -> dict[str, float]:
+    import torch
+
+    if not torch.cuda.is_available():
+        return {}
+    scale = 1024.0**2
+    return {
+        "allocated_mib": float(torch.cuda.memory_allocated()) / scale,
+        "reserved_mib": float(torch.cuda.memory_reserved()) / scale,
+        "peak_allocated_mib": float(torch.cuda.max_memory_allocated()) / scale,
+        "peak_reserved_mib": float(torch.cuda.max_memory_reserved()) / scale,
+        "nvidia_process_used_mib": current_process_nvidia_used_mib(),
+    }
 
 
 def current_process_nvidia_used_mib() -> float:
@@ -674,6 +702,7 @@ def main() -> None:
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer, TrainerCallback
     from trl import DPOConfig, DPOTrainer
+    from split_dpo import SplitBackwardDPOTrainerMixin
 
     if args.cuda_memory_fraction > 0:
         if not 0.0 < args.cuda_memory_fraction < 1.0:
@@ -758,6 +787,10 @@ def main() -> None:
             "precompute_ref_log_probs": args.precompute_ref_log_probs,
             "use_logits_to_keep": args.use_logits_to_keep,
             "padding_free": args.padding_free,
+            "requested_dpo_execution_mode": (
+                args.requested_dpo_execution_mode or args.dpo_execution_mode
+            ),
+            "effective_dpo_execution_mode": args.dpo_execution_mode,
             "precision": args.precision,
             "torch_dtype": args.torch_dtype,
             "optim": args.optim,
@@ -959,7 +992,7 @@ def main() -> None:
         "warmup_steps": args.warmup_steps,
         "weight_decay": args.weight_decay,
         "logging_steps": args.logging_steps,
-        "save_strategy": "steps",
+        "save_strategy": args.save_strategy,
         "save_steps": args.save_steps,
         "save_total_limit": args.save_total_limit,
         "save_only_model": args.save_only_model,
@@ -989,7 +1022,11 @@ def main() -> None:
         dpo_kwargs["num_train_epochs"] = args.num_train_epochs
 
     training_args = DPOConfig(**dpo_kwargs)
-    PreparedDPOTrainer = type("PreparedDPOTrainer", (PreparedDPOTrainerMixin, DPOTrainer), {})
+    PreparedDPOTrainer = type(
+        "PreparedDPOTrainer",
+        (PreparedDPOTrainerMixin, SplitBackwardDPOTrainerMixin, DPOTrainer),
+        {},
+    )
     trainer = PreparedDPOTrainer(
         model=model,
         ref_model=None,
@@ -998,6 +1035,7 @@ def main() -> None:
         processing_class=tokenizer,
         callbacks=callbacks,
     )
+    trainer.dpo_execution_mode = args.dpo_execution_mode
 
     run_config = {
         "created_at_utc": utc_now(),
@@ -1017,6 +1055,10 @@ def main() -> None:
             "reason": precision_reason,
         },
         "dpo_args": dpo_kwargs,
+        "requested_dpo_execution_mode": (
+            args.requested_dpo_execution_mode or args.dpo_execution_mode
+        ),
+        "effective_dpo_execution_mode": args.dpo_execution_mode,
         "tokenization_stats": tokenization_stats,
         "max_gpu_memory_gib_guard": args.max_gpu_memory_gib,
         "cuda_memory_fraction": args.cuda_memory_fraction,
@@ -1079,6 +1121,12 @@ def main() -> None:
         )
 
     print("Starting DPO training")
+    if torch.cuda.is_available():
+        torch.cuda.reset_peak_memory_stats()
+    training_memory = {
+        "execution_mode": args.dpo_execution_mode,
+        "before_train": cuda_memory_snapshot(),
+    }
     train_result = None
     resume_checkpoint_dir = (
         Path(args.resume_from_checkpoint).resolve()
@@ -1146,6 +1194,8 @@ def main() -> None:
         save_json(session_meta_path, session_meta)
         raise
     finally:
+        training_memory["after_train"] = cuda_memory_snapshot()
+        save_json(metadata_dir / "dpo_training_memory.json", training_memory)
         if restore_torch_load is not None:
             setattr(restore_torch_load[0], restore_torch_load[1], restore_torch_load[2])
 

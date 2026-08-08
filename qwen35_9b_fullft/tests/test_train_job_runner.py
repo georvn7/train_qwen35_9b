@@ -94,6 +94,7 @@ def make_job(
     dpo_enabled: bool = True,
     assistant_reasoning: bool = False,
     thinking_max_chars: int = 1800,
+    dpo_execution_mode: str | None = None,
 ) -> Path:
     job_dir = jobs_root / "incoming" / job_id
     job_dir.mkdir(parents=True, exist_ok=True)
@@ -139,6 +140,8 @@ def make_job(
         },
         "deployment": {"enabled": True, "served_model_name": f"hayabusa-9b-{job_id}"},
     }
+    if dpo_execution_mode is not None:
+        manifest["dpo_execution_mode"] = dpo_execution_mode
     if sft_enabled:
         manifest["inputs"]["sft"] = {
             "path": "train_sft.jsonl",
@@ -203,6 +206,61 @@ class TrainJobRunnerTests(unittest.TestCase):
                 self.assertEqual(command[save_index + 1], "20")
                 self.assertNotIn("--extra-save-steps", command)
 
+    def test_dpo_execution_modes_control_effective_context(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            input_data = runner.ValidatedInput(
+                path=root / "train.jsonl", rows=1, sha256="0" * 64
+            )
+            config = runner.RunnerConfig(
+                jobs_root=root / "jobs",
+                workspace_root=root / "workspace",
+                mode="real",
+            )
+            for requested, expected_effective, expected_length in (
+                ("batched", "batched", 16384),
+                ("split_backward", "split_backward", 32768),
+                ("auto", "split_backward", 32768),
+            ):
+                with self.subTest(requested=requested):
+                    job = runner.ValidatedJob(
+                        manifest={},
+                        job_id="execution-mode",
+                        base_checkpoint="base",
+                        output_checkpoint="output",
+                        max_sequence_length=32768,
+                        training_profile="micro_contract_validation",
+                        sft_enabled=False,
+                        dpo_enabled=True,
+                        sft_input=None,
+                        dpo_input=input_data,
+                        deployment_enabled=False,
+                        served_model_name="output",
+                        assistant_reasoning="disabled",
+                        thinking_max_chars=1800,
+                        dpo_execution_mode=requested,
+                    )
+                    command = runner.build_dpo_command(
+                        config, job, root / "dpo", "base"
+                    )
+                    mode_index = command.index("--dpo-execution-mode")
+                    length_index = command.index("--max-length")
+                    requested_index = command.index("--requested-dpo-execution-mode")
+                    self.assertEqual(command[mode_index + 1], expected_effective)
+                    self.assertEqual(int(command[length_index + 1]), expected_length)
+                    self.assertEqual(command[requested_index + 1], requested)
+
+    def test_invalid_dpo_execution_mode_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            config = self.make_config(tmp)
+            make_job(config.jobs_root, dpo_execution_mode="parallel_magic")
+            rc = runner.run_once(config)
+            self.assertEqual(rc, 1)
+            failed = config.jobs_root / "failed" / "simplec-s0_2-micro-001"
+            result = read_json(failed / "result.json")
+            self.assertEqual(result["failed_stage"], "validating")
+            self.assertIn("dpo_execution_mode", result["error"])
+
     def test_valid_tiny_bundle_reaches_complete(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             config = self.make_config(tmp)
@@ -215,6 +273,23 @@ class TrainJobRunnerTests(unittest.TestCase):
             result = read_json(completed / "result.json")
             self.assertEqual(result["status"], "complete")
             self.assertTrue(result["health_check"]["passed"])
+            self.assertEqual(result["dpo_execution"]["requested_mode"], "batched")
+            self.assertEqual(result["dpo_execution"]["effective_mode"], "batched")
+            self.assertEqual(
+                result["dpo_execution"]["effective_max_sequence_length"], 16384
+            )
+
+    def test_auto_mode_is_recorded_in_completed_result(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            config = self.make_config(tmp)
+            make_job(config.jobs_root, dpo_execution_mode="auto")
+            self.assertEqual(runner.run_once(config), 0)
+            completed = config.jobs_root / "completed" / "simplec-s0_2-micro-001"
+            execution = read_json(completed / "result.json")["dpo_execution"]
+            self.assertEqual(execution["requested_mode"], "auto")
+            self.assertEqual(execution["effective_mode"], "split_backward")
+            self.assertEqual(execution["requested_max_sequence_length"], 32768)
+            self.assertEqual(execution["effective_max_sequence_length"], 32768)
 
     def test_valid_conversational_dpo_bundle_reaches_complete(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

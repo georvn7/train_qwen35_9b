@@ -58,8 +58,15 @@ chat-template a field twice.
 - Prompt tokens are context, not completion targets.
 - Use one epoch, `learning_rate=1e-6`, `beta=0.05`, sigmoid DPO loss, batch size
   1, and gradient accumulation 1.
-- Current limits are 14,848 prompt tokens, 1,536 completion tokens, and 16,384
-  total tokens with `keep_end` prompt truncation.
+- The manifest may request `batched`, `split_backward`, or `auto` execution.
+  Batched execution retains a 16,384-token cap; split backward supports the
+  requested total length through 32,768 by serializing chosen/rejected policy
+  forwards and backwards without changing the preference objective. `auto`
+  selects split backward above 16K.
+- Current completion capacity is 1,536 tokens; remaining sequence capacity is
+  assigned to the prompt with `keep_end` truncation.
+- Record requested and effective execution mode and sequence lengths. Never
+  silently reduce context after an OOM.
 - Chat-templated chosen and rejected completions must contain exactly the EOS
   marker emitted by the template. Do not append another EOS when the rendered
   completion already ends with one (ignoring trailing whitespace).

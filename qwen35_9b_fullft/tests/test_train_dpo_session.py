@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 
 import importlib.util
+import copy
+import math
+import sys
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+
+import torch
 
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "train_dpo_session.py"
@@ -10,6 +16,9 @@ SPEC = importlib.util.spec_from_file_location("train_dpo_session", MODULE_PATH)
 assert SPEC is not None and SPEC.loader is not None
 TRAIN_DPO_SESSION = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(TRAIN_DPO_SESSION)
+sys.path.insert(0, str(MODULE_PATH.parent))
+from split_dpo import single_completion_forward  # noqa: E402
+from trl import DPOTrainer  # noqa: E402
 
 
 class FakeTokenizer:
@@ -171,6 +180,166 @@ class BuildTokenizedRowsTests(unittest.TestCase):
         self.assertIn("<think>inspect the observed value flow</think>", rendered["chosen"])
         self.assertIn("<think>repeat the stale hypothesis</think>", rendered["rejected"])
         self.assertNotIn("reasoning_content", row["chosen"][0])
+
+
+class TinyCausalLM(torch.nn.Module):
+    def __init__(self, vocab_size=32, hidden_size=12):
+        super().__init__()
+        self.embedding = torch.nn.Embedding(vocab_size, hidden_size)
+        self.projection = torch.nn.Linear(hidden_size, vocab_size)
+
+    def forward(self, input_ids, logits_to_keep=None, **_kwargs):
+        hidden = torch.cumsum(self.embedding(input_ids), dim=1)
+        logits = self.projection(hidden)
+        if logits_to_keep is not None:
+            logits = logits[:, -logits_to_keep:]
+        return SimpleNamespace(logits=logits)
+
+
+class DummyDPOState:
+    pad_token_id = 0
+    aux_loss_enabled = False
+    is_encoder_decoder = False
+    use_logits_to_keep = True
+    padding_free = False
+    use_weighting = False
+    max_length = 16
+    truncation_mode = "keep_end"
+    loss_type = ["sigmoid"]
+    args = SimpleNamespace(rpo_alpha=None, ld_alpha=None, use_liger_loss=False)
+    concatenated_inputs = staticmethod(DPOTrainer.concatenated_inputs)
+
+
+def dpo_batch():
+    return {
+        "prompt_input_ids": torch.tensor([[0, 2, 3], [4, 5, 6]]),
+        "prompt_attention_mask": torch.tensor([[0, 1, 1], [1, 1, 1]]),
+        "chosen_input_ids": torch.tensor([[7, 8, 9], [10, 11, 0]]),
+        "chosen_attention_mask": torch.tensor([[1, 1, 1], [1, 1, 0]]),
+        "rejected_input_ids": torch.tensor([[12, 13], [14, 15]]),
+        "rejected_attention_mask": torch.tensor([[1, 1], [1, 1]]),
+    }
+
+
+def gradient_psnr(left, right):
+    left_flat = torch.cat([parameter.grad.detach().float().flatten() for parameter in left.parameters()])
+    right_flat = torch.cat([parameter.grad.detach().float().flatten() for parameter in right.parameters()])
+    mse = torch.mean((left_flat - right_flat) ** 2).item()
+    if mse == 0.0:
+        return math.inf
+    peak = torch.maximum(left_flat.abs(), right_flat.abs()).max().item()
+    return 20.0 * math.log10(peak / math.sqrt(mse))
+
+
+class SplitBackwardTests(unittest.TestCase):
+    def test_serial_forwards_match_trl_concatenated_forward(self):
+        torch.manual_seed(7)
+        trainer = DummyDPOState()
+        model = TinyCausalLM()
+        batch = dpo_batch()
+
+        combined = DPOTrainer.concatenated_forward(trainer, model, batch)
+        chosen = single_completion_forward(trainer, model, batch, "chosen")
+        rejected = single_completion_forward(trainer, model, batch, "rejected")
+
+        torch.testing.assert_close(chosen["logps"], combined["chosen_logps"])
+        torch.testing.assert_close(rejected["logps"], combined["rejected_logps"])
+        torch.testing.assert_close(chosen["mean_logits"], combined["mean_chosen_logits"])
+        torch.testing.assert_close(rejected["mean_logits"], combined["mean_rejected_logits"])
+
+    def test_split_backward_matches_loss_gradients_and_optimizer_update(self):
+        torch.manual_seed(11)
+        trainer = DummyDPOState()
+        batch = dpo_batch()
+        batched_model = TinyCausalLM()
+        split_model = copy.deepcopy(batched_model)
+        beta = 0.05
+        ref_chosen = torch.tensor([-8.0, -7.0])
+        ref_rejected = torch.tensor([-9.0, -8.5])
+
+        combined = DPOTrainer.concatenated_forward(trainer, batched_model, batch)
+        batched_logits = (
+            combined["chosen_logps"]
+            - combined["rejected_logps"]
+            - ref_chosen
+            + ref_rejected
+        )
+        batched_loss = -torch.nn.functional.logsigmoid(beta * batched_logits).mean()
+        batched_loss.backward()
+
+        with torch.no_grad():
+            chosen_probe = single_completion_forward(trainer, split_model, batch, "chosen")["logps"]
+            rejected_probe = single_completion_forward(trainer, split_model, batch, "rejected")["logps"]
+        chosen_leaf = chosen_probe.detach().requires_grad_(True)
+        rejected_leaf = rejected_probe.detach().requires_grad_(True)
+        split_logits = chosen_leaf - rejected_leaf - ref_chosen + ref_rejected
+        split_loss = -torch.nn.functional.logsigmoid(beta * split_logits).mean()
+        chosen_coefficient, rejected_coefficient = torch.autograd.grad(
+            split_loss, (chosen_leaf, rejected_leaf)
+        )
+        chosen_train = single_completion_forward(trainer, split_model, batch, "chosen")["logps"]
+        (chosen_coefficient.detach() * chosen_train).sum().backward()
+        rejected_train = single_completion_forward(trainer, split_model, batch, "rejected")["logps"]
+        (rejected_coefficient.detach() * rejected_train).sum().backward()
+
+        self.assertAlmostEqual(batched_loss.item(), split_loss.item(), places=6)
+        for batched_parameter, split_parameter in zip(
+            batched_model.parameters(), split_model.parameters()
+        ):
+            torch.testing.assert_close(
+                batched_parameter.grad,
+                split_parameter.grad,
+                rtol=2e-5,
+                atol=2e-6,
+            )
+        self.assertGreater(gradient_psnr(batched_model, split_model), 100.0)
+
+        batched_optimizer = torch.optim.SGD(batched_model.parameters(), lr=1e-3)
+        split_optimizer = torch.optim.SGD(split_model.parameters(), lr=1e-3)
+        batched_optimizer.step()
+        split_optimizer.step()
+        for batched_parameter, split_parameter in zip(
+            batched_model.parameters(), split_model.parameters()
+        ):
+            torch.testing.assert_close(
+                batched_parameter,
+                split_parameter,
+                rtol=2e-5,
+                atol=2e-6,
+            )
+
+    def test_split_contributions_use_one_gradient_accumulation_divisor(self):
+        torch.manual_seed(19)
+        trainer = DummyDPOState()
+        batch = dpo_batch()
+        batched_model = TinyCausalLM()
+        split_model = copy.deepcopy(batched_model)
+        beta = 0.05
+        ref_chosen = torch.tensor([-8.0, -7.0])
+        ref_rejected = torch.tensor([-9.0, -8.5])
+        accumulation_divisor = 2
+
+        combined = DPOTrainer.concatenated_forward(trainer, batched_model, batch)
+        logits = combined["chosen_logps"] - combined["rejected_logps"] - ref_chosen + ref_rejected
+        (-torch.nn.functional.logsigmoid(beta * logits).mean() / accumulation_divisor).backward()
+
+        with torch.no_grad():
+            chosen_probe = single_completion_forward(trainer, split_model, batch, "chosen")["logps"]
+            rejected_probe = single_completion_forward(trainer, split_model, batch, "rejected")["logps"]
+        chosen_leaf = chosen_probe.detach().requires_grad_(True)
+        rejected_leaf = rejected_probe.detach().requires_grad_(True)
+        loss = -torch.nn.functional.logsigmoid(
+            beta * (chosen_leaf - rejected_leaf - ref_chosen + ref_rejected)
+        ).mean()
+        chosen_coefficient, rejected_coefficient = torch.autograd.grad(
+            loss, (chosen_leaf, rejected_leaf)
+        )
+        chosen_train = single_completion_forward(trainer, split_model, batch, "chosen")["logps"]
+        ((chosen_coefficient.detach() * chosen_train).sum() / accumulation_divisor).backward()
+        rejected_train = single_completion_forward(trainer, split_model, batch, "rejected")["logps"]
+        ((rejected_coefficient.detach() * rejected_train).sum() / accumulation_divisor).backward()
+
+        self.assertGreater(gradient_psnr(batched_model, split_model), 100.0)
 
 
 if __name__ == "__main__":

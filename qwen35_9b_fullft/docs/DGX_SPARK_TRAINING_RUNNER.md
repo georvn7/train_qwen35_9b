@@ -133,7 +133,19 @@ assistant loss therefore includes both reasoning and final-answer tokens.
 
 ## DPO Recipe
 
-The runner substitutes `--session-dir` and `--model-name <sft_checkpoint>`. The DPO profile remains capped at 16K because that is the known-good DGX Spark DPO recipe:
+The job manifest selects the branch execution strategy:
+
+```json
+"dpo_execution_mode": "batched | split_backward | auto"
+```
+
+- `batched` is faster and preserves the original 16K effective cap.
+- `split_backward` computes the same sigmoid DPO objective while evaluating and
+  backpropagating chosen and rejected branches serially; it supports the
+  requested length through 32K with lower branch-dependent activation pressure.
+- `auto` selects split backward above 16K and batched execution otherwise.
+
+A 32K `auto` job resolves to:
 
 ```bash
 ./.venv/bin/python qwen35_9b_fullft/scripts/train_dpo_session.py \
@@ -141,10 +153,12 @@ The runner substitutes `--session-dir` and `--model-name <sft_checkpoint>`. The 
   --model-name <sft_checkpoint> \
   --attn-implementation sdpa \
   --device-map cuda:0 \
-  --max-prompt-length 14848 \
+  --max-prompt-length 31232 \
   --max-completion-length 1536 \
-  --max-length 16384 \
+  --max-length 32768 \
   --truncation-mode keep_end \
+  --dpo-execution-mode split_backward \
+  --requested-dpo-execution-mode auto \
   --num-train-epochs 1.0 \
   --per-device-train-batch-size 1 \
   --gradient-accumulation-steps 1 \
@@ -158,7 +172,17 @@ The runner substitutes `--session-dir` and `--model-name <sft_checkpoint>`. The 
   --use-logits-to-keep
 ```
 
-If `job.max_sequence_length` is below 16K, the runner lowers the DPO max length accordingly.
+Split backward first obtains serial no-gradient branch log probabilities,
+derives the exact scalar DPO gradients, then performs independent chosen and
+rejected gradient passes. Reference log-probability precomputation is also
+serialized. Unsupported objective combinations fail validation rather than
+silently changing the mathematics.
+
+The longest retained curriculum pair had a 23,538-token prompt. One full 32K
+split-backward optimizer step completed untruncated on the DGX Spark without
+OOM. `run_config.json` and `result.json` record requested/effective modes and
+lengths; no OOM path silently reduces context.
+
 Conversational DPO rows remain unchanged on disk. Immediately before
 tokenization, the trainer maps Hen `thinking` to Qwen `reasoning_content` in
 chosen and rejected messages. The standard DPO objective then covers each
@@ -238,11 +262,13 @@ Run:
 Latest result on DGX Spark:
 
 ```text
-Ran 20 tests
+Ran 30 tests
 OK
 ```
 
 Covered cases include thinking-aware SFT/DPO validation and Qwen rendering,
+serial-versus-batched loss/gradient/update equivalence, accumulation scaling,
+automatic execution-mode selection and result metadata,
 valid tiny bundle completion, invalid checksum, malformed SFT/DPO schemas,
 concurrent runner lock, SFT failure preventing DPO, DPO failure preventing
 deployment, health failure preventing completion, valid JSON status/result
