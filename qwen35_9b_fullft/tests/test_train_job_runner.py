@@ -275,9 +275,24 @@ class TrainJobRunnerTests(unittest.TestCase):
             self.assertTrue(result["health_check"]["passed"])
             self.assertEqual(result["dpo_execution"]["requested_mode"], "batched")
             self.assertEqual(result["dpo_execution"]["effective_mode"], "batched")
+            self.assertEqual(result["metrics"]["sft"], {"stage": "sft"})
+            self.assertEqual(result["metrics"]["dpo"], {"stage": "dpo"})
+            stages = read_json(completed / "stage_sessions.json")
+            self.assertEqual(stages["sft"]["metrics"], {"stage": "sft"})
+            self.assertEqual(stages["dpo"]["metrics"], {"stage": "dpo"})
             self.assertEqual(
                 result["dpo_execution"]["effective_max_sequence_length"], 16384
             )
+
+    def test_stage_metrics_must_exist_and_be_nonempty(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            session = Path(tmp)
+            with self.assertRaisesRegex(runner.StageError, "training metrics are missing"):
+                runner.load_stage_metrics(session, "dpo")
+            (session / "metadata").mkdir()
+            runner.atomic_write_json(session / "metadata" / "train_metrics.json", {})
+            with self.assertRaisesRegex(runner.StageError, "training metrics are empty"):
+                runner.load_stage_metrics(session, "dpo")
 
     def test_auto_mode_is_recorded_in_completed_result(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

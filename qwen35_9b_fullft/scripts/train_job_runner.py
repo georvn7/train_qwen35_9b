@@ -108,6 +108,7 @@ class StageOutput:
     checkpoint: Path
     command: list[str]
     log_path: Path
+    metrics: dict[str, Any]
 
 
 def utc_now() -> str:
@@ -210,7 +211,10 @@ def write_success_result(
             "max_prompt_length": max_prompt,
             "max_completion_length": max_completion,
         },
-        "metrics": {"sft": {}, "dpo": {}},
+        "metrics": {
+            "sft": sft.metrics if sft is not None else {},
+            "dpo": dpo.metrics,
+        },
         "completed_at": utc_now(),
     }
     atomic_write_json(job_dir / "result.json", payload)
@@ -1036,6 +1040,21 @@ def verify_checkpoint(checkpoint: Path, config: RunnerConfig, stage: str) -> Non
         raise StageError(stage, f"checkpoint metadata load failed: {' '.join(error)}")
 
 
+def load_stage_metrics(session_dir: Path, stage: str) -> dict[str, Any]:
+    metrics_path = session_dir / "metadata" / "train_metrics.json"
+    if not metrics_path.is_file():
+        raise StageError(stage, f"training metrics are missing: {metrics_path}")
+    try:
+        metrics = read_json(metrics_path)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        raise StageError(
+            stage, f"unable to read training metrics {metrics_path}: {exc}"
+        ) from exc
+    if not metrics:
+        raise StageError(stage, f"training metrics are empty: {metrics_path}")
+    return metrics
+
+
 def run_sft_stage(config: RunnerConfig, job_dir: Path, job: ValidatedJob) -> StageOutput:
     if job.sft_input is None:
         raise StageError("sft", "SFT input is unavailable for a DPO-only job")
@@ -1051,7 +1070,14 @@ def run_sft_stage(config: RunnerConfig, job_dir: Path, job: ValidatedJob) -> Sta
         raise StageError(stage, f"SFT command failed with exit code {rc}; see {log_path}")
     checkpoint = session_dir / "artifacts" / "full_model"
     verify_checkpoint(checkpoint, config, stage)
-    return StageOutput(session_dir=session_dir, checkpoint=checkpoint, command=command, log_path=log_path)
+    metrics = load_stage_metrics(session_dir, stage)
+    return StageOutput(
+        session_dir=session_dir,
+        checkpoint=checkpoint,
+        command=command,
+        log_path=log_path,
+        metrics=metrics,
+    )
 
 
 def run_dpo_stage(
@@ -1072,7 +1098,14 @@ def run_dpo_stage(
         raise StageError(stage, f"DPO command failed with exit code {rc}; see {log_path}")
     checkpoint = session_dir / "artifacts" / "full_model"
     verify_checkpoint(checkpoint, config, stage)
-    return StageOutput(session_dir=session_dir, checkpoint=checkpoint, command=command, log_path=log_path)
+    metrics = load_stage_metrics(session_dir, stage)
+    return StageOutput(
+        session_dir=session_dir,
+        checkpoint=checkpoint,
+        command=command,
+        log_path=log_path,
+        metrics=metrics,
+    )
 
 
 def prepare_training_environment(config: RunnerConfig, job_dir: Path) -> None:
@@ -1260,6 +1293,7 @@ def write_stage_summary(
             "checkpoint": str(sft.checkpoint),
             "log_path": str(sft.log_path),
             "command": sft.command,
+            "metrics": sft.metrics,
         }
     if dpo is not None:
         payload["dpo"] = {
@@ -1267,6 +1301,7 @@ def write_stage_summary(
             "checkpoint": str(dpo.checkpoint),
             "log_path": str(dpo.log_path),
             "command": dpo.command,
+            "metrics": dpo.metrics,
         }
     atomic_write_json(job_dir / "stage_sessions.json", payload)
 
