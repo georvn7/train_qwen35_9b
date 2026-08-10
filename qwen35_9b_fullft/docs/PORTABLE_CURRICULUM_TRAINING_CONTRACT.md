@@ -7,10 +7,11 @@ and validation gates may not.
 
 ## Inputs
 
-A job bundle contains `job.json`, optional `train_sft.jsonl`, required
-`train_dpo.jsonl`, and a `READY` marker written last. The manifest records input
-row counts and SHA-256 hashes. The runner must validate these before claiming
-GPU resources.
+A job bundle contains `job.json`, optional `train_sft.jsonl`, either
+`train_dpo.jsonl` or `train_rl.jsonl`, and a `READY` marker written last. The
+manifest records input row counts and SHA-256 hashes. The runner must validate
+these before claiming GPU resources. DPO and RL are separate immutable jobs and
+must not be enabled together.
 
 Reasoning-aware jobs declare:
 
@@ -83,13 +84,53 @@ chat-template a field twice.
 The training chain is ordered:
 
 ```text
-base -> cycle 1 SFT -> cycle 1 DPO -> cycle 2 DPO -> ...
+base -> cycle 1 SFT -> cycle 1 DPO -> cycle 1 RL -> cycle 2 DPO -> cycle 2 RL -> ...
 ```
 
 A failed job must not advance the active checkpoint. Every successful result
 must identify the exact output checkpoint and input dataset hashes. The next job
 must name that output as its base checkpoint; filesystem recency is not an
 acceptable substitute.
+
+## Checkpointed RL Semantics
+
+Each RL row belongs to a historical debugger-checkpoint group and contains a
+raw terminal reward, a group-normalized advantage, a rollout-normalized
+policy-step weight, and ordered exact prompt/completion pairs from one
+Hayabusa rollout.
+
+- Start from the immediately preceding verified DPO checkpoint.
+- Compute and freeze old-policy completion-token log probabilities before the
+  first optimizer update.
+- Mask prompt tokens. Train every sampled policy response in the rollout,
+  including both assistant reasoning and final-answer tokens.
+- Apply one scalar rollout advantage to each response, normalized by the number
+  of policy responses so long rollouts do not receive more total weight merely
+  for being long.
+- Use one epoch, serialized one-sequence forwards, `learning_rate=5e-7`, clip
+  epsilon `0.20`, KL beta `0.01`, and maximum total length 32,768.
+- Reject groups without at least two rollouts, centered non-constant
+  advantages, or bounded non-empty reasoning.
+- Preserve the full completion and truncate only old prompt context from the
+  start. Reject a row if its completion cannot fit.
+- Do not resume a partial optimizer checkpoint in V1; replacement jobs must
+  restart from the immutable input checkpoint and old-policy contract.
+
+The semantic teacher score is an upstream data-generation artifact. It sees
+only the terminal fix answer, not thinking. Thinking remains supervised by the
+RL objective once the scalar rollout reward has been assigned.
+
+Grouped advantages are on/near-policy only for their recorded model checkpoint.
+Using them directly with another model is off-policy and is not equivalent to
+this contract.
+
+## Frozen Checkpoint Evaluation
+
+DPO and RL select one deterministic frozen subset before training and evaluate
+the base, configured intermediate checkpoints, and final checkpoint against
+that same subset. Record subset identity/hash, checkpoint identity, loss, and
+phase-specific quality metrics. These comparisons diagnose over-training and
+checkpoint quality; fresh deployment and student execution remain authoritative.
 
 ## Inference Contract
 
@@ -106,16 +147,18 @@ template behavior.
 
 Before replacing the Spark backend, compare a fixed micro-bundle on both stacks:
 
-1. Identical rendered token IDs for representative SFT and DPO rows.
+1. Identical rendered token IDs for representative SFT, DPO, and RL rows.
 2. Identical supervised SFT span boundaries.
 3. Identical prompt/chosen/rejected DPO boundaries after truncation.
    Truncated conversational prompts must still start at a valid chat-role
    boundary, and rendered completions must not contain a duplicated EOS.
-4. The same base checkpoint and ordered continuation checkpoint.
-5. Finite loss and gradients with all intended language-model parameters
+4. Identical RL prompt/completion boundaries, including reasoning-plus-answer
+   completion masks and frozen old-policy identity.
+5. The same base checkpoint and ordered continuation checkpoint.
+6. Finite loss and gradients with all intended language-model parameters
    trainable.
-6. A loadable checkpoint that produces separate reasoning and final content.
-7. No mutation of source JSONL files.
+7. A loadable checkpoint that produces separate reasoning and final content.
+8. No mutation of source JSONL files.
 
 Exact floating-point losses need not match across frameworks, but tokenization,
 loss masks, preference direction, and checkpoint ancestry must match. Keep the

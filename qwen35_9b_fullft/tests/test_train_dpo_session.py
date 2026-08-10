@@ -67,6 +67,29 @@ class FakeTokenizer:
 
 
 class BuildTokenizedRowsTests(unittest.TestCase):
+    def test_frozen_subset_is_deterministic(self):
+        rows = [
+            {"prompt": f"p{index}", "chosen": f"c{index}", "rejected": f"r{index}"}
+            for index in range(20)
+        ]
+        first = TRAIN_DPO_SESSION.select_frozen_dpo_indices(rows, maximum=8)
+        second = TRAIN_DPO_SESSION.select_frozen_dpo_indices(rows, maximum=8)
+        self.assertEqual(first, second)
+        self.assertEqual(len(first), 8)
+        self.assertEqual(len(set(first)), 8)
+
+    def test_frozen_metrics_use_reference_adjusted_margin(self):
+        metrics = TRAIN_DPO_SESSION.dpo_comparison_metrics(
+            chosen_logps=[-1.0, -2.0],
+            rejected_logps=[-3.0, -4.0],
+            ref_chosen_logps=[-1.0, -2.0],
+            ref_rejected_logps=[-2.0, -3.0],
+            beta=0.1,
+        )
+        self.assertAlmostEqual(metrics["rewards_margin"], 0.1, places=6)
+        self.assertEqual(metrics["rewards_accuracy"], 1.0)
+        self.assertLess(metrics["loss"], math.log(2.0))
+
     def test_does_not_duplicate_eos_emitted_by_chat_template(self):
         tokenizer = FakeTokenizer()
         token_ids = [1, tokenizer.eos_token_id, 10]

@@ -31,6 +31,7 @@ Hen should transfer bundles here:
   job.json
   train_sft.jsonl
   train_dpo.jsonl
+  train_rl.jsonl
   READY
 ```
 
@@ -69,14 +70,17 @@ V1 supports exactly one profile:
 micro_contract_validation
 ```
 
-V1 rejects non-empty `stages.sft.overrides` or `stages.dpo.overrides`. This is deliberate because silently ignoring overrides would make the contract unsafe.
+V1 rejects non-empty `stages.sft.overrides` or `stages.dpo.overrides`. This is deliberate because silently ignoring overrides would make the contract unsafe. RL accepts only the validated clip/KL/one-epoch overrides documented below.
 
 Supported stage combinations:
 
 - bootstrap: `sft.enabled=true`, `dpo.enabled=true`; DPO starts from the SFT output.
 - CDPO iteration: `sft.enabled=false`, `dpo.enabled=true`; DPO starts directly from `base_checkpoint`.
+- checkpointed RL: `sft.enabled=false`, `dpo.enabled=false`, `rl.enabled=true`; RL starts from the verified DPO checkpoint.
 
-SFT-only jobs are rejected because curriculum convergence is orchestrated from DPO outputs.
+Exactly one of DPO or RL must be enabled. SFT-only jobs and mixed DPO/RL jobs
+are rejected because each curriculum phase has an independently auditable model
+boundary.
 
 Thinking-enabled jobs declare this manifest contract:
 
@@ -198,6 +202,62 @@ from the start. `dpo_tokenization_stats.json` records the resulting
 `prompt_truncation_modes`. Plain-string DPO rows keep the legacy raw token-level
 `keep_end` behavior.
 
+Every DPO session selects a stable, group-diverse frozen preference subset
+before training. It records base, configured intermediate checkpoint, and final
+loss/reward-margin/accuracy metrics against that same subset. This comparison
+is diagnostic; the curriculum's fresh endpoint and student run remain the
+authoritative outcome tests.
+
+## Checkpointed RL Recipe
+
+An RL-only job consumes one immutable `train_rl.jsonl`. Rows are grouped by a
+historical debugger checkpoint and contain raw reward, normalized group
+advantage, rollout-normalized policy-step weight, and one or more exact
+Hayabusa prompt/completion pairs. Every group must contain at least two
+rollouts, centered non-constant advantages, and bounded non-empty thinking.
+
+The serialized trainer uses the exact input checkpoint as the frozen old
+policy. Before the first optimizer update it caches completion-token log
+probabilities for every policy response. Each training forward handles one
+sequence, masks prompt tokens, and applies the scalar rollout advantage to all
+Qwen thinking and final-answer tokens. The objective is token-level clipped
+policy optimization with an approximate KL penalty to that frozen policy.
+
+The fixed V1 recipe is:
+
+```bash
+./.venv/bin/python qwen35_9b_fullft/scripts/train_rl_session.py \
+  --session-dir <rl_session_dir> \
+  --model-name <verified_dpo_checkpoint> \
+  --max-length 32768 \
+  --num-train-epochs 1 \
+  --learning-rate 5e-7 \
+  --clip-epsilon 0.20 \
+  --kl-beta 0.01 \
+  --optim adamw_8bit \
+  --save-steps 10,20,40,60 \
+  --save-total-limit 4
+```
+
+The trainer performs full fine-tuning; no base-model language parameters are
+frozen. It trades additional serialized forwards for bounded 32K activation
+memory. Resume from an optimizer checkpoint is deliberately unsupported in V1:
+the old-policy cache and one-epoch update contract make ambiguous partial
+resume unsafe, so interrupted immutable jobs fail and must be replaced.
+
+RL frozen evaluation is selected before training and recorded at base,
+configured intermediate checkpoints, and final. Metrics include policy loss,
+approximate KL, clip fraction, ratio mean, gradient norm, tokenization and
+truncation counts, memory, frozen-subset hash, and checkpoint identity.
+
+The semantic teacher is not part of Spark training. macOS has already scored
+only each terminal fix answer. Thinking is retained in `train_rl.jsonl` for
+structure validation and model loss but is excluded from semantic judging.
+
+These advantages are on/near-policy only for the exact recorded checkpoint
+lineage. Reusing the rows with another model is off-policy and is not equivalent
+to this trainer's objective.
+
 ## Output Mapping
 
 For `output_checkpoint=<name>`, the runner creates:
@@ -205,19 +265,24 @@ For `output_checkpoint=<name>`, the runner creates:
 ```text
 qwen35_9b_fullft/runs/<timestamp>_contract_<name>_sft/
 qwen35_9b_fullft/runs/<timestamp>_contract_<name>_dpo/
+qwen35_9b_fullft/runs/<timestamp>_contract_<name>_rl/
 ```
 
 The final checkpoint is:
 
 ```text
-<dpo_session_dir>/artifacts/full_model
+<dpo_or_rl_session_dir>/artifacts/full_model
 ```
 
 The job directory records exact paths in `stage_sessions.json` and `result.json`.
 
 ## Validation Rules
 
-The runner rejects before training on missing required fields, unsupported `format_version`, unsafe relative paths, checksum mismatch, row-count mismatch, malformed JSONL, invalid SFT/DPO schemas, `max_sequence_length > 32768`, unsupported profile, disabled SFT/DPO stages, and non-empty stage overrides.
+The runner rejects before training on missing required fields, unsupported
+`format_version`, unsafe relative paths, checksum mismatch, row-count mismatch,
+malformed JSONL, invalid SFT/DPO/RL schemas, `max_sequence_length > 32768`,
+unsupported profiles/stage combinations, ambiguous RL resume, and unsupported
+overrides.
 
 ## Deployment
 
@@ -256,19 +321,24 @@ and non-empty final content before `status=complete`.
 Run:
 
 ```bash
-./.venv/bin/python -m unittest qwen35_9b_fullft.tests.test_train_job_runner -v
+./.venv/bin/python -m unittest \
+  qwen35_9b_fullft.tests.test_train_job_runner \
+  qwen35_9b_fullft.tests.test_train_dpo_session \
+  qwen35_9b_fullft.tests.test_train_rl_session -v
 ```
 
 Latest result on DGX Spark:
 
 ```text
-Ran 30 tests
+Ran 43 tests
 OK
 ```
 
-Covered cases include thinking-aware SFT/DPO validation and Qwen rendering,
+Covered cases include thinking-aware SFT/DPO/RL validation and Qwen rendering,
 serial-versus-batched loss/gradient/update equivalence, accumulation scaling,
 automatic execution-mode selection and result metadata,
+RL prompt masking, reasoning-plus-answer targets, old-policy precomputation,
+clipped-objective behavior, and frozen-subset selection,
 valid tiny bundle completion, invalid checksum, malformed SFT/DPO schemas,
 concurrent runner lock, SFT failure preventing DPO, DPO failure preventing
 deployment, health failure preventing completion, valid JSON status/result

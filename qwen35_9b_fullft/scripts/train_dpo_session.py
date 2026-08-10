@@ -26,6 +26,13 @@ def save_json(path: Path, payload: Any) -> None:
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
+def append_jsonl(path: Path, payload: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(payload, sort_keys=True) + "\n")
+        handle.flush()
+
+
 def run_command(command: list[str]) -> dict[str, Any]:
     try:
         completed = subprocess.run(
@@ -470,6 +477,62 @@ def append_eos_if_missing(
     return token_ids + [eos_token_id]
 
 
+def select_frozen_dpo_indices(rows: list[dict[str, Any]], maximum: int = 8) -> list[int]:
+    """Choose a deterministic comparison subset before DPO updates begin."""
+    if maximum <= 0:
+        return []
+    ranked: list[tuple[str, int]] = []
+    for index, row in enumerate(rows):
+        identity = json.dumps(
+            {
+                "prompt": row.get("prompt"),
+                "chosen": row.get("chosen"),
+                "rejected": row.get("rejected"),
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        )
+        ranked.append((hashlib.sha256(identity.encode("utf-8")).hexdigest(), index))
+    return [index for _digest, index in sorted(ranked)[:maximum]]
+
+
+def dpo_comparison_metrics(
+    chosen_logps: list[float],
+    rejected_logps: list[float],
+    ref_chosen_logps: list[float],
+    ref_rejected_logps: list[float],
+    beta: float,
+) -> dict[str, float]:
+    """Compute frozen-subset DPO measurements independently of Trainer logging."""
+    import torch
+
+    if not chosen_logps or not (
+        len(chosen_logps)
+        == len(rejected_logps)
+        == len(ref_chosen_logps)
+        == len(ref_rejected_logps)
+    ):
+        raise ValueError("frozen DPO log-probability vectors must align and be non-empty")
+    chosen = torch.tensor(chosen_logps, dtype=torch.float64)
+    rejected = torch.tensor(rejected_logps, dtype=torch.float64)
+    ref_chosen = torch.tensor(ref_chosen_logps, dtype=torch.float64)
+    ref_rejected = torch.tensor(ref_rejected_logps, dtype=torch.float64)
+    chosen_rewards = beta * (chosen - ref_chosen)
+    rejected_rewards = beta * (rejected - ref_rejected)
+    margins = chosen_rewards - rejected_rewards
+    losses = -torch.nn.functional.logsigmoid(margins)
+    return {
+        "loss": float(losses.mean()),
+        "rewards_chosen": float(chosen_rewards.mean()),
+        "rewards_rejected": float(rejected_rewards.mean()),
+        "rewards_margin": float(margins.mean()),
+        "rewards_accuracy": float((margins > 0).double().mean()),
+        "logps_chosen": float(chosen.mean()),
+        "logps_rejected": float(rejected.mean()),
+    }
+
+
 def render_prompt_ids(
     row: dict[str, Any],
     prompt_messages: list[dict[str, Any]],
@@ -645,6 +708,75 @@ def build_tokenized_rows(
     }
 
 
+def evaluate_frozen_dpo_subset(
+    trainer: Any,
+    model: Any,
+    indices: list[int],
+    beta: float,
+) -> dict[str, Any]:
+    """Evaluate current policy on fixed pairs with cached base-policy log-probs."""
+    import torch
+    from split_dpo import release_branch_memory, single_completion_forward
+
+    chosen_logps: list[float] = []
+    rejected_logps: list[float] = []
+    ref_chosen_logps: list[float] = []
+    ref_rejected_logps: list[float] = []
+    was_training = model.training
+    model.eval()
+    device = trainer.accelerator.device
+    for index in indices:
+        row = trainer.train_dataset[index]
+        required = {
+            "prompt_input_ids",
+            "chosen_input_ids",
+            "rejected_input_ids",
+            "ref_chosen_logps",
+            "ref_rejected_logps",
+        }
+        missing = required - set(row)
+        if missing:
+            raise ValueError(
+                "frozen DPO evaluation row lacks columns: " + ", ".join(sorted(missing))
+            )
+
+        def branch_tensor(name: str) -> torch.Tensor:
+            return torch.tensor([row[name]], dtype=torch.long, device=device)
+
+        prompt = branch_tensor("prompt_input_ids")
+        chosen = branch_tensor("chosen_input_ids")
+        rejected = branch_tensor("rejected_input_ids")
+        batch = {
+            "prompt_input_ids": prompt,
+            "prompt_attention_mask": torch.ones_like(prompt),
+            "chosen_input_ids": chosen,
+            "chosen_attention_mask": torch.ones_like(chosen),
+            "rejected_input_ids": rejected,
+            "rejected_attention_mask": torch.ones_like(rejected),
+        }
+        with torch.no_grad(), trainer.compute_loss_context_manager():
+            chosen_output = single_completion_forward(trainer, model, batch, "chosen")
+            rejected_output = single_completion_forward(trainer, model, batch, "rejected")
+        chosen_logps.append(float(chosen_output["logps"].detach().cpu().item()))
+        rejected_logps.append(float(rejected_output["logps"].detach().cpu().item()))
+        ref_chosen_logps.append(float(row["ref_chosen_logps"]))
+        ref_rejected_logps.append(float(row["ref_rejected_logps"]))
+        del batch, prompt, chosen, rejected, chosen_output, rejected_output
+        release_branch_memory()
+    if was_training:
+        model.train()
+    return {
+        "pairs": len(indices),
+        **dpo_comparison_metrics(
+            chosen_logps,
+            rejected_logps,
+            ref_chosen_logps,
+            ref_rejected_logps,
+            beta,
+        ),
+    }
+
+
 def main() -> None:
     args = parse_args()
     session_dir = Path(args.session_dir).expanduser().resolve()
@@ -742,6 +874,31 @@ def main() -> None:
         max_prompt_length=args.max_prompt_length,
         max_completion_length=args.max_completion_length,
     )
+    frozen_eval_indices = select_frozen_dpo_indices(tokenized_rows, maximum=8)
+    frozen_eval_contract = {
+        "indices": frozen_eval_indices,
+        "row_identities": [
+            hashlib.sha256(
+                json.dumps(
+                    {
+                        "prompt": tokenized_rows[index].get("prompt"),
+                        "chosen": tokenized_rows[index].get("chosen"),
+                        "rejected": tokenized_rows[index].get("rejected"),
+                    },
+                    sort_keys=True,
+                    separators=(",", ":"),
+                    ensure_ascii=False,
+                ).encode("utf-8")
+            ).hexdigest()
+            for index in frozen_eval_indices
+        ],
+    }
+    frozen_eval_contract["sha256"] = hashlib.sha256(
+        json.dumps(
+            frozen_eval_contract, sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")
+    ).hexdigest()
+    save_json(metadata_dir / "frozen_eval_subset.json", frozen_eval_contract)
     ref_logprob_cache_data_path = metadata_dir / "train_ref_logprobs_cache.npz"
     ref_logprob_cache_meta_path = metadata_dir / "train_ref_logprobs_cache.meta.json"
     ref_logprob_cache_signature = build_ref_logprob_cache_signature(
@@ -1079,6 +1236,7 @@ def main() -> None:
             "meta_path": str(ref_logprob_cache_meta_path),
             "loaded_at_launch": cached_ref_logprobs is not None,
         },
+        "frozen_eval_subset_sha256": frozen_eval_contract["sha256"],
     }
     save_json(metadata_dir / "run_config.json", run_config)
 
@@ -1119,6 +1277,61 @@ def main() -> None:
             "Durable train ref-logprob cache saved: "
             f"rows={len(ref_chosen_logps)} path={ref_logprob_cache_data_path}"
         )
+
+    frozen_metrics_path = metadata_dir / "frozen_checkpoint_metrics.jsonl"
+    if frozen_metrics_path.exists() and not args.resume_from_checkpoint:
+        frozen_metrics_path.unlink()
+    initial_frozen_metrics: dict[str, Any] | None = None
+    if frozen_metrics_path.exists():
+        for line in frozen_metrics_path.read_text(encoding="utf-8").splitlines():
+            candidate = json.loads(line)
+            if candidate.get("global_step") == 0:
+                initial_frozen_metrics = {
+                    key: value
+                    for key, value in candidate.items()
+                    if key not in {"global_step", "checkpoint"}
+                }
+                break
+    if initial_frozen_metrics is None:
+        initial_frozen_metrics = evaluate_frozen_dpo_subset(
+            trainer,
+            model,
+            frozen_eval_indices,
+            args.beta,
+        )
+        append_jsonl(
+            frozen_metrics_path,
+            {"global_step": 0, "checkpoint": "base", **initial_frozen_metrics},
+        )
+
+    class FrozenDpoCheckpointCallback(TrainerCallback):
+        def on_save(
+            self,
+            train_args: Any,
+            state: Any,
+            control: Any,
+            **kwargs: Any,
+        ) -> Any:
+            evaluation = evaluate_frozen_dpo_subset(
+                trainer,
+                kwargs.get("model", model),
+                frozen_eval_indices,
+                args.beta,
+            )
+            append_jsonl(
+                frozen_metrics_path,
+                {
+                    "global_step": int(state.global_step),
+                    "checkpoint": str(
+                        Path(train_args.output_dir)
+                        / f"checkpoint-{int(state.global_step)}"
+                    ),
+                    **evaluation,
+                },
+            )
+            return control
+
+    trainer.add_callback(FrozenDpoCheckpointCallback())
 
     print("Starting DPO training")
     if torch.cuda.is_available():
@@ -1202,7 +1415,25 @@ def main() -> None:
     if train_result is None:  # pragma: no cover - defensive only
         raise RuntimeError("Training returned no result and no exception")
 
-    save_json(metadata_dir / "train_metrics.json", train_result.metrics)
+    final_frozen_metrics = evaluate_frozen_dpo_subset(
+        trainer,
+        model,
+        frozen_eval_indices,
+        args.beta,
+    )
+    append_jsonl(
+        frozen_metrics_path,
+        {
+            "global_step": int(trainer.state.global_step),
+            "checkpoint": "final",
+            **final_frozen_metrics,
+        },
+    )
+    complete_metrics = dict(train_result.metrics)
+    complete_metrics["frozen_eval_subset_sha256"] = frozen_eval_contract["sha256"]
+    complete_metrics["initial_frozen_eval"] = initial_frozen_metrics
+    complete_metrics["final_frozen_eval"] = final_frozen_metrics
+    save_json(metadata_dir / "train_metrics.json", complete_metrics)
     save_json(metadata_dir / "train_log_history.json", {"log_history": trainer.state.log_history})
 
     if args.skip_final_save:

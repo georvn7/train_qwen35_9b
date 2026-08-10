@@ -81,6 +81,50 @@ def thinking_dpo_rows(count: int = 13, thinking: str = "compare evidence") -> li
     return rows
 
 
+def rl_rows() -> list[dict]:
+    rows = []
+    for group_index in range(2):
+        for rollout_index, advantage in enumerate((-1.0, 1.0)):
+            rows.append(
+                {
+                    "group_id": f"group-{group_index}",
+                    "rollout_id": f"rollout-{rollout_index}",
+                    "reward": advantage,
+                    "advantage": advantage,
+                    "policy_step_weight": 0.5,
+                    "policy_steps": [
+                        {
+                            "prompt": [
+                                {"role": "system", "content": "debug assistant"},
+                                {"role": "user", "content": "choose the next action"},
+                            ],
+                            "completion": [
+                                {
+                                    "role": "assistant",
+                                    "thinking": "inspect grounded evidence",
+                                    "content": "selected action",
+                                }
+                            ],
+                        },
+                        {
+                            "prompt": [
+                                {"role": "system", "content": "debug assistant"},
+                                {"role": "user", "content": "continue"},
+                            ],
+                            "completion": [
+                                {
+                                    "role": "assistant",
+                                    "thinking": "select the causal repair",
+                                    "content": "terminal fix",
+                                }
+                            ],
+                        },
+                    ],
+                }
+            )
+    return rows
+
+
 def make_job(
     jobs_root: Path,
     job_id: str = "simplec-s0_2-micro-001",
@@ -95,6 +139,8 @@ def make_job(
     assistant_reasoning: bool = False,
     thinking_max_chars: int = 1800,
     dpo_execution_mode: str | None = None,
+    rl_enabled: bool = False,
+    custom_rl_rows: list[dict] | None = None,
 ) -> Path:
     job_dir = jobs_root / "incoming" / job_id
     job_dir.mkdir(parents=True, exist_ok=True)
@@ -111,7 +157,8 @@ def make_job(
     dpo_text = jsonl(dpo_payload)
     if sft_enabled:
         (job_dir / "train_sft.jsonl").write_text(sft_text, encoding="utf-8")
-    (job_dir / "train_dpo.jsonl").write_text(dpo_text, encoding="utf-8")
+    if not rl_enabled:
+        (job_dir / "train_dpo.jsonl").write_text(dpo_text, encoding="utf-8")
     sft_sha = sha256_text(sft_text)
     dpo_sha = sha256_text(dpo_text)
     if bad_checksum:
@@ -131,18 +178,40 @@ def make_job(
             "thinking_max_chars": thinking_max_chars,
             "semantic_judging": "final_content_only",
         },
-        "inputs": {
-            "dpo": {"path": "train_dpo.jsonl", "sha256": dpo_sha, "rows": len(dpo_payload)},
-        },
+        "inputs": {},
         "stages": {
-            "sft": {"enabled": sft_enabled, "overrides": {}},
-            "dpo": {"enabled": dpo_enabled, "overrides": {}},
+            "sft": {"enabled": sft_enabled and not rl_enabled, "overrides": {}},
+            "dpo": {"enabled": dpo_enabled and not rl_enabled, "overrides": {}},
+            "rl": {
+                "enabled": rl_enabled,
+                "execution_mode": "serialized",
+                "overrides": {
+                    "clip_epsilon": 0.2,
+                    "kl_beta": 0.01,
+                    "epochs": 1,
+                } if rl_enabled else {},
+            },
         },
         "deployment": {"enabled": True, "served_model_name": f"hayabusa-9b-{job_id}"},
     }
     if dpo_execution_mode is not None:
         manifest["dpo_execution_mode"] = dpo_execution_mode
-    if sft_enabled:
+    if rl_enabled:
+        payload = custom_rl_rows if custom_rl_rows is not None else rl_rows()
+        rl_text = jsonl(payload)
+        (job_dir / "train_rl.jsonl").write_text(rl_text, encoding="utf-8")
+        manifest["inputs"]["rl"] = {
+            "path": "train_rl.jsonl",
+            "sha256": sha256_text(rl_text),
+            "rows": len(payload),
+        }
+    else:
+        manifest["inputs"]["dpo"] = {
+            "path": "train_dpo.jsonl",
+            "sha256": dpo_sha,
+            "rows": len(dpo_payload),
+        }
+    if sft_enabled and not rl_enabled:
         manifest["inputs"]["sft"] = {
             "path": "train_sft.jsonl",
             "sha256": sft_sha,
@@ -332,6 +401,63 @@ class TrainJobRunnerTests(unittest.TestCase):
             result = read_json(completed / "result.json")
             self.assertEqual(result["health_check"]["assistant_reasoning"], "required")
 
+    def test_valid_rl_only_bundle_reaches_complete(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            config = self.make_config(tmp)
+            make_job(
+                config.jobs_root,
+                sft_enabled=False,
+                dpo_enabled=False,
+                rl_enabled=True,
+                assistant_reasoning=True,
+            )
+            self.assertEqual(runner.run_once(config), 0)
+            completed = config.jobs_root / "completed" / "simplec-s0_2-micro-001"
+            result = read_json(completed / "result.json")
+            self.assertEqual(result["metrics"]["rl"], {"stage": "rl"})
+            self.assertEqual(result["metrics"]["dpo"], {})
+            self.assertEqual(result["rl_execution"]["execution_mode"], "serialized")
+            stages = read_json(completed / "stage_sessions.json")
+            self.assertIsNone(stages["dpo"])
+            self.assertEqual(stages["rl"]["metrics"], {"stage": "rl"})
+
+    def test_rl_group_without_advantage_diversity_is_rejected(self) -> None:
+        rows = rl_rows()
+        for row in rows:
+            row["advantage"] = 0.0
+        with tempfile.TemporaryDirectory() as tmp:
+            config = self.make_config(tmp)
+            make_job(
+                config.jobs_root,
+                sft_enabled=False,
+                dpo_enabled=False,
+                rl_enabled=True,
+                assistant_reasoning=True,
+                custom_rl_rows=rows,
+            )
+            self.assertEqual(runner.run_once(config), 1)
+            failed = config.jobs_root / "failed" / "simplec-s0_2-micro-001"
+            self.assertIn("advantage diversity", read_json(failed / "result.json")["error"])
+
+    def test_rl_inconsistent_policy_step_weight_is_rejected(self) -> None:
+        rows = rl_rows()
+        rows[0]["policy_step_weight"] = 1.0
+        with tempfile.TemporaryDirectory() as tmp:
+            config = self.make_config(tmp)
+            make_job(
+                config.jobs_root,
+                sft_enabled=False,
+                dpo_enabled=False,
+                rl_enabled=True,
+                assistant_reasoning=True,
+                custom_rl_rows=rows,
+            )
+            self.assertEqual(runner.run_once(config), 1)
+            failed = config.jobs_root / "failed" / "simplec-s0_2-micro-001"
+            self.assertIn(
+                "1 / policy_steps", read_json(failed / "result.json")["error"]
+            )
+
     def test_required_thinking_rejects_missing_and_oversized_reasoning(self) -> None:
         cases = [
             ("missing", sft_rows(), thinking_dpo_rows(), 1800, "thinking is required"),
@@ -405,7 +531,7 @@ class TrainJobRunnerTests(unittest.TestCase):
             failed = config.jobs_root / "failed" / "simplec-s0_2-micro-001"
             result = read_json(failed / "result.json")
             self.assertEqual(result["failed_stage"], "validating")
-            self.assertIn("DPO stage must be enabled", result["error"])
+            self.assertIn("exactly one of DPO or RL", result["error"])
 
     def test_dpo_message_array_validation_errors(self) -> None:
         cases = [

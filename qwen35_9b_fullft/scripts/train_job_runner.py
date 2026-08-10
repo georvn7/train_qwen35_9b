@@ -13,6 +13,7 @@ import contextlib
 import fcntl
 import hashlib
 import json
+import math
 import os
 import re
 import shutil
@@ -39,6 +40,7 @@ NON_TERMINAL_STATES = {
     "validating",
     "sft_running",
     "dpo_running",
+    "rl_running",
     "deploying",
     "health_check",
 }
@@ -94,12 +96,17 @@ class ValidatedJob:
     sft_enabled: bool
     dpo_enabled: bool
     sft_input: ValidatedInput | None
-    dpo_input: ValidatedInput
+    dpo_input: ValidatedInput | None
     deployment_enabled: bool
     served_model_name: str
     assistant_reasoning: str
     thinking_max_chars: int
     dpo_execution_mode: str = "batched"
+    rl_enabled: bool = False
+    rl_input: ValidatedInput | None = None
+    rl_clip_epsilon: float = 0.20
+    rl_kl_beta: float = 0.01
+    rl_epochs: int = 1
 
 
 @dataclass
@@ -183,40 +190,54 @@ def write_success_result(
     job_dir: Path,
     job: ValidatedJob,
     sft: StageOutput | None,
-    dpo: StageOutput,
+    dpo: StageOutput | None,
+    rl: StageOutput | None,
     endpoint: str,
     health_check: dict[str, Any],
 ) -> None:
-    effective_mode = resolve_dpo_execution_mode(
-        job.dpo_execution_mode, job.max_sequence_length
-    )
-    max_prompt, max_completion, max_length = dpo_lengths(
-        job.max_sequence_length, effective_mode
-    )
+    if (dpo is None) == (rl is None):
+        raise RunnerError("exactly one terminal training stage is required")
     payload = {
         "format_version": FORMAT_VERSION,
         "job_id": job.job_id,
         "status": "complete",
         "base_checkpoint": job.base_checkpoint,
         "sft_checkpoint": str(sft.checkpoint) if sft is not None else None,
-        "final_checkpoint": str(dpo.checkpoint),
+        "final_checkpoint": str((rl or dpo).checkpoint),
         "served_model_name": job.served_model_name,
         "endpoint": endpoint,
         "health_check": health_check,
-        "dpo_execution": {
+        "metrics": {
+            "sft": sft.metrics if sft is not None else {},
+            "dpo": dpo.metrics if dpo is not None else {},
+            "rl": rl.metrics if rl is not None else {},
+        },
+        "completed_at": utc_now(),
+    }
+    if dpo is not None:
+        effective_mode = resolve_dpo_execution_mode(
+            job.dpo_execution_mode, job.max_sequence_length
+        )
+        max_prompt, max_completion, max_length = dpo_lengths(
+            job.max_sequence_length, effective_mode
+        )
+        payload["dpo_execution"] = {
             "requested_mode": job.dpo_execution_mode,
             "effective_mode": effective_mode,
             "requested_max_sequence_length": job.max_sequence_length,
             "effective_max_sequence_length": max_length,
             "max_prompt_length": max_prompt,
             "max_completion_length": max_completion,
-        },
-        "metrics": {
-            "sft": sft.metrics if sft is not None else {},
-            "dpo": dpo.metrics,
-        },
-        "completed_at": utc_now(),
-    }
+        }
+    if rl is not None:
+        payload["rl_execution"] = {
+            "execution_mode": "serialized",
+            "requested_max_sequence_length": job.max_sequence_length,
+            "effective_max_sequence_length": job.max_sequence_length,
+            "clip_epsilon": job.rl_clip_epsilon,
+            "kl_beta": job.rl_kl_beta,
+            "epochs": job.rl_epochs,
+        }
     atomic_write_json(job_dir / "result.json", payload)
 
 
@@ -416,6 +437,90 @@ def validate_dpo_jsonl(
     return rows
 
 
+def validate_rl_jsonl(
+    path: Path,
+    assistant_reasoning: str = "required",
+    thinking_max_chars: int = 1800,
+) -> int:
+    rows = 0
+    group_advantages: dict[str, list[float]] = {}
+    identities: set[tuple[str, str]] = set()
+    for line_no, obj in iter_jsonl(path):
+        rows += 1
+        if not isinstance(obj, dict):
+            raise ValidationError(f"{path.name}:{line_no}: RL row must be an object")
+        group_id = obj.get("group_id")
+        rollout_id = obj.get("rollout_id")
+        if not isinstance(group_id, str) or not group_id:
+            raise ValidationError(f"{path.name}:{line_no}: group_id is required")
+        if not isinstance(rollout_id, str) or not rollout_id:
+            raise ValidationError(f"{path.name}:{line_no}: rollout_id is required")
+        identity = (group_id, rollout_id)
+        if identity in identities:
+            raise ValidationError(
+                f"{path.name}:{line_no}: duplicate RL rollout {group_id}/{rollout_id}"
+            )
+        identities.add(identity)
+        for field in ("reward", "advantage", "policy_step_weight"):
+            value = obj.get(field)
+            if not isinstance(value, (int, float)) or isinstance(value, bool):
+                raise ValidationError(
+                    f"{path.name}:{line_no}: {field} must be a finite number"
+                )
+            if not math.isfinite(float(value)):
+                raise ValidationError(
+                    f"{path.name}:{line_no}: {field} must be a finite number"
+                )
+        if float(obj["policy_step_weight"]) <= 0.0:
+            raise ValidationError(
+                f"{path.name}:{line_no}: policy_step_weight must be positive"
+            )
+        policy_steps = obj.get("policy_steps")
+        if not isinstance(policy_steps, list) or not policy_steps:
+            raise ValidationError(f"{path.name}:{line_no}: policy_steps must be non-empty")
+        expected_weight = 1.0 / len(policy_steps)
+        if abs(float(obj["policy_step_weight"]) - expected_weight) > 1e-6:
+            raise ValidationError(
+                f"{path.name}:{line_no}: policy_step_weight must equal 1 / policy_steps"
+            )
+        for step_index, policy_step in enumerate(policy_steps):
+            label = f"RL policy_steps[{step_index}]"
+            if not isinstance(policy_step, dict):
+                raise ValidationError(f"{path.name}:{line_no}: {label} must be an object")
+            validate_dpo_value(
+                path,
+                line_no,
+                f"{label}.prompt",
+                policy_step.get("prompt"),
+                "disabled",
+                thinking_max_chars,
+            )
+            validate_dpo_value(
+                path,
+                line_no,
+                f"{label}.completion",
+                policy_step.get("completion"),
+                assistant_reasoning,
+                thinking_max_chars,
+            )
+        group_advantages.setdefault(group_id, []).append(float(obj["advantage"]))
+
+    for group_id, advantages in group_advantages.items():
+        if len(advantages) < 2:
+            raise ValidationError(
+                f"{path.name}: RL group {group_id!r} must contain at least two rollouts"
+            )
+        if max(advantages) - min(advantages) <= 1e-9:
+            raise ValidationError(
+                f"{path.name}: RL group {group_id!r} has no advantage diversity"
+            )
+        if abs(sum(advantages)) > 1e-4 * max(1, len(advantages)):
+            raise ValidationError(
+                f"{path.name}: RL group {group_id!r} advantages are not centered"
+            )
+    return rows
+
+
 def validate_input(
     job_dir: Path,
     manifest: dict[str, Any],
@@ -443,11 +548,20 @@ def validate_input(
     expected_rows = spec.get("rows")
     if not isinstance(expected_rows, int) or expected_rows < 0:
         raise ValidationError(f"inputs.{stage}.rows must be a non-negative integer")
-    actual_rows = (
-        validate_sft_jsonl(path, assistant_reasoning, thinking_max_chars)
-        if stage == "sft"
-        else validate_dpo_jsonl(path, assistant_reasoning, thinking_max_chars)
-    )
+    if stage == "sft":
+        actual_rows = validate_sft_jsonl(
+            path, assistant_reasoning, thinking_max_chars
+        )
+    elif stage == "dpo":
+        actual_rows = validate_dpo_jsonl(
+            path, assistant_reasoning, thinking_max_chars
+        )
+    elif stage == "rl":
+        actual_rows = validate_rl_jsonl(
+            path, assistant_reasoning, thinking_max_chars
+        )
+    else:
+        raise ValidationError(f"unsupported input stage: {stage!r}")
     if actual_rows != expected_rows:
         raise ValidationError(f"inputs.{stage}.rows mismatch: expected {expected_rows}, got {actual_rows}")
     return ValidatedInput(path=path, rows=actual_rows, sha256=actual_sha)
@@ -489,16 +603,59 @@ def validate_manifest(job_dir: Path) -> ValidatedJob:
         raise ValidationError("stages object is required")
     sft_stage = stages.get("sft")
     dpo_stage = stages.get("dpo")
+    rl_stage = stages.get("rl", {"enabled": False, "overrides": {}})
     if not isinstance(sft_stage, dict) or not isinstance(dpo_stage, dict):
         raise ValidationError("stages.sft and stages.dpo objects are required")
-    if not isinstance(sft_stage.get("enabled"), bool) or not isinstance(dpo_stage.get("enabled"), bool):
-        raise ValidationError("stages.sft.enabled and stages.dpo.enabled must be booleans")
+    if not isinstance(rl_stage, dict):
+        raise ValidationError("stages.rl must be an object when provided")
+    if not all(
+        isinstance(stage.get("enabled"), bool)
+        for stage in (sft_stage, dpo_stage, rl_stage)
+    ):
+        raise ValidationError(
+            "stages.sft.enabled, stages.dpo.enabled, and stages.rl.enabled must be booleans"
+        )
     sft_enabled = sft_stage["enabled"]
     dpo_enabled = dpo_stage["enabled"]
-    if not dpo_enabled:
-        raise ValidationError("DPO stage must be enabled; SFT-only jobs are not supported")
+    rl_enabled = rl_stage["enabled"]
+    if dpo_enabled == rl_enabled:
+        raise ValidationError("exactly one of DPO or RL must be enabled")
+    if rl_enabled and sft_enabled:
+        raise ValidationError("RL jobs cannot include an SFT stage")
     if sft_stage.get("overrides", {}) or dpo_stage.get("overrides", {}):
-        raise ValidationError("stage overrides are not supported in V1")
+        raise ValidationError("SFT/DPO stage overrides are not supported in V1")
+
+    rl_overrides = rl_stage.get("overrides", {})
+    if not isinstance(rl_overrides, dict):
+        raise ValidationError("stages.rl.overrides must be an object")
+    unknown_rl_overrides = set(rl_overrides) - {
+        "clip_epsilon",
+        "kl_beta",
+        "epochs",
+    }
+    if unknown_rl_overrides:
+        raise ValidationError(
+            "unsupported RL overrides: " + ", ".join(sorted(unknown_rl_overrides))
+        )
+    if rl_enabled and rl_stage.get("execution_mode", "serialized") != "serialized":
+        raise ValidationError("stages.rl.execution_mode must be 'serialized'")
+    rl_clip_epsilon = rl_overrides.get("clip_epsilon", 0.20)
+    rl_kl_beta = rl_overrides.get("kl_beta", 0.01)
+    rl_epochs = rl_overrides.get("epochs", 1)
+    if (
+        not isinstance(rl_clip_epsilon, (int, float))
+        or isinstance(rl_clip_epsilon, bool)
+        or not 0.0 < float(rl_clip_epsilon) < 1.0
+    ):
+        raise ValidationError("RL clip_epsilon must be in (0, 1)")
+    if (
+        not isinstance(rl_kl_beta, (int, float))
+        or isinstance(rl_kl_beta, bool)
+        or float(rl_kl_beta) < 0.0
+    ):
+        raise ValidationError("RL kl_beta must be non-negative")
+    if not isinstance(rl_epochs, int) or isinstance(rl_epochs, bool) or rl_epochs != 1:
+        raise ValidationError("RL currently requires exactly one epoch")
 
     reasoning = manifest.get("assistant_reasoning", {})
     if reasoning is None:
@@ -521,6 +678,8 @@ def validate_manifest(job_dir: Path) -> ValidatedJob:
         raise ValidationError(
             "assistant_reasoning.semantic_judging must be 'final_content_only'"
         )
+    if rl_enabled and assistant_reasoning != "required":
+        raise ValidationError("RL jobs require assistant reasoning")
 
     dpo_execution_mode = manifest.get("dpo_execution_mode", "batched")
     if dpo_execution_mode not in {"batched", "split_backward", "auto"}:
@@ -539,12 +698,27 @@ def validate_manifest(job_dir: Path) -> ValidatedJob:
         if sft_enabled
         else None
     )
-    dpo_input = validate_input(
-        job_dir,
-        manifest,
-        "dpo",
-        assistant_reasoning,
-        thinking_max_chars,
+    dpo_input = (
+        validate_input(
+            job_dir,
+            manifest,
+            "dpo",
+            assistant_reasoning,
+            thinking_max_chars,
+        )
+        if dpo_enabled
+        else None
+    )
+    rl_input = (
+        validate_input(
+            job_dir,
+            manifest,
+            "rl",
+            assistant_reasoning,
+            thinking_max_chars,
+        )
+        if rl_enabled
+        else None
     )
 
     deployment = manifest.get("deployment", {})
@@ -573,6 +747,11 @@ def validate_manifest(job_dir: Path) -> ValidatedJob:
         assistant_reasoning=assistant_reasoning,
         thinking_max_chars=thinking_max_chars,
         dpo_execution_mode=dpo_execution_mode,
+        rl_enabled=rl_enabled,
+        rl_input=rl_input,
+        rl_clip_epsilon=float(rl_clip_epsilon),
+        rl_kl_beta=float(rl_kl_beta),
+        rl_epochs=rl_epochs,
     )
 
 
@@ -1003,6 +1182,84 @@ def build_dpo_command(
     return command
 
 
+def build_rl_command(
+    config: RunnerConfig,
+    job: ValidatedJob,
+    session_dir: Path,
+    model_checkpoint: Path | str,
+) -> list[str]:
+    if config.mode == "fixture":
+        command = [
+            sys.executable,
+            str(Path(__file__).resolve()),
+            "_fake_stage",
+            "--stage",
+            "rl",
+            "--session-dir",
+            str(session_dir),
+            "--model-checkpoint",
+            str(model_checkpoint),
+        ]
+        if config.fixture.fail_stage == "rl":
+            command.append("--fail")
+        if config.fixture.sleep_seconds:
+            command += ["--sleep", str(config.fixture.sleep_seconds)]
+        return command
+
+    return [
+        python_executable(config.workspace_root),
+        str(script_path(config.workspace_root, "train_rl_session.py")),
+        "--session-dir",
+        str(session_dir),
+        "--model-name",
+        str(model_checkpoint),
+        "--attn-implementation",
+        "sdpa",
+        "--device-map",
+        "cuda:0",
+        "--max-length",
+        str(job.max_sequence_length),
+        "--num-train-epochs",
+        str(job.rl_epochs),
+        "--learning-rate",
+        "5e-7",
+        "--warmup-steps",
+        "0",
+        "--weight-decay",
+        "0.01",
+        "--logging-steps",
+        "1",
+        "--save-steps",
+        "10,20,40,60",
+        "--save-total-limit",
+        "4",
+        "--optim",
+        "adamw_8bit",
+        "--seed",
+        "3413",
+        "--clip-epsilon",
+        str(job.rl_clip_epsilon),
+        "--kl-beta",
+        str(job.rl_kl_beta),
+        "--precision",
+        "auto",
+        "--torch-dtype",
+        "bfloat16",
+        "--max-gpu-memory-gib",
+        "110",
+        "--cuda-memory-fraction",
+        "0.88",
+        "--cuda-alloc-conf",
+        "expandable_segments:True,max_split_size_mb:256",
+        "--checkpoint-max-shard-size",
+        "512MB",
+        "--checkpoint-safe-serialization",
+        "true",
+        "--frozen-eval-max-sequences",
+        "16",
+    ]
+
+
 def verify_checkpoint(checkpoint: Path, config: RunnerConfig, stage: str) -> None:
     if not checkpoint.exists() or not checkpoint.is_dir():
         raise StageError(stage, f"checkpoint directory is missing: {checkpoint}")
@@ -1096,6 +1353,38 @@ def run_dpo_stage(
     rc = run_streamed_command(command, log_path)
     if rc != 0:
         raise StageError(stage, f"DPO command failed with exit code {rc}; see {log_path}")
+    checkpoint = session_dir / "artifacts" / "full_model"
+    verify_checkpoint(checkpoint, config, stage)
+    metrics = load_stage_metrics(session_dir, stage)
+    return StageOutput(
+        session_dir=session_dir,
+        checkpoint=checkpoint,
+        command=command,
+        log_path=log_path,
+        metrics=metrics,
+    )
+
+
+def run_rl_stage(
+    config: RunnerConfig,
+    job_dir: Path,
+    job: ValidatedJob,
+    model_checkpoint: Path | str,
+) -> StageOutput:
+    if job.rl_input is None:
+        raise StageError("rl", "RL input is unavailable for this job")
+    stage = "rl"
+    logs_dir = job_dir / "logs"
+    label = f"contract_{job.output_checkpoint}_rl"
+    log_path = logs_dir / "rl.log"
+    session_dir = create_stage_session(
+        config, job_dir, stage, job.rl_input.path, label, log_path
+    )
+    command = build_rl_command(config, job, session_dir, model_checkpoint)
+    write_status(job_dir, "rl_running", "Serialized RL training started", stage=stage)
+    rc = run_streamed_command(command, log_path)
+    if rc != 0:
+        raise StageError(stage, f"RL command failed with exit code {rc}; see {log_path}")
     checkpoint = session_dir / "artifacts" / "full_model"
     verify_checkpoint(checkpoint, config, stage)
     metrics = load_stage_metrics(session_dir, stage)
@@ -1282,10 +1571,12 @@ def write_stage_summary(
     job_dir: Path,
     sft: StageOutput | None,
     dpo: StageOutput | None,
+    rl: StageOutput | None = None,
 ) -> None:
     payload: dict[str, Any] = {
         "sft": None,
         "dpo": None,
+        "rl": None,
     }
     if sft is not None:
         payload["sft"] = {
@@ -1302,6 +1593,14 @@ def write_stage_summary(
             "log_path": str(dpo.log_path),
             "command": dpo.command,
             "metrics": dpo.metrics,
+        }
+    if rl is not None:
+        payload["rl"] = {
+            "session_dir": str(rl.session_dir),
+            "checkpoint": str(rl.checkpoint),
+            "log_path": str(rl.log_path),
+            "command": rl.command,
+            "metrics": rl.metrics,
         }
     atomic_write_json(job_dir / "stage_sessions.json", payload)
 
@@ -1324,6 +1623,7 @@ def process_job(config: RunnerConfig, job_dir: Path, resumed_running: bool = Fal
         "preparing_training",
         "sft_running",
         "dpo_running",
+        "rl_running",
         "deploying",
         "health_check",
     }:
@@ -1337,17 +1637,26 @@ def process_job(config: RunnerConfig, job_dir: Path, resumed_running: bool = Fal
     job = validate_manifest(job_dir)
 
     prepare_training_environment(config, job_dir)
-    sft = run_sft_stage(config, job_dir, job) if job.sft_enabled else None
-    if sft is not None:
-        # Persist the verified checkpoint before DPO so a failed bootstrap job
-        # can be resumed as an immutable DPO-only replacement job.
-        write_stage_summary(job_dir, sft, None)
-    dpo_model_checkpoint: Path | str = sft.checkpoint if sft is not None else job.base_checkpoint
-    dpo = run_dpo_stage(config, job_dir, job, dpo_model_checkpoint)
-    write_stage_summary(job_dir, sft, dpo)
-    endpoint = deploy(config, job_dir, job, dpo.checkpoint)
+    sft: StageOutput | None = None
+    dpo: StageOutput | None = None
+    rl: StageOutput | None = None
+    if job.rl_enabled:
+        rl = run_rl_stage(config, job_dir, job, job.base_checkpoint)
+    else:
+        sft = run_sft_stage(config, job_dir, job) if job.sft_enabled else None
+        if sft is not None:
+            # Persist the verified checkpoint before DPO so a failed bootstrap
+            # can be resumed as an immutable DPO-only replacement job.
+            write_stage_summary(job_dir, sft, None)
+        dpo_model_checkpoint: Path | str = (
+            sft.checkpoint if sft is not None else job.base_checkpoint
+        )
+        dpo = run_dpo_stage(config, job_dir, job, dpo_model_checkpoint)
+    write_stage_summary(job_dir, sft, dpo, rl)
+    final_checkpoint = (rl or dpo).checkpoint
+    endpoint = deploy(config, job_dir, job, final_checkpoint)
     health = health_check(config, job_dir, job, endpoint)
-    write_success_result(job_dir, job, sft, dpo, endpoint, health)
+    write_success_result(job_dir, job, sft, dpo, rl, endpoint, health)
     write_status(job_dir, "complete", "Job complete", stage=None)
     return move_terminal(config.jobs_root, job_dir, "complete")
 
@@ -1394,7 +1703,7 @@ def run_loop(config: RunnerConfig) -> int:
 
 def fake_stage_main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--stage", required=True, choices=["sft", "dpo"])
+    parser.add_argument("--stage", required=True, choices=["sft", "dpo", "rl"])
     parser.add_argument("--session-dir", required=True)
     parser.add_argument("--model-checkpoint", default="")
     parser.add_argument("--fail", action="store_true")
@@ -1429,7 +1738,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--fixture-mode", action="store_true", help="Alias for --mode fixture.")
     parser.add_argument(
         "--fixture-fail-stage",
-        choices=["", "prepare_training", "sft", "dpo", "deploy", "health_check"],
+        choices=["", "prepare_training", "sft", "dpo", "rl", "deploy", "health_check"],
         default="",
     )
     parser.add_argument("--fixture-sleep-seconds", type=float, default=0.0)
