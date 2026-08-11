@@ -162,6 +162,22 @@ class FrozenSubsetTests(unittest.TestCase):
         self.assertEqual(len(first), 5)
         self.assertEqual({records[index]["group_id"] for index in first[:3]}, {"a", "b", "c"})
 
+    def test_weighted_metrics_follow_rollout_step_normalization(self):
+        metrics = [
+            {"loss": 2.0, "approx_kl": 0.1},
+            {"loss": -2.0, "approx_kl": 0.3},
+        ]
+
+        result = RL.aggregate_weighted_metrics(metrics, [0.25, 0.75])
+
+        self.assertAlmostEqual(result["loss"], -1.0)
+        self.assertAlmostEqual(result["approx_kl"], 0.25)
+        self.assertAlmostEqual(result["weight_sum"], 1.0)
+
+    def test_weighted_metrics_reject_non_positive_weights(self):
+        with self.assertRaisesRegex(ValueError, "finite and positive"):
+            RL.aggregate_weighted_metrics([{"loss": 1.0}], [0.0])
+
 
 if __name__ == "__main__":
     unittest.main()

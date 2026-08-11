@@ -384,6 +384,31 @@ def aggregate_metrics(values: list[dict[str, float]]) -> dict[str, float]:
     }
 
 
+def aggregate_weighted_metrics(
+    values: list[dict[str, float]], weights: list[float]
+) -> dict[str, float]:
+    """Aggregate metrics using the rollout-normalized policy-step weights."""
+    if len(values) != len(weights):
+        raise ValueError("metric values and weights must align")
+    if not values:
+        return {}
+    if any(not math.isfinite(weight) or weight <= 0.0 for weight in weights):
+        raise ValueError("metric weights must be finite and positive")
+    keys = sorted(set().union(*(value.keys() for value in values)))
+    result: dict[str, float] = {}
+    for key in keys:
+        denominator = sum(
+            weight for value, weight in zip(values, weights) if key in value
+        )
+        result[key] = sum(
+            float(value[key]) * weight
+            for value, weight in zip(values, weights)
+            if key in value
+        ) / denominator
+    result["weight_sum"] = sum(weights)
+    return result
+
+
 def resolve_dtype(name: str) -> Any | None:
     import torch
 
@@ -479,6 +504,7 @@ def evaluate_records(
     model.eval()
     device = model_device(model)
     metrics: list[dict[str, float]] = []
+    weights: list[float] = []
     for index in indices:
         record = records[index]
         input_ids = torch.tensor([record["input_ids"]], dtype=torch.long, device=device)
@@ -497,9 +523,14 @@ def evaluate_records(
                 **{key: float(value.cpu()) for key, value in values.items()},
             }
         )
+        weights.append(float(record["weight"]))
         del input_ids, current, objective
         release_memory()
-    return {"sequences": len(indices), **aggregate_metrics(metrics)}
+    return {
+        "sequences": len(indices),
+        **aggregate_metrics(metrics),
+        "policy_step_weighted": aggregate_weighted_metrics(metrics, weights),
+    }
 
 
 def retain_latest_checkpoints(checkpoints_dir: Path, limit: int) -> None:
