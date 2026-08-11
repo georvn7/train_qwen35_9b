@@ -254,6 +254,13 @@ The semantic teacher is not part of Spark training. macOS has already scored
 only each terminal fix answer. Thinking is retained in `train_rl.jsonl` for
 structure validation and model loss but is excluded from semantic judging.
 
+Before the first production RL job for a model/length recipe, run the trainer
+directly with `--smoke-optimizer-steps 1` against a representative immutable
+RL bundle. Smoke mode performs tokenization, frozen old-policy precomputation,
+base/final evaluation, and one real optimizer step. It records loss and peak
+memory but deliberately does not create `artifacts/full_model`, so it cannot be
+deployed or mistaken for a production lineage checkpoint.
+
 These advantages are on/near-policy only for the exact recorded checkpoint
 lineage. Reusing the rows with another model is off-policy and is not equivalent
 to this trainer's objective.

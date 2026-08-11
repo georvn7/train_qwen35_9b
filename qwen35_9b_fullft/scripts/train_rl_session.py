@@ -101,6 +101,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--checkpoint-max-shard-size", default="512MB")
     parser.add_argument("--checkpoint-safe-serialization", choices=["true", "false"], default="true")
     parser.add_argument("--frozen-eval-max-sequences", type=int, default=16)
+    parser.add_argument(
+        "--smoke-optimizer-steps",
+        type=int,
+        default=0,
+        help=(
+            "Run only this many real optimizer steps, record metrics, and skip "
+            "model publication. Zero performs normal production training."
+        ),
+    )
     parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args()
 
@@ -116,6 +125,16 @@ def parse_positive_steps(value: str) -> list[int]:
             raise ValueError("save steps must be positive")
         result.add(step)
     return sorted(result)
+
+
+def resolve_optimizer_step_limit(total_steps: int, smoke_steps: int) -> tuple[int, bool]:
+    if total_steps <= 0:
+        raise ValueError("RL training requires at least one optimizer step")
+    if smoke_steps < 0:
+        raise ValueError("smoke optimizer steps cannot be negative")
+    if smoke_steps == 0:
+        return total_steps, False
+    return min(total_steps, smoke_steps), True
 
 
 def normalize_messages(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -624,6 +643,10 @@ def main() -> None:
         tokenizer.pad_token = tokenizer.eos_token
     tokenizer.truncation_side = "left"
     records, tokenization_stats = flatten_rollouts(rows, tokenizer, args.max_length)
+    full_training_steps = len(records) * args.num_train_epochs
+    optimizer_step_limit, smoke_mode = resolve_optimizer_step_limit(
+        full_training_steps, args.smoke_optimizer_steps
+    )
     save_json(metadata_dir / "rl_tokenization_stats.json", tokenization_stats)
     frozen_indices = select_frozen_subset(records, args.frozen_eval_max_sequences)
     frozen_contract = {
@@ -649,6 +672,9 @@ def main() -> None:
         "old_policy": "exact_base_checkpoint_precomputed_before_updates",
         "save_steps": save_steps,
         "frozen_eval_subset_sha256": frozen_contract["sha256"],
+        "full_training_steps": full_training_steps,
+        "optimizer_step_limit": optimizer_step_limit,
+        "smoke_mode": smoke_mode,
         "dry_run": args.dry_run,
     }
     save_json(metadata_dir / "run_config.json", run_config)
@@ -699,11 +725,10 @@ def main() -> None:
             weight_decay=args.weight_decay,
         )
 
-    total_steps = len(records) * args.num_train_epochs
     scheduler = get_linear_schedule_with_warmup(
         optimizer,
         num_warmup_steps=args.warmup_steps,
-        num_training_steps=total_steps,
+        num_training_steps=optimizer_step_limit,
     )
     if torch.cuda.is_available():
         torch.cuda.reset_peak_memory_stats()
@@ -767,6 +792,8 @@ def main() -> None:
     try:
         for _epoch in range(args.num_train_epochs):
             for record_index in order:
+                if global_step >= optimizer_step_limit:
+                    break
                 global_step += 1
                 record = records[record_index]
                 device = model_device(model)
@@ -807,7 +834,8 @@ def main() -> None:
                 if global_step % args.logging_steps == 0:
                     print(
                         "RL step "
-                        f"{global_step}/{total_steps}: loss={row_metrics['loss']:.6f} "
+                        f"{global_step}/{optimizer_step_limit}: "
+                        f"loss={row_metrics['loss']:.6f} "
                         f"kl={row_metrics['approx_kl']:.6f} "
                         f"clip={row_metrics['clip_fraction']:.4f}",
                         flush=True,
@@ -822,7 +850,7 @@ def main() -> None:
                             f"GPU memory guard triggered: {reserved_gib:.2f} GiB "
                             f"> {args.max_gpu_memory_gib:.2f} GiB"
                         )
-                if global_step in save_steps:
+                if not smoke_mode and global_step in save_steps:
                     evaluation = evaluate_records(
                         model,
                         records,
@@ -851,6 +879,8 @@ def main() -> None:
                     )
                     retain_latest_checkpoints(checkpoints_dir, args.save_total_limit)
                     model.train()
+            if global_step >= optimizer_step_limit:
+                break
     except Exception as exc:
         save_json(
             metadata_dir / "train_error.json",
@@ -879,18 +909,21 @@ def main() -> None:
         eval_path,
         {"global_step": global_step, "checkpoint": "final", **final_eval},
     )
-    save_checkpoint(
-        model,
-        tokenizer,
-        full_model_dir,
-        max_shard_size=args.checkpoint_max_shard_size,
-        safe_serialization=args.checkpoint_safe_serialization == "true",
-        metadata={"global_step": global_step, "created_at_utc": utc_now()},
-    )
+    if not smoke_mode:
+        save_checkpoint(
+            model,
+            tokenizer,
+            full_model_dir,
+            max_shard_size=args.checkpoint_max_shard_size,
+            safe_serialization=args.checkpoint_safe_serialization == "true",
+            metadata={"global_step": global_step, "created_at_utc": utc_now()},
+        )
     elapsed = time.monotonic() - started
     train_metrics = {
         "train_runtime_seconds": elapsed,
         "train_steps": global_step,
+        "full_training_steps": full_training_steps,
+        "smoke_mode": smoke_mode,
         "groups": tokenization_stats["groups"],
         "rollouts": tokenization_stats["rollouts"],
         "policy_sequences": tokenization_stats["policy_sequences"],
@@ -908,10 +941,13 @@ def main() -> None:
     }
     save_json(metadata_dir / "train_metrics.json", train_metrics)
     save_json(metadata_dir / "train_log_history.json", {"log_history": train_history})
-    session_meta["status"] = "trained"
+    session_meta["status"] = "smoke_passed" if smoke_mode else "trained"
     session_meta["last_updated_utc"] = utc_now()
     save_json(session_meta_path, session_meta)
-    print("Serialized checkpointed RL session completed", flush=True)
+    if smoke_mode:
+        print("Serialized checkpointed RL smoke completed without publication", flush=True)
+    else:
+        print("Serialized checkpointed RL session completed", flush=True)
 
 
 if __name__ == "__main__":

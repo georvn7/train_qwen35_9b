@@ -179,5 +179,20 @@ class FrozenSubsetTests(unittest.TestCase):
             RL.aggregate_weighted_metrics([{"loss": 1.0}], [0.0])
 
 
+class TrainingLimitTests(unittest.TestCase):
+    def test_production_uses_every_optimizer_step(self):
+        self.assertEqual((17, False), RL.resolve_optimizer_step_limit(17, 0))
+
+    def test_smoke_is_bounded_without_exceeding_dataset(self):
+        self.assertEqual((1, True), RL.resolve_optimizer_step_limit(17, 1))
+        self.assertEqual((3, True), RL.resolve_optimizer_step_limit(3, 10))
+
+    def test_invalid_training_limits_fail_closed(self):
+        with self.assertRaisesRegex(ValueError, "at least one"):
+            RL.resolve_optimizer_step_limit(0, 1)
+        with self.assertRaisesRegex(ValueError, "cannot be negative"):
+            RL.resolve_optimizer_step_limit(3, -1)
+
+
 if __name__ == "__main__":
     unittest.main()
