@@ -7,11 +7,11 @@ and validation gates may not.
 
 ## Inputs
 
-A job bundle contains `job.json`, optional `train_sft.jsonl`, either
-`train_dpo.jsonl` or `train_rl.jsonl`, and a `READY` marker written last. The
+A job bundle contains `job.json`, optional `train_sft.jsonl`, exactly one of
+`train_dpo.jsonl`, `train_rl.jsonl`, or `train_awr.jsonl`, and a `READY` marker written last. The
 manifest records input row counts and SHA-256 hashes. The runner must validate
-these before claiming GPU resources. DPO and RL are separate immutable jobs and
-must not be enabled together.
+these before claiming GPU resources. DPO, RL, and AWR are separate immutable
+jobs and must not be enabled together.
 
 Reasoning-aware jobs declare:
 
@@ -25,6 +25,9 @@ Reasoning-aware jobs declare:
   }
 }
 ```
+
+SFT, DPO, and checkpointed RL use `final_content_only`; AWR uses `not_used`
+because its weights are deterministic upstream labels rather than judge output.
 
 The dataset remains in Hen's conversational schema on disk. The training backend
 maps final-assistant `thinking` to Qwen's `reasoning_content` only while applying
@@ -87,6 +90,10 @@ The training chain is ordered:
 base -> cycle 1 SFT -> cycle 1 DPO -> cycle 1 RL -> cycle 2 DPO -> cycle 2 RL -> ...
 ```
 
+For an eligible recovery round, one optional repair-distance AWR job may run
+after Cycle 1's DPO and checkpointed RL. It is a round-level objective and must
+not repeat in later cycles of that round.
+
 A failed job must not advance the active checkpoint. Every successful result
 must identify the exact output checkpoint and input dataset hashes. The next job
 must name that output as its base checkpoint; filesystem recency is not an
@@ -124,9 +131,19 @@ Grouped advantages are on/near-policy only for their recorded model checkpoint.
 Using them directly with another model is off-policy and is not equivalent to
 this contract.
 
+## Repair-Distance AWR Semantics
+
+Repair-distance AWR trains one final assistant response per recorded failed
+student policy decision, including thinking and visible content. Prompt and all
+prior responses are masked. A positive deterministic sample weight combines
+the failed trajectory's unhinted-teacher repair distance with local fix/blocker
+shaping. The serialized objective is weighted mean completion NLL; it is not a
+preference pair or an on-policy rollout objective. AWR runs at most once per
+eligible recovery round.
+
 ## Frozen Checkpoint Evaluation
 
-DPO and RL select one deterministic frozen subset before training and evaluate
+DPO, RL, and AWR select one deterministic frozen subset before training and evaluate
 the base, configured intermediate checkpoints, and final checkpoint against
 that same subset. Record subset identity/hash, checkpoint identity, loss, and
 phase-specific quality metrics. These comparisons diagnose over-training and

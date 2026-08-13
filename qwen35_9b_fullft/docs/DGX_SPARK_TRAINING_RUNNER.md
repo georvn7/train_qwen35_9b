@@ -77,8 +77,9 @@ Supported stage combinations:
 - bootstrap: `sft.enabled=true`, `dpo.enabled=true`; DPO starts from the SFT output.
 - CDPO iteration: `sft.enabled=false`, `dpo.enabled=true`; DPO starts directly from `base_checkpoint`.
 - checkpointed RL: `sft.enabled=false`, `dpo.enabled=false`, `rl.enabled=true`; RL starts from the verified DPO checkpoint.
+- repair-distance AWR: SFT, DPO, and RL are disabled; AWR starts from the immediately preceding verified checkpoint.
 
-Exactly one of DPO or RL must be enabled. SFT-only jobs and mixed DPO/RL jobs
+Exactly one of DPO, RL, or AWR must be enabled. SFT-only jobs and mixed objective jobs
 are rejected because each curriculum phase has an independently auditable model
 boundary.
 
@@ -92,6 +93,10 @@ Thinking-enabled jobs declare this manifest contract:
   "semantic_judging": "final_content_only"
 }
 ```
+
+SFT, DPO, and checkpointed RL use `semantic_judging=final_content_only`.
+Repair-distance AWR uses `semantic_judging=not_used` because its deterministic
+weights are computed before the Spark job and no judge participates in training.
 
 The runner rejects missing or oversized final-assistant thinking in SFT and in
 both DPO completions. Older manifests without this object retain answer-only
@@ -265,6 +270,20 @@ These advantages are on/near-policy only for the exact recorded checkpoint
 lineage. Reusing the rows with another model is off-policy and is not equivalent
 to this trainer's objective.
 
+## Repair-Distance AWR Recipe
+
+An AWR-only job consumes one immutable `train_awr.jsonl`. Each row contains a
+positive finite `sample_weight`, the exact student prompt, and one final
+assistant completion with Qwen thinking plus visible content. Prompt and prior
+assistant tokens are masked; only that final thinking-and-answer completion is
+trained. The objective is `sample_weight * mean completion NLL`.
+
+AWR uses serialized 32K full fine-tuning, one epoch, `learning_rate=5e-7`, and
+the same prompt-left-truncation rule as checkpointed RL. Checkpoints 10/20/40/60
+and final are evaluated against one frozen subset and recorded in
+`frozen_checkpoint_metrics.jsonl`. Checkpoint retention is bounded by
+`save_total_limit`. The runner requires non-empty AWR metrics before deployment.
+
 ## Output Mapping
 
 For `output_checkpoint=<name>`, the runner creates:
@@ -273,6 +292,7 @@ For `output_checkpoint=<name>`, the runner creates:
 qwen35_9b_fullft/runs/<timestamp>_contract_<name>_sft/
 qwen35_9b_fullft/runs/<timestamp>_contract_<name>_dpo/
 qwen35_9b_fullft/runs/<timestamp>_contract_<name>_rl/
+qwen35_9b_fullft/runs/<timestamp>_contract_<name>_awr/
 ```
 
 The final checkpoint is:
@@ -287,7 +307,7 @@ The job directory records exact paths in `stage_sessions.json` and `result.json`
 
 The runner rejects before training on missing required fields, unsupported
 `format_version`, unsafe relative paths, checksum mismatch, row-count mismatch,
-malformed JSONL, invalid SFT/DPO/RL schemas, `max_sequence_length > 32768`,
+malformed JSONL, invalid SFT/DPO/RL/AWR schemas, `max_sequence_length > 32768`,
 unsupported profiles/stage combinations, ambiguous RL resume, and unsupported
 overrides.
 
@@ -341,7 +361,7 @@ Ran 43 tests
 OK
 ```
 
-Covered cases include thinking-aware SFT/DPO/RL validation and Qwen rendering,
+Covered cases include thinking-aware SFT/DPO/RL/AWR validation and Qwen rendering,
 serial-versus-batched loss/gradient/update equivalence, accumulation scaling,
 automatic execution-mode selection and result metadata,
 RL prompt masking, reasoning-plus-answer targets, old-policy precomputation,

@@ -125,6 +125,29 @@ def rl_rows() -> list[dict]:
     return rows
 
 
+def awr_rows() -> list[dict]:
+    return [
+        {
+            "objective": "repair_distance_awr",
+            "group_id": "repair-1",
+            "sample_id": f"repair-1-{index}",
+            "sample_weight": 0.25 + 0.1 * index,
+            "prompt": [
+                {"role": "system", "content": "debug assistant"},
+                {"role": "user", "content": "grounded failed trajectory"},
+            ],
+            "completion": [
+                {
+                    "role": "assistant",
+                    "thinking": "trace the terminal blocker",
+                    "content": "selected action",
+                }
+            ],
+        }
+        for index in range(2)
+    ]
+
+
 def make_job(
     jobs_root: Path,
     job_id: str = "simplec-s0_2-micro-001",
@@ -141,6 +164,8 @@ def make_job(
     dpo_execution_mode: str | None = None,
     rl_enabled: bool = False,
     custom_rl_rows: list[dict] | None = None,
+    awr_enabled: bool = False,
+    custom_awr_rows: list[dict] | None = None,
 ) -> Path:
     job_dir = jobs_root / "incoming" / job_id
     job_dir.mkdir(parents=True, exist_ok=True)
@@ -157,7 +182,7 @@ def make_job(
     dpo_text = jsonl(dpo_payload)
     if sft_enabled:
         (job_dir / "train_sft.jsonl").write_text(sft_text, encoding="utf-8")
-    if not rl_enabled:
+    if not rl_enabled and not awr_enabled:
         (job_dir / "train_dpo.jsonl").write_text(dpo_text, encoding="utf-8")
     sft_sha = sha256_text(sft_text)
     dpo_sha = sha256_text(dpo_text)
@@ -176,12 +201,12 @@ def make_job(
             "mode": "required" if assistant_reasoning else "disabled",
             "field": "thinking",
             "thinking_max_chars": thinking_max_chars,
-            "semantic_judging": "final_content_only",
+            "semantic_judging": "not_used" if awr_enabled else "final_content_only",
         },
         "inputs": {},
         "stages": {
-            "sft": {"enabled": sft_enabled and not rl_enabled, "overrides": {}},
-            "dpo": {"enabled": dpo_enabled and not rl_enabled, "overrides": {}},
+            "sft": {"enabled": sft_enabled and not rl_enabled and not awr_enabled, "overrides": {}},
+            "dpo": {"enabled": dpo_enabled and not rl_enabled and not awr_enabled, "overrides": {}},
             "rl": {
                 "enabled": rl_enabled,
                 "execution_mode": "serialized",
@@ -191,12 +216,26 @@ def make_job(
                     "epochs": 1,
                 } if rl_enabled else {},
             },
+            "awr": {
+                "enabled": awr_enabled,
+                "execution_mode": "serialized",
+                "overrides": {"epochs": 1} if awr_enabled else {},
+            },
         },
         "deployment": {"enabled": True, "served_model_name": f"hayabusa-9b-{job_id}"},
     }
     if dpo_execution_mode is not None:
         manifest["dpo_execution_mode"] = dpo_execution_mode
-    if rl_enabled:
+    if awr_enabled:
+        payload = custom_awr_rows if custom_awr_rows is not None else awr_rows()
+        awr_text = jsonl(payload)
+        (job_dir / "train_awr.jsonl").write_text(awr_text, encoding="utf-8")
+        manifest["inputs"]["awr"] = {
+            "path": "train_awr.jsonl",
+            "sha256": sha256_text(awr_text),
+            "rows": len(payload),
+        }
+    elif rl_enabled:
         payload = custom_rl_rows if custom_rl_rows is not None else rl_rows()
         rl_text = jsonl(payload)
         (job_dir / "train_rl.jsonl").write_text(rl_text, encoding="utf-8")
@@ -211,7 +250,7 @@ def make_job(
             "sha256": dpo_sha,
             "rows": len(dpo_payload),
         }
-    if sft_enabled and not rl_enabled:
+    if sft_enabled and not rl_enabled and not awr_enabled:
         manifest["inputs"]["sft"] = {
             "path": "train_sft.jsonl",
             "sha256": sft_sha,
@@ -421,6 +460,45 @@ class TrainJobRunnerTests(unittest.TestCase):
             self.assertIsNone(stages["dpo"])
             self.assertEqual(stages["rl"]["metrics"], {"stage": "rl"})
 
+    def test_valid_awr_only_bundle_reaches_complete(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            config = self.make_config(tmp)
+            make_job(
+                config.jobs_root,
+                sft_enabled=False,
+                dpo_enabled=False,
+                awr_enabled=True,
+                assistant_reasoning=True,
+            )
+            self.assertEqual(runner.run_once(config), 0)
+            completed = config.jobs_root / "completed" / "simplec-s0_2-micro-001"
+            result = read_json(completed / "result.json")
+            self.assertEqual(result["metrics"]["awr"], {"stage": "awr"})
+            self.assertEqual(result["metrics"]["rl"], {})
+            self.assertEqual(result["awr_execution"]["execution_mode"], "serialized")
+            stages = read_json(completed / "stage_sessions.json")
+            self.assertIsNone(stages["rl"])
+            self.assertEqual(stages["awr"]["metrics"], {"stage": "awr"})
+
+    def test_awr_bundle_without_thinking_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            config = self.make_config(tmp)
+            rows = awr_rows()
+            del rows[0]["completion"][0]["thinking"]
+            make_job(
+                config.jobs_root,
+                sft_enabled=False,
+                dpo_enabled=False,
+                awr_enabled=True,
+                assistant_reasoning=True,
+                custom_awr_rows=rows,
+            )
+            self.assertEqual(runner.run_once(config), 1)
+            failed = config.jobs_root / "failed" / "simplec-s0_2-micro-001"
+            result = read_json(failed / "result.json")
+            self.assertEqual("validating", result["failed_stage"])
+            self.assertIn("thinking", result["error"])
+
     def test_rl_group_without_advantage_diversity_is_rejected(self) -> None:
         rows = rl_rows()
         for row in rows:
@@ -531,7 +609,7 @@ class TrainJobRunnerTests(unittest.TestCase):
             failed = config.jobs_root / "failed" / "simplec-s0_2-micro-001"
             result = read_json(failed / "result.json")
             self.assertEqual(result["failed_stage"], "validating")
-            self.assertIn("exactly one of DPO or RL", result["error"])
+            self.assertIn("exactly one of DPO, RL, or AWR", result["error"])
 
     def test_dpo_message_array_validation_errors(self) -> None:
         cases = [
