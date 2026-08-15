@@ -76,6 +76,7 @@ class TokenizationTests(unittest.TestCase):
         )
         self.assertIn("<think>inspect evidence</think>", completion)
         self.assertIn("fix parser", completion)
+        self.assertLess(completion.index("<think>inspect evidence</think>"), completion.index("fix parser"))
         self.assertTrue(stats["thinking_present"])
         self.assertGreater(stats["completion_tokens"], len("fix parser"))
 

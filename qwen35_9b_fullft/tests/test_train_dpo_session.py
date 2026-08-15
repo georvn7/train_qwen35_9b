@@ -202,6 +202,14 @@ class BuildTokenizedRowsTests(unittest.TestCase):
 
         self.assertIn("<think>inspect the observed value flow</think>", rendered["chosen"])
         self.assertIn("<think>repeat the stale hypothesis</think>", rendered["rejected"])
+        self.assertLess(
+            rendered["chosen"].index("<think>inspect the observed value flow</think>"),
+            rendered["chosen"].index("chosen action"),
+        )
+        self.assertLess(
+            rendered["rejected"].index("<think>repeat the stale hypothesis</think>"),
+            rendered["rejected"].index("rejected action"),
+        )
         self.assertNotIn("reasoning_content", row["chosen"][0])
 
 
