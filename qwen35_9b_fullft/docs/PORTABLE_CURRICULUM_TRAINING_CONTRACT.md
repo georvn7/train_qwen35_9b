@@ -116,8 +116,15 @@ Hayabusa rollout.
   for being long.
 - Use one epoch, serialized one-sequence forwards, `learning_rate=5e-7`, clip
   epsilon `0.20`, KL beta `0.01`, and maximum total length 32,768.
-- Reject groups without at least two rollouts, centered non-constant
-  advantages, or bounded non-empty reasoning.
+- Reject groups without at least two rollouts or centered non-constant
+  advantages. Normal policy responses require non-empty reasoning of at most
+  1,800 characters.
+- A reasoning-format violation is trainable only as one isolated policy
+  response with reward `-1`, `reasoning_structure_valid=false`, and consistent
+  `reasoning_structure_negative` evidence naming `missing_thinking` or
+  `thinking_too_long`. Never admit this exception for a positive/graded row or
+  propagate its negative reward to preceding valid responses. The complete
+  prompt and malformed completion must still fit the 32,768-token limit.
 - Preserve the full completion and truncate only old prompt context from the
   start. Reject a row if its completion cannot fit.
 - Do not resume a partial optimizer checkpoint in V1; replacement jobs must

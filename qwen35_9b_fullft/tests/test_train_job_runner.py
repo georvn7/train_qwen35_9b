@@ -499,6 +499,56 @@ class TrainJobRunnerTests(unittest.TestCase):
             self.assertEqual("validating", result["failed_stage"])
             self.assertIn("thinking", result["error"])
 
+    def test_rl_accepts_only_isolated_oversized_reasoning_negative(self) -> None:
+        rows = rl_rows()[:2]
+        negative = rows[0]
+        step = negative["policy_steps"][0]
+        step["completion"][0]["thinking"] = "x" * 1801
+        step["reasoning_structure_valid"] = False
+        step["reasoning_structure_reasons"] = ["thinking_too_long"]
+        step["thinking_chars"] = 1801
+        step["thinking_max_chars"] = 1800
+        negative["policy_steps"] = [step]
+        negative["policy_step_weight"] = 1.0
+        negative["reward"] = -1.0
+        negative["advantage"] = -1.0
+        negative["reward_evidence"] = {
+            "kind": "reasoning_structure_negative",
+            "reason": "thinking_too_long",
+            "response_kind": "SystemDebugAnalysis",
+            "thinking_chars": 1801,
+            "thinking_max_chars": 1800,
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            config = self.make_config(tmp)
+            make_job(
+                config.jobs_root,
+                sft_enabled=False,
+                dpo_enabled=False,
+                rl_enabled=True,
+                assistant_reasoning=True,
+                custom_rl_rows=rows,
+            )
+            self.assertEqual(runner.run_once(config), 0)
+
+        negative["reward"] = 1.0
+        with tempfile.TemporaryDirectory() as tmp:
+            config = self.make_config(tmp)
+            make_job(
+                config.jobs_root,
+                sft_enabled=False,
+                dpo_enabled=False,
+                rl_enabled=True,
+                assistant_reasoning=True,
+                custom_rl_rows=rows,
+            )
+            self.assertEqual(runner.run_once(config), 1)
+            failed = config.jobs_root / "failed" / "simplec-s0_2-micro-001"
+            self.assertIn(
+                "must isolate one -1 response",
+                read_json(failed / "result.json")["error"],
+            )
+
     def test_rl_group_without_advantage_diversity_is_rejected(self) -> None:
         rows = rl_rows()
         for row in rows:

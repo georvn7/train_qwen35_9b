@@ -452,6 +452,80 @@ def validate_dpo_jsonl(
     return rows
 
 
+def validate_rl_reasoning_structure_negative(
+    path: Path,
+    line_no: int,
+    obj: dict[str, Any],
+    policy_steps: list[Any],
+    thinking_max_chars: int,
+) -> bool:
+    evidence = obj.get("reward_evidence")
+    if not isinstance(evidence, dict) or evidence.get("kind") != (
+        "reasoning_structure_negative"
+    ):
+        return False
+    if float(obj.get("reward", 0.0)) != -1.0 or len(policy_steps) != 1:
+        raise ValidationError(
+            f"{path.name}:{line_no}: reasoning structural negative must "
+            "isolate one -1 response"
+        )
+    step = policy_steps[0]
+    if not isinstance(step, dict):
+        raise ValidationError(
+            f"{path.name}:{line_no}: reasoning structural step must be an object"
+        )
+    reasons = step.get("reasoning_structure_reasons")
+    reason = str(evidence.get("reason", ""))
+    if (
+        step.get("reasoning_structure_valid") is not False
+        or reasons != [reason]
+        or reason not in {"missing_thinking", "thinking_too_long"}
+    ):
+        raise ValidationError(
+            f"{path.name}:{line_no}: reasoning structural evidence is inconsistent"
+        )
+    completion = step.get("completion")
+    if not isinstance(completion, list) or len(completion) != 1:
+        raise ValidationError(
+            f"{path.name}:{line_no}: reasoning structural completion must "
+            "contain one response"
+        )
+    message = completion[0]
+    if not isinstance(message, dict):
+        raise ValidationError(
+            f"{path.name}:{line_no}: reasoning structural completion is invalid"
+        )
+    role = message.get("role")
+    content = message.get("content")
+    if role != "assistant" or not isinstance(content, str) or not content:
+        raise ValidationError(
+            f"{path.name}:{line_no}: reasoning structural completion must be "
+            "a non-empty assistant response"
+        )
+    thinking = message.get("thinking")
+    if reason == "missing_thinking":
+        valid_violation = not isinstance(thinking, str) or not thinking.strip()
+        observed_chars = 0
+    else:
+        valid_violation = (
+            isinstance(thinking, str) and len(thinking) > thinking_max_chars
+        )
+        observed_chars = len(thinking) if isinstance(thinking, str) else 0
+    if not valid_violation:
+        raise ValidationError(
+            f"{path.name}:{line_no}: declared {reason} violation is absent"
+        )
+    if int(step.get("thinking_chars", -1)) != observed_chars:
+        raise ValidationError(
+            f"{path.name}:{line_no}: thinking length evidence is inconsistent"
+        )
+    if int(step.get("thinking_max_chars", 0)) != thinking_max_chars:
+        raise ValidationError(
+            f"{path.name}:{line_no}: thinking limit evidence is inconsistent"
+        )
+    return True
+
+
 def validate_rl_jsonl(
     path: Path,
     assistant_reasoning: str = "required",
@@ -498,6 +572,13 @@ def validate_rl_jsonl(
             raise ValidationError(
                 f"{path.name}:{line_no}: policy_step_weight must equal 1 / policy_steps"
             )
+        reasoning_structure_negative = validate_rl_reasoning_structure_negative(
+            path,
+            line_no,
+            obj,
+            policy_steps,
+            thinking_max_chars,
+        )
         for step_index, policy_step in enumerate(policy_steps):
             label = f"RL policy_steps[{step_index}]"
             if not isinstance(policy_step, dict):
@@ -510,14 +591,15 @@ def validate_rl_jsonl(
                 "disabled",
                 thinking_max_chars,
             )
-            validate_dpo_value(
-                path,
-                line_no,
-                f"{label}.completion",
-                policy_step.get("completion"),
-                assistant_reasoning,
-                thinking_max_chars,
-            )
+            if not reasoning_structure_negative:
+                validate_dpo_value(
+                    path,
+                    line_no,
+                    f"{label}.completion",
+                    policy_step.get("completion"),
+                    assistant_reasoning,
+                    thinking_max_chars,
+                )
         group_advantages.setdefault(group_id, []).append(float(obj["advantage"]))
 
     for group_id, advantages in group_advantages.items():

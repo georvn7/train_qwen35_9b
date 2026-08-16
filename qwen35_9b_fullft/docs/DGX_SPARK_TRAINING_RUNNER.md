@@ -219,7 +219,12 @@ An RL-only job consumes one immutable `train_rl.jsonl`. Rows are grouped by a
 historical debugger checkpoint and contain raw reward, normalized group
 advantage, rollout-normalized policy-step weight, and one or more exact
 Hayabusa prompt/completion pairs. Every group must contain at least two
-rollouts, centered non-constant advantages, and bounded non-empty thinking.
+rollouts and centered non-constant advantages. Normal policy responses require
+non-empty thinking of at most 1,800 characters. The only exception is an exact
+single-response reward-`-1` `reasoning_structure_negative` whose metadata and
+completion prove `missing_thinking` or `thinking_too_long`; this teaches the
+format failure without penalizing earlier valid responses. The malformed row
+must still fit the 32,768-token sequence limit.
 
 The serialized trainer uses the exact input checkpoint as the frozen old
 policy. Before the first optimizer update it caches completion-token log
