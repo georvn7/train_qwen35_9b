@@ -16,6 +16,18 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from training_observability import (
+    model_parameter_observability,
+    module_residency_observability,
+    optimizer_observability,
+    peak_process_rss_mib,
+    token_throughput,
+)
+
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -705,6 +717,14 @@ def build_tokenized_rows(
         "prompt_truncation_modes": prompt_truncation_modes,
         "chosen_truncated_rows": chosen_truncated,
         "rejected_truncated_rows": rejected_truncated,
+        "prompt_final_tokens_total": sum(prompt_final_lengths),
+        "chosen_final_tokens_total": sum(chosen_final_lengths),
+        "rejected_final_tokens_total": sum(rejected_final_lengths),
+        "policy_branch_tokens_per_epoch": (
+            2 * sum(prompt_final_lengths)
+            + sum(chosen_final_lengths)
+            + sum(rejected_final_lengths)
+        ),
     }
 
 
@@ -1339,6 +1359,17 @@ def main() -> None:
     training_memory = {
         "execution_mode": args.dpo_execution_mode,
         "before_train": cuda_memory_snapshot(),
+        "peak_process_rss_mib_before_train": peak_process_rss_mib(),
+        "reference_policy": {
+            "precompute_ref_log_probs": bool(args.precompute_ref_log_probs),
+            "cache_loaded_at_launch": cached_ref_logprobs is not None,
+            "cache_rows": len(trainer.train_dataset)
+            if args.precompute_ref_log_probs
+            else 0,
+            "trainer_ref_model_before_train": module_residency_observability(
+                getattr(trainer, "ref_model", None)
+            ),
+        },
     }
     train_result = None
     resume_checkpoint_dir = (
@@ -1408,6 +1439,7 @@ def main() -> None:
         raise
     finally:
         training_memory["after_train"] = cuda_memory_snapshot()
+        training_memory["peak_process_rss_mib_after_train"] = peak_process_rss_mib()
         save_json(metadata_dir / "dpo_training_memory.json", training_memory)
         if restore_torch_load is not None:
             setattr(restore_torch_load[0], restore_torch_load[1], restore_torch_load[2])
@@ -1433,6 +1465,31 @@ def main() -> None:
     complete_metrics["frozen_eval_subset_sha256"] = frozen_eval_contract["sha256"]
     complete_metrics["initial_frozen_eval"] = initial_frozen_metrics
     complete_metrics["final_frozen_eval"] = final_frozen_metrics
+    runtime_seconds = float(complete_metrics.get("train_runtime", 0.0))
+    completed_epochs = float(complete_metrics.get("epoch", 0.0))
+    complete_metrics["execution_observability"] = {
+        "sequence_length": {
+            "configured_max": args.max_length,
+            "packing": False,
+            "actual": tokenization_stats,
+        },
+        "optimizer": optimizer_observability(trainer.optimizer, args.optim),
+        "model_parameters": model_parameter_observability(model),
+        "gradient_checkpointing": True,
+        "loss_implementation": {
+            "objective": "trl_dpo",
+            "preference_loss": args.loss_type,
+            "execution_mode": args.dpo_execution_mode,
+            "split_backward": args.dpo_execution_mode == "split_backward",
+        },
+        "memory": training_memory,
+        "throughput": token_throughput(
+            tokenization_stats["policy_branch_tokens_per_epoch"],
+            completed_epochs,
+            runtime_seconds,
+        ),
+        "reference_policy": training_memory["reference_policy"],
+    }
     save_json(metadata_dir / "train_metrics.json", complete_metrics)
     save_json(metadata_dir / "train_log_history.json", {"log_history": trainer.state.log_history})
 

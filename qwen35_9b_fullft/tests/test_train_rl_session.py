@@ -106,6 +106,10 @@ class TokenizationTests(unittest.TestCase):
         records, stats = RL.flatten_rollouts([row], FakeTokenizer(), 4096)
         self.assertEqual(len(records), 2)
         self.assertEqual(stats["thinking_sequences"], 2)
+        self.assertEqual(
+            stats["final_tokens_total"],
+            sum(len(record["input_ids"]) for record in records),
+        )
 
 
 class ObjectiveTests(unittest.TestCase):

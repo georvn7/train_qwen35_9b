@@ -16,6 +16,18 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from training_observability import (
+    cuda_memory_observability,
+    model_parameter_observability,
+    optimizer_observability,
+    peak_process_rss_mib,
+    token_throughput,
+)
+
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -1199,6 +1211,7 @@ def build_final_assistant_only_dataset(
         "rows_with_target_partially_truncated": int(target_truncated_rows),
         "max_original_tokens": int(max(original_lengths)) if original_lengths else 0,
         "max_final_tokens": int(max(final_lengths)) if final_lengths else 0,
+        "final_tokens_total": int(sum(final_lengths)),
         "min_supervised_tokens_after_truncation": int(min(supervised_lengths_after)) if supervised_lengths_after else 0,
         "max_supervised_tokens_after_truncation": int(max(supervised_lengths_after)) if supervised_lengths_after else 0,
         "avg_supervised_tokens_after_truncation": round(
@@ -2122,6 +2135,15 @@ def main() -> None:
         callbacks=callbacks,
     )
 
+    trainer_token_lengths: list[int] = []
+    trainer_dataset = trainer.train_dataset
+    if (
+        trainer_dataset is not None
+        and hasattr(trainer_dataset, "column_names")
+        and "input_ids" in trainer_dataset.column_names
+    ):
+        trainer_token_lengths = [len(value) for value in trainer_dataset["input_ids"]]
+
     run_config = {
         "created_at_utc": utc_now(),
         "session_dir": str(session_dir),
@@ -2163,6 +2185,12 @@ def main() -> None:
         "truncation_side": args.truncation_side,
         "truncate_overlength_samples": args.truncate_overlength_samples,
         "truncation_stats": truncation_stats,
+        "effective_sequence_lengths": {
+            "packing": bool(args.packing),
+            "rows": len(trainer_token_lengths),
+            "max_tokens": max(trainer_token_lengths) if trainer_token_lengths else 0,
+            "tokens_per_epoch": sum(trainer_token_lengths),
+        },
         "max_gpu_memory_gib_guard": resolved_max_gpu_memory_gib,
         "cuda_memory_fraction": args.cuda_memory_fraction,
         "save_strategy": args.save_strategy,
@@ -2379,7 +2407,39 @@ def main() -> None:
 
     if train_result is None:  # pragma: no cover - defensive only
         raise RuntimeError("Training returned no result and no exception")
-    metrics = train_result.metrics
+    metrics = dict(train_result.metrics)
+    runtime_seconds = float(metrics.get("train_runtime", 0.0))
+    completed_epochs = float(metrics.get("epoch", 0.0))
+    tokens_per_epoch = sum(trainer_token_lengths)
+    metrics["execution_observability"] = {
+        "sequence_length": {
+            "configured_max": args.max_seq_length,
+            "packing": bool(args.packing),
+            "actual_rows": len(trainer_token_lengths),
+            "actual_max_tokens": max(trainer_token_lengths)
+            if trainer_token_lengths
+            else 0,
+        },
+        "optimizer": optimizer_observability(trainer.optimizer, args.optim),
+        "model_parameters": model_parameter_observability(model),
+        "gradient_checkpointing": bool(training_args.gradient_checkpointing),
+        "loss_implementation": {
+            "objective": args.loss_target,
+            "causal_loss_mode": args.causal_loss_mode,
+            "causal_loss_chunk_tokens": args.causal_loss_chunk_tokens,
+            "cut_cross_entropy_enabled": not args.disable_cce,
+            "prompt_loss": "masked" if args.loss_target == "final_assistant" else "configured",
+        },
+        "memory": {
+            **cuda_memory_observability(),
+            "peak_process_rss_mib": peak_process_rss_mib(),
+        },
+        "throughput": token_throughput(
+            tokens_per_epoch,
+            completed_epochs,
+            runtime_seconds,
+        ),
+    }
     save_json(metadata_dir / "train_metrics.json", metrics)
     save_json(metadata_dir / "train_log_history.json", {"log_history": trainer.state.log_history})
 

@@ -122,6 +122,24 @@ class BuildTokenizedRowsTests(unittest.TestCase):
         self.assertEqual(tokenized[0]["chosen_input_ids"][-1], 999)
         self.assertEqual(tokenized[0]["rejected_input_ids"][-1], 999)
         self.assertEqual(stats["rows"], 1)
+        self.assertEqual(
+            stats["prompt_final_tokens_total"],
+            len(tokenized[0]["prompt_input_ids"]),
+        )
+        self.assertEqual(
+            stats["chosen_final_tokens_total"],
+            len(tokenized[0]["chosen_input_ids"]),
+        )
+        self.assertEqual(
+            stats["rejected_final_tokens_total"],
+            len(tokenized[0]["rejected_input_ids"]),
+        )
+        self.assertEqual(
+            stats["policy_branch_tokens_per_epoch"],
+            2 * len(tokenized[0]["prompt_input_ids"])
+            + len(tokenized[0]["chosen_input_ids"])
+            + len(tokenized[0]["rejected_input_ids"]),
+        )
 
     def test_keeps_plain_string_rows_supported(self):
         row = {"prompt": "debug", "chosen": "inspect", "rejected": "guess"}

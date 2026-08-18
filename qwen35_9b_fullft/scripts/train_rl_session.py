@@ -27,6 +27,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from training_observability import (
+    model_parameter_observability,
+    optimizer_observability,
+    peak_process_rss_mib,
+    token_throughput,
+)
+
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -301,6 +312,7 @@ def flatten_rollouts(
         "max_boundary_adjustment_tokens": max(
             item["boundary_adjustment_tokens"] for item in stats
         ),
+        "final_tokens_total": sum(item["final_tokens"] for item in stats),
         "records": stats,
     }
 
@@ -937,7 +949,34 @@ def main() -> None:
         "tokenization": {
             key: value for key, value in tokenization_stats.items() if key != "records"
         },
-        "memory": cuda_snapshot(),
+        "memory": {
+            **cuda_snapshot(),
+            "peak_process_rss_mib": peak_process_rss_mib(),
+        },
+        "execution_observability": {
+            "sequence_length": {
+                "configured_max": args.max_length,
+                "packing": False,
+                "actual": {
+                    key: value
+                    for key, value in tokenization_stats.items()
+                    if key != "records"
+                },
+            },
+            "optimizer": optimizer_observability(optimizer, args.optim),
+            "model_parameters": model_parameter_observability(model),
+            "gradient_checkpointing": True,
+            "loss_implementation": {
+                "objective": "serialized_clipped_policy_gradient",
+                "completion_logprob_backend": "torch_log_softmax",
+                "prompt_loss": "masked",
+            },
+            "throughput": token_throughput(
+                tokenization_stats["final_tokens_total"],
+                1.0,
+                elapsed,
+            ),
+        },
     }
     save_json(metadata_dir / "train_metrics.json", train_metrics)
     save_json(metadata_dir / "train_log_history.json", {"log_history": train_history})

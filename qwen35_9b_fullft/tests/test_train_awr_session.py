@@ -64,6 +64,7 @@ class RepairDistanceAwrTrainingTests(unittest.TestCase):
         self.assertEqual(1, stats["thinking_sequences"])
         self.assertGreater(records[0]["target_start"], 0)
         self.assertLess(records[0]["target_start"], len(records[0]["input_ids"]))
+        self.assertEqual(stats["final_tokens_total"], len(records[0]["input_ids"]))
 
     def test_completion_nll_is_mean_negative_log_probability(self):
         self.assertAlmostEqual(

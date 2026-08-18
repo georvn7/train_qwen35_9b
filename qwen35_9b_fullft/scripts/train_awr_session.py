@@ -20,6 +20,17 @@ import traceback
 from pathlib import Path
 from typing import Any, Iterable
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from training_observability import (
+    model_parameter_observability,
+    optimizer_observability,
+    peak_process_rss_mib,
+    token_throughput,
+)
+
 from train_rl_session import (
     aggregate_metrics,
     aggregate_weighted_metrics,
@@ -142,6 +153,7 @@ def flatten_awr_rows(
         "max_boundary_adjustment_tokens": max(
             item["boundary_adjustment_tokens"] for item in token_stats
         ),
+        "final_tokens_total": sum(item["final_tokens"] for item in token_stats),
         "sample_weight_min": min(record["weight"] for record in records),
         "sample_weight_max": max(record["weight"] for record in records),
         "sample_weight_mean": sum(record["weight"] for record in records) / len(records),
@@ -436,8 +448,9 @@ def main() -> None:
             safe_serialization=args.checkpoint_safe_serialization == "true",
             metadata={"global_step": global_step, "created_at_utc": utc_now()},
         )
+    elapsed = time.monotonic() - started
     train_metrics = {
-        "train_runtime_seconds": time.monotonic() - started,
+        "train_runtime_seconds": elapsed,
         "train_steps": global_step,
         "full_training_steps": full_training_steps,
         "smoke_mode": smoke_mode,
@@ -452,7 +465,34 @@ def main() -> None:
         "tokenization": {
             key: value for key, value in tokenization_stats.items() if key != "records"
         },
-        "memory": cuda_snapshot(),
+        "memory": {
+            **cuda_snapshot(),
+            "peak_process_rss_mib": peak_process_rss_mib(),
+        },
+        "execution_observability": {
+            "sequence_length": {
+                "configured_max": args.max_length,
+                "packing": False,
+                "actual": {
+                    key: value
+                    for key, value in tokenization_stats.items()
+                    if key != "records"
+                },
+            },
+            "optimizer": optimizer_observability(optimizer, args.optim),
+            "model_parameters": model_parameter_observability(model),
+            "gradient_checkpointing": True,
+            "loss_implementation": {
+                "objective": "sample_weighted_completion_nll",
+                "cross_entropy_backend": "torch.nn.functional.cross_entropy",
+                "prompt_loss": "masked",
+            },
+            "throughput": token_throughput(
+                tokenization_stats["final_tokens_total"],
+                1.0,
+                elapsed,
+            ),
+        },
     }
     save_json(metadata_dir / "train_metrics.json", train_metrics)
     save_json(metadata_dir / "train_log_history.json", {"log_history": train_history})

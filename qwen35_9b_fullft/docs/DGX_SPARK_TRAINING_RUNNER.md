@@ -308,6 +308,29 @@ The final checkpoint is:
 
 The job directory records exact paths in `stage_sessions.json` and `result.json`.
 
+## Per-Stage Training Observability
+
+Future SFT, DPO, serialized RL, and repair-distance AWR sessions persist an
+`execution_observability` object in `metadata/train_metrics.json`. The runner
+copies that object unchanged into the stage metrics in immutable `result.json`.
+It records:
+
+- configured maximum sequence length, packing mode, and observed token lengths;
+- instantiated optimizer class, configured optimizer name, and materialized
+  optimizer-state tensor dtypes, element counts, and byte counts;
+- trainable/model parameter dtypes and counts;
+- gradient-checkpointing state and the active loss implementation;
+- peak CUDA allocator memory and process high-water RSS;
+- a clearly labeled, non-packed token-exposure throughput estimate.
+
+DPO additionally records whether reference log probabilities were precomputed,
+whether a durable cache was reused, and the devices/bytes of any reference-model
+object still resident immediately before optimization. This distinguishes a
+precomputed-reference run from one that retained reference weights in memory.
+Throughput is labeled `estimated_tokens_per_second`: it is computed from the
+final tokenized rows and completed epoch fraction, rather than claimed as a
+hardware token counter.
+
 ## Validation Rules
 
 The runner rejects before training on missing required fields, unsupported
