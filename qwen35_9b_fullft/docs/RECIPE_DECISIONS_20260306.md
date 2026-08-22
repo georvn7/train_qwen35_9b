@@ -9,7 +9,7 @@
 ## Why 32K was unstable before
 
 - In uncapped runs, one late training wave repeatedly pushed GPU memory above the practical limit.
-- On Spark this caused either guard kill or kernel OOM kill (`rc=137`).
+- On the production host this caused either guard kill or kernel OOM kill (`rc=137`).
 
 ## What changed today
 
@@ -28,7 +28,7 @@
 
 ## Current recommendation
 
-- For 32K full-FT on Spark, keep allocator cap enabled (`cuda_memory_fraction=0.88`) for stability.
+- For 32K full-FT on the production host, keep allocator cap enabled (`cuda_memory_fraction=0.88`) for stability.
 - Prefer `causal_loss_mode=default` for quality fidelity unless a future stress case proves otherwise.
 - Keep external guard (`gpu_guard_gib=120`) and host-memory floor guard.
 - Continue with a longer 32K proof run (>=30 steps) before full-epoch launch.

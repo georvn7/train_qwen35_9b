@@ -9,7 +9,7 @@
 ## Non-Negotiables
 
 - Start from the latest finished round-2 full-FT model, not from scratch.
-- Keep Spark safety conventions close to the March/April full-FT recipe:
+- Keep production-host safety conventions close to the March/April full-FT recipe:
   - `bf16`
   - `adamw_8bit`
   - `save_steps=50`
@@ -35,7 +35,7 @@
   - `rejected`
 - each `chosen` and `rejected` side is an assistant continuation
 
-## Spark-Safe DPO Recipe
+## Memory-Safe DPO Recipe
 
 - trainer: `trl==0.24.0` `DPOTrainer`
 - attention: `sdpa`
@@ -66,7 +66,7 @@
 
 Reason:
 
-- DPO carries both `chosen` and `rejected` continuations, so `32K` DPO is not comparable to `32K` SFT on Spark.
+- DPO carries both `chosen` and `rejected` continuations, so `32K` DPO is not comparable to `32K` SFT on the production host.
 - The measured raw DPO distribution supports a `16K` side budget with low truncation pressure.
 
 ## Prepared Dataset View

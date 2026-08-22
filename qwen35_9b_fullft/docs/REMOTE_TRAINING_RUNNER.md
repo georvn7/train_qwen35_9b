@@ -1,6 +1,6 @@
-# DGX Spark Training Job Runner
+# Remote Training Job Runner
 
-This implements the DGX Spark side of Hen sequential training-job contract for the Hayabusa/Qwen 3.5 9B full-finetuning stack.
+This implements the remote-training side of Hen sequential training-job contract for the Hayabusa/Qwen 3.5 9B full-finetuning stack.
 
 ## Runner Command
 
@@ -96,7 +96,7 @@ Thinking-enabled jobs declare this manifest contract:
 
 SFT, DPO, and checkpointed RL use `semantic_judging=final_content_only`.
 Repair-distance AWR uses `semantic_judging=not_used` because its deterministic
-weights are computed before the Spark job and no judge participates in training.
+weights are computed before the training job and no judge participates in training.
 
 The runner rejects missing or oversized final-assistant thinking in SFT and in
 both DPO completions. Older manifests without this object retain answer-only
@@ -188,7 +188,7 @@ serialized. Unsupported objective combinations fail validation rather than
 silently changing the mathematics.
 
 The longest retained curriculum pair had a 23,538-token prompt. One full 32K
-split-backward optimizer step completed untruncated on the DGX Spark without
+split-backward optimizer step completed untruncated on the reference training host without
 OOM. `run_config.json` and `result.json` record requested/effective modes and
 lengths; no OOM path silently reduces context.
 
@@ -260,7 +260,7 @@ configured intermediate checkpoints, and final. Metrics include policy loss,
 approximate KL, clip fraction, ratio mean, gradient norm, tokenization and
 truncation counts, memory, frozen-subset hash, and checkpoint identity.
 
-The semantic teacher is not part of Spark training. macOS has already scored
+The semantic teacher is not part of remote training. macOS has already scored
 only each terminal fix answer. Thinking is retained in `train_rl.jsonl` for
 structure validation and model loss but is excluded from semantic judging.
 
@@ -382,7 +382,7 @@ Run:
   qwen35_9b_fullft.tests.test_train_rl_session -v
 ```
 
-Latest result on DGX Spark:
+Latest result on the reference training host:
 
 ```text
 Ran 43 tests

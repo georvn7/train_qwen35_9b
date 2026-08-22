@@ -71,7 +71,7 @@ qwen35_9b_fullft/scripts/run_train_qwen35_9b_full1109_resume_safe.sh
 - Training artifacts:
   - `artifacts/full_model/` for full finetune checkpoints
   - `artifacts/merged_16bit/` and `artifacts/gguf/` optional exports
-- Recommended full-FT defaults (validated on DGX Spark):
+- Recommended full-FT defaults (validated on the reference training host):
   - `model=Qwen/Qwen3.5-9B`
   - `max_seq_length=12288`, `truncation_side=left`
   - `max_gpu_memory_gib=110`
@@ -108,7 +108,7 @@ Run one submitted job with:
 
 See:
 
-- `docs/DGX_SPARK_TRAINING_RUNNER.md` for the executable job contract.
+- `docs/REMOTE_TRAINING_RUNNER.md` for the executable job contract.
 - `docs/PORTABLE_CURRICULUM_TRAINING_CONTRACT.md` for framework-porting
   invariants, including MLX.
 
@@ -148,7 +148,7 @@ See:
 - Decision and technical log: `docs/PROJECT_LOG.md`
 - Run records and metrics snapshots: `docs/RUN_HISTORY.md`
 - Current recommended training config: `docs/QUALITY_RECIPE.md`
-- Curriculum job runner: `docs/DGX_SPARK_TRAINING_RUNNER.md`
+- Curriculum job runner: `docs/REMOTE_TRAINING_RUNNER.md`
 - Portable/MLX training contract: `docs/PORTABLE_CURRICULUM_TRAINING_CONTRACT.md`
 - Strict schema benchmark gate: `docs/EVAL_SCHEMA20_GATE.md`
 - Inference stack recommendation: `docs/INFERENCE_ENGINE_RECOMMENDATION.md`

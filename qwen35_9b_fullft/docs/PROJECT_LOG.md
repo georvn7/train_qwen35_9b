@@ -26,7 +26,7 @@ Train `Qwen3.5 9B` with full-weight fine-tuning using the same session/manifest/
 ## Key Decisions
 
 - `2026-05-06`: Rare-actions continuation SFT completed successfully at `841/841` steps from the round-2 DPO model. Final checkpoint: `runs/20260506_045018_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1/checkpoints/checkpoint-841`; final full model: `runs/20260506_045018_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1/artifacts/full_model`; final `train_loss=0.3686`; runtime `~19h 28m`.
-- `2026-05-06`: Rare-actions continuation SFT started from the finished round-2 DPO full model, not from scratch: `runs/20260421_032308_qwen35_9b_round2_dpo_702_clean_16k_v1/artifacts/full_model`. Recipe remains the validated Spark-safe 32K SFT path with full fine-tuning, `bf16`, `adamw_8bit`, left truncation, active-token chunked CE, `save_steps=50`, `save_total_limit=4`, 512MB safe checkpoint shards, pre-save cleanup, and mmap resume. Production session: `runs/20260506_045018_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1`.
+- `2026-05-06`: Rare-actions continuation SFT started from the finished round-2 DPO full model, not from scratch: `runs/20260421_032308_qwen35_9b_round2_dpo_702_clean_16k_v1/artifacts/full_model`. Recipe remains the validated memory-safe 32K SFT path with full fine-tuning, `bf16`, `adamw_8bit`, left truncation, active-token chunked CE, `save_steps=50`, `save_total_limit=4`, 512MB safe checkpoint shards, pre-save cleanup, and mmap resume. Production session: `runs/20260506_045018_qwen35_9b_rare_actions_sft_from_round2_dpo_841_32k_v1`.
 - `2026-04-22`: Post-DPO local-HF schema20 evaluation on `runs/20260421_032308_qwen35_9b_round2_dpo_702_clean_16k_v1/artifacts/full_model` scored `avg_structured_score=0.7725`, slightly above the pre-DPO round-2 SFT reference `0.7675`.
 - `2026-04-22`: Round-2 DPO run `20260421_032308_qwen35_9b_round2_dpo_702_clean_16k_v1` completed successfully with final checkpoint `checkpoint-702`, exported model under `artifacts/full_model`, and final `train_loss=0.09880231095854713`.
 - `2026-04-22`: Round-2 DPO archive policy fixed: preserve external copies of final DPO full model, final DPO checkpoint, canonical cleaned DPO dataset, canonical prepared DPO dataset, and full launcher log; preserve small DPO repro snapshots in Git under `docs/repro/`.
@@ -36,7 +36,7 @@ Train `Qwen3.5 9B` with full-weight fine-tuning using the same session/manifest/
 - `2026-04-21`: Round-2 DPO checkpoint-save hardening v1: save-phase host-RAM guard is now split from steady-state (`checkpoint_save_min_mem_avail_mib=1536` by default), training writes `metadata/checkpoint_save_marker.json` before checkpoint writes, and completed checkpoints write `checkpoint_complete.json`. Launcher-side checkpoint selection now skips `.incomplete*` directories and quarantines only raw invalid `checkpoint-*` dirs.
 - `2026-04-20`: Canonical round-2 DPO training set is the cleaned `702`-row variant, not the raw `706` rows. Reason: `4` source rows had empty chosen outputs and are not repairable; `3` rows had missing `breakpoints` and were normalized.
 - `2026-04-20`: Round-2 DPO policy is fixed to continue from the finished round-2 full model `runs/20260418_220025_qwen35_9b_round2_cont_sft_1869_32k_v1/artifacts/full_model`; do not start DPO from base or from scratch.
-- `2026-04-20`: Round-2 DPO recipe is pinned conservatively for Spark: `DPOTrainer`, `bf16`, `adamw_8bit`, `lr=1e-6`, `beta=0.05`, `per_device_train_batch_size=1`, `gradient_accumulation_steps=1`, `precompute_ref_log_probs=true`, `use_logits_to_keep=true`.
+- `2026-04-20`: Round-2 DPO recipe is pinned conservatively for the production host: `DPOTrainer`, `bf16`, `adamw_8bit`, `lr=1e-6`, `beta=0.05`, `per_device_train_batch_size=1`, `gradient_accumulation_steps=1`, `precompute_ref_log_probs=true`, `use_logits_to_keep=true`.
 - `2026-04-20`: Round-2 DPO length budget fixed to `max_prompt_length=14848`, `max_completion_length=1536`, `max_length=16384`, `truncation_mode=keep_end`.
 - `2026-04-20`: Canonical round-2 DPO input is a prepared chat-templated view built from `all_706_rows_dbg_dpo_round2.jsonl`; this freezes the prompt/chosen/rejected string rendering used by training.
 - `2026-04-20`: Round-2 continuation run `20260418_220025_qwen35_9b_round2_cont_sft_1869_32k_v1` completed successfully at `1869/1869` with final `train_loss=0.23181603004614768`, final checkpoint `checkpoint-1869`, and exported full model under `artifacts/full_model`.
@@ -74,15 +74,15 @@ Train `Qwen3.5 9B` with full-weight fine-tuning using the same session/manifest/
 - `2026-03-06`: 32K full-FT feasibility was re-opened after optimizer A/B; paged-optimizer probe (`20260306_053909_qwen35_9b_instruct_memprobe_32k_nosave_pagedadamw_v1`) completed (`10/10`) with no OOM and peak `96903 MiB`.
 - `2026-03-06`: Added explicit comparison note for the user question "why 120B 32K worked while 9B failed" in `docs/MEMORY_DIFF_120B_VS_QWEN9B_20260306.md`.
 - `2026-03-05`: Added explicit memory-root-cause note (`docs/MEMORY_ANALYSIS_20260305.md`): dynamic activation/workspace memory is dominant beyond static model+optimizer footprint.
-- `2026-03-05`: Production full run launched as session `20260305_184211_qwen35_9b_instruct_full1109_quality_v3_12k_guard110` using the validated Spark-safe recipe (`12K`, guard `110`, `unsloth` checkpointing).
-- `2026-03-05`: On DGX Spark, full-weight instruct runs at `32K/24K/16K` consistently hit the same late-step memory cliff; production recipe is pinned to `max_seq_length=12288` with `max_gpu_memory_gib=110`.
+- `2026-03-05`: Production full run launched as session `20260305_184211_qwen35_9b_instruct_full1109_quality_v3_12k_guard110` using the validated memory-safe recipe (`12K`, guard `110`, `unsloth` checkpointing).
+- `2026-03-05`: On the reference training host, full-weight instruct runs at `32K/24K/16K` consistently hit the same late-step memory cliff; production recipe is pinned to `max_seq_length=12288` with `max_gpu_memory_gib=110`.
 - `2026-03-05`: Per user direction, do not continue full training on `Qwen/Qwen3.5-9B-Base`; production full run switched to `Qwen/Qwen3.5-9B`.
 - `2026-03-05`: Instruct full-run optimizer policy is conservative to preserve post-training behavior: `learning_rate=1e-5`, `warmup_steps=50`.
 - `2026-03-05`: Reuse the exact schema20 evaluation criteria from the 120B workflow (action_type/action_subject-weighted structured scoring + strict A/B gate).
 - `2026-03-05`: Full training launch for the current recipe is attached to a live shell session (`exec` session id) in this environment, since detached background children are reaped by the tooling runtime.
 - `2026-03-05`: Preferred base checkpoint is `Qwen/Qwen3.5-9B-Base` for this dataset (much lower initial loss and saner grad norms than `Qwen/Qwen3.5-9B` in matched probes).
 - `2026-03-05`: Learning rate target for full run is `2e-5` (conservative pick; `3e-5` was nearly tied in short probe).
-- `2026-03-05`: Use two-stage tuning on single DGX Spark: fast short train-loss probes first, then a 32K long-subset confirmation run.
+- `2026-03-05`: Use two-stage tuning on a single reference training host: fast short train-loss probes first, then a 32K long-subset confirmation run.
 - `2026-03-05`: With available disk headroom (~2TB), checkpoint policy tightened to `save_steps=50`, `save_total_limit=4`.
 - `2026-03-05`: Default inference engine for this project is `vLLM` (see `docs/INFERENCE_ENGINE_RECOMMENDATION.md`).
 - `2026-03-05`: Keep session and manifest conventions from the previous project. Do not redesign experiment bookkeeping.
@@ -125,7 +125,7 @@ Train `Qwen3.5 9B` with full-weight fine-tuning using the same session/manifest/
 - `scripts/prepare_round2_continuation_datasets.py`
   - Added round-2 dataset merger that builds canonical continuation SFT and DPO files from all new dataset bundles under `/home/georvn/new_datasets`.
 - `scripts/run_train_qwen35_9b_round2_from_last_fullft_safe.sh`
-  - Added round-2 continuation launcher that starts from the previous full-FT model and keeps the March 32K Spark-safe recipe and checkpoint policy.
+  - Added round-2 continuation launcher that starts from the previous full-FT model and keeps the March 32K memory-safe recipe and checkpoint policy.
 - `docs/ROUND2_ARCHIVE_20260420.md`
   - Added concrete round-2 archive manifest with exact local paths, sizes, checksums, and keep/drop guidance.
 - `docs/repro/`
@@ -163,7 +163,7 @@ Train `Qwen3.5 9B` with full-weight fine-tuning using the same session/manifest/
     - pre/post-save memory logging (`rss`, `MemAvailable`, process GPU usage)
   - Added `disable_cuda_memory_history()` helper to release allocator-history buffers before save when enabled.
   - Full finetune defaults enabled.
-  - Default recipe now aligned to instruct-first Spark quality run (`model default=Qwen/Qwen3.5-9B`, `max_seq_length=12288`, `truncation_side=left`, `learning_rate=1e-5`, `warmup_steps=50`).
+  - Default recipe now aligned to instruct-first production host quality run (`model default=Qwen/Qwen3.5-9B`, `max_seq_length=12288`, `truncation_side=left`, `learning_rate=1e-5`, `warmup_steps=50`).
   - Added advanced causal-loss modes for memory probes: `forward_chunked_fp32`, `forward_chunked_no_upcast`, `forward_active_chunked_fp32`, `forward_active_chunked_no_upcast`.
   - Added optional `cuda_memory_fraction` allocator cap hook (uses `torch.cuda.set_per_process_memory_fraction`).
   - Added `--force-causal-lm-loader` (default enabled) to force text-only `AutoModelForCausalLM` load path and skip multimodal vision-tower weights.
@@ -184,7 +184,7 @@ Train `Qwen3.5 9B` with full-weight fine-tuning using the same session/manifest/
 - `scripts/run_pipeline.py`
   - Paths and defaults aligned to `qwen35_9b_fullft`.
   - Default model now `Qwen/Qwen3.5-9B`; default learning rate `1e-5`.
-  - Default `max_seq_length` tuned to `12288` for Spark stability.
+  - Default `max_seq_length` tuned to `12288` for host stability.
   - Supports dataset-root as a direct file path.
 - `scripts/analyze_context_lengths.py`
   - Supports manifest entries with `absolute_path`.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fixture tests for the DGX Spark training job runner."""
+"""Fixture tests for the remote training job runner."""
 
 from __future__ import annotations
 

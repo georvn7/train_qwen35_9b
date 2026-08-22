@@ -1,4 +1,4 @@
-# Quality Recipe (DGX Spark, Qwen3.5-9B Full FT)
+# Quality Recipe (Reference Training Host, Qwen3.5-9B Full FT)
 
 Date: `2026-03-05`
 
@@ -26,8 +26,8 @@ Date: `2026-03-05`
 
 - User-directed model policy is to keep post-training behavior and avoid base-only training.
 - Initial instruct probe at `2e-5` had high step-1 loss/grad norm, so full-run LR is reduced to `1e-5` with longer warmup (`50`) for safer updates.
-- Repeated 32K, 24K, and 16K full-FT probes were OOM-killed (or guard-tripped at the same boundary). On DGX Spark, `12288` is the first verified stable context for this full-weight recipe.
-- Same stability flags and checkpoint cadence are kept from the validated Spark recipe.
+- Repeated 32K, 24K, and 16K full-FT probes were OOM-killed (or guard-tripped at the same boundary). On the reference training host, `12288` is the first verified stable context for this full-weight recipe.
+- Same stability flags and checkpoint cadence are kept from the validated production recipe.
 
 ## Key Evidence
 

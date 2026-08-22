@@ -44,7 +44,7 @@ the model chat template.
 - Preserve the end of over-length context; do not silently remove or truncate the
   final assistant target.
 
-Current Spark defaults are batch size 1, gradient accumulation 1, BF16,
+Current production defaults are batch size 1, gradient accumulation 1, BF16,
 `learning_rate=1e-5`, no packing, and a maximum SFT sequence length supplied by
 the job up to 32K.
 
@@ -169,7 +169,7 @@ template behavior.
 
 ## MLX Equivalence Gate
 
-Before replacing the Spark backend, compare a fixed micro-bundle on both stacks:
+Before replacing the reference backend, compare a fixed micro-bundle on both stacks:
 
 1. Identical rendered token IDs for representative SFT, DPO, and RL rows.
 2. Identical supervised SFT span boundaries.
@@ -186,4 +186,4 @@ Before replacing the Spark backend, compare a fixed micro-bundle on both stacks:
 
 Exact floating-point losses need not match across frameworks, but tokenization,
 loss masks, preference direction, and checkpoint ancestry must match. Keep the
-Spark path available as the reference implementation until this gate passes.
+reference path available as the reference implementation until this gate passes.

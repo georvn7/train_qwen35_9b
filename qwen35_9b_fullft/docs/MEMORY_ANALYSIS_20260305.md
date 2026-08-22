@@ -1,4 +1,4 @@
-# Memory Analysis (DGX Spark, Qwen3.5-9B Full FT)
+# Memory Analysis (Reference Training Host, Qwen3.5-9B Full FT)
 
 Date: `2026-03-05`
 
@@ -63,7 +63,7 @@ Delta:
 Interpretation:
 
 - The dominant failure driver was not checkpoint writing.
-- Optimizer memory placement/paging materially changes total envelope and can unlock higher context on Spark.
+- Optimizer memory placement/paging materially changes the total envelope and can unlock higher context on the production host.
 
 ## 32K Feasibility Probe (paged optimizer, completed)
 
@@ -116,7 +116,7 @@ Three targeted 1-step stress runs (`6` longest rows, all truncated to `32768`) w
 
 Interpretation:
 
-- The allocator cap is a decisive stabilizer for the late-step spike on Spark in this stress pattern.
+- The allocator cap is a decisive stabilizer for the late-step spike on the production host in this stress pattern.
 - Peak remains high (~`110 GiB`) but stays under the failure boundary seen in uncapped runs.
 - Default loss mode is not worse than custom chunked variants in this 1-step stress check.
 - Runtime cost is significant (single worst-case 32K step is ~`5+` minutes in these probes).

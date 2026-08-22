@@ -16,7 +16,7 @@ Training dataset:
 
 ## Decision
 
-Use the same Spark-safe 32K SFT recipe that completed the previous SFT runs, including the same checkpoint-based recovery strategy.
+Use the same memory-safe 32K SFT recipe that completed the previous SFT runs, including the same checkpoint-based recovery strategy.
 
 Key reason: this dataset is another no-thinking SFT continuation workload, so changing the recipe would add unnecessary risk. The DPO phase is complete; this run returns to supervised fine-tuning.
 
@@ -88,7 +88,7 @@ Operational rule:
 
 - Resume from the newest valid checkpoint in the same session lineage.
 - Do not restart from the DPO model if a valid run checkpoint exists.
-- Keep checkpoint cadence dense enough to avoid losing many hours on Spark restarts.
+- Keep checkpoint cadence dense enough to avoid losing many hours on host restarts.
 
 ## Launcher
 

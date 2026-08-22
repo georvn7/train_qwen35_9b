@@ -269,7 +269,7 @@ Chronological record of meaningful validation and smoke runs.
 - Path:
   - `/home/georvn/train_qwen35_9b/qwen35_9b_fullft/runs/20260305_182218_qwen35_9b_instruct_memprobe_12k_guard110`
 - Purpose:
-  - Validate Spark-safe full-weight recipe after repeated 32K/24K/16K failures.
+  - Validate memory-safe full-weight recipe after repeated 32K/24K/16K failures.
 - Core config:
   - `model=Qwen/Qwen3.5-9B`
   - `max_seq_length=12288`
@@ -366,7 +366,7 @@ Chronological record of meaningful validation and smoke runs.
   - `/home/georvn/train_qwen35_9b/qwen35_9b_fullft/docs/quality_probe_20260305_090939.json`
   - `/home/georvn/train_qwen35_9b/qwen35_9b_fullft/docs/quality_probe_20260305_090939.md`
 - Purpose:
-  - Fast LR ranking on 32K setup under single-DGX-Spark constraints.
+  - Fast LR ranking on the 32K setup under single-host constraints.
 - Common config:
   - `model=Qwen/Qwen3.5-9B-Base`
   - `max_seq_length=32768`

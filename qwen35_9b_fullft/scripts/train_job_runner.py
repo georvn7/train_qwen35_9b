@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run immutable DGX Spark training jobs for the Hayabusa/Qwen stack.
+"""Run immutable remote training jobs for the Hayabusa/Qwen stack.
 
 This runner wraps the validated SFT, DPO, checkpointed RL, and repair-distance
 AWR trainers.
@@ -1106,7 +1106,7 @@ def create_real_session(
         "--label",
         label,
         "--notes",
-        f"DGX Spark job runner {stage} stage for {job_dir.name}",
+        f"remote training runner {stage} stage for {job_dir.name}",
     ]
     rc, output = run_captured_command(command, log_path)
     if rc != 0:
@@ -1959,7 +1959,7 @@ def process_job(config: RunnerConfig, job_dir: Path, resumed_running: bool = Fal
             f"found abandoned running job in state {previous_state}; automatic ambiguous resume is disabled",
         )
 
-    write_status(job_dir, "pending", "Job claimed by DGX Spark runner", stage=None, pid=os.getpid())
+    write_status(job_dir, "pending", "Job claimed by remote training runner", stage=None, pid=os.getpid())
     write_status(job_dir, "validating", "Validating job manifest and inputs", stage="validating", pid=os.getpid())
     job = validate_manifest(job_dir)
 
@@ -2055,7 +2055,7 @@ def fake_stage_main(argv: list[str]) -> int:
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run DGX Spark Hayabusa training jobs.")
+    parser = argparse.ArgumentParser(description="Run remote Hayabusa training jobs.")
     parser.add_argument("--jobs-root", required=True, help="Root containing incoming/running/completed/failed.")
     parser.add_argument(
         "--workspace-root",

@@ -38,7 +38,7 @@ Date: `2026-04-18`
   - the launcher retried automatically;
   - durable progress was preserved through checkpoints;
   - the run ultimately finished from the same session dir with final checkpoint `1869`.
-- This means the recipe is valid for this continuation workload on Spark, but host-RAM headroom during resume remains a known operational sensitivity.
+- This means the recipe is valid for this continuation workload on the production host, but host-RAM headroom during resume remains a known operational sensitivity.
 
 ## Decision
 
@@ -108,9 +108,9 @@ Interpretation:
 - Do not blend DPO into the first continuation SFT run.
 - Keep real DPO as stage 2.
 - Reason:
-  - the SFT continuation can reuse the exact stable Spark recipe;
+  - the SFT continuation can reuse the exact stable production recipe;
   - the DPO files are already in `prompt/chosen/rejected` format, but DPO needs its own trainer path and memory validation;
-  - Spark stability is more important than maximizing change per run.
+  - host stability is more important than maximizing change per run.
 
 Observed DPO size:
 
