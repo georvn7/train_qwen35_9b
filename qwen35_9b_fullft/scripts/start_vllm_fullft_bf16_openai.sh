@@ -19,6 +19,7 @@ MAX_NUM_BATCHED_TOKENS="${MAX_NUM_BATCHED_TOKENS:-32768}"
 API_KEY="${API_KEY:-}"
 READY_WAIT_SEC="${READY_WAIT_SEC:-900}"
 ENABLE_THINKING="${ENABLE_THINKING:-false}"
+VLLM_ENFORCE_EAGER="${VLLM_ENFORCE_EAGER:-true}"
 PY_HEADERS_ROOT="${PY_HEADERS_ROOT:-${WORKSPACE_ROOT}/.local_py312dev/usr/include}"
 
 LOG_DIR="${WORKSPACE_ROOT}/logs"
@@ -87,6 +88,21 @@ case "${ENABLE_THINKING,,}" in
     ;;
 esac
 
+case "${VLLM_ENFORCE_EAGER,,}" in
+  true|1|yes)
+    EXECUTION_ARGS=(--enforce-eager)
+    EXECUTION_MODE="eager"
+    ;;
+  false|0|no)
+    EXECUTION_ARGS=()
+    EXECUTION_MODE="compiled/CUDA-graph"
+    ;;
+  *)
+    echo "ERROR: VLLM_ENFORCE_EAGER must be true or false"
+    exit 1
+    ;;
+esac
+
 CMD=(
   "${VLLM_BIN}" serve "${MODEL_PATH}"
   --host "${HOST}"
@@ -98,7 +114,7 @@ CMD=(
   --max-num-batched-tokens "${MAX_NUM_BATCHED_TOKENS}"
   --dtype bfloat16
   --default-chat-template-kwargs "${CHAT_KWARGS}"
-  --enforce-eager
+  "${EXECUTION_ARGS[@]}"
   --disable-frontend-multiprocessing
   --language-model-only
   "${REASONING_ARGS[@]}"
@@ -111,6 +127,7 @@ fi
 echo "Starting vLLM bf16 server..."
 echo "Model path: ${MODEL_PATH}"
 echo "Model name: ${SERVED_MODEL_NAME}"
+echo "Execution mode: ${EXECUTION_MODE}"
 echo "Endpoint: http://${HOST}:${PORT}/v1"
 echo "Log file: ${LOG_FILE}"
 
