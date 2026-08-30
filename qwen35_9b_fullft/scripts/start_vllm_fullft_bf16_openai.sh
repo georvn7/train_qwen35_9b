@@ -7,6 +7,8 @@ WORKSPACE_ROOT="$(cd "${PROJECT_DIR}/.." && pwd)"
 
 VLLM_BIN="${WORKSPACE_ROOT}/.venv/bin/vllm"
 PY_BIN="${WORKSPACE_ROOT}/.venv/bin/python"
+# FlashInfer's compiled path invokes companion tools such as ninja by name.
+export PATH="${WORKSPACE_ROOT}/.venv/bin:${PATH}"
 MODEL_PATH_DEFAULT="${PROJECT_DIR}/runs/20260307_050331_qwen35_9b_instruct_full1109_32k_recipe_v1/artifacts/full_model"
 MODEL_PATH="${MODEL_PATH:-$MODEL_PATH_DEFAULT}"
 SERVED_MODEL_NAME="${SERVED_MODEL_NAME:-qwen35-9b-fullft-bf16}"
