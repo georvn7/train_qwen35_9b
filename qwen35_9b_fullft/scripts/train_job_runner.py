@@ -103,6 +103,7 @@ class ValidatedJob:
     served_model_name: str
     assistant_reasoning: str
     thinking_max_chars: int
+    max_gpu_memory_gib: float = 110.0
     dpo_execution_mode: str = "batched"
     rl_enabled: bool = False
     rl_input: ValidatedInput | None = None
@@ -877,6 +878,16 @@ def validate_manifest(job_dir: Path) -> ValidatedJob:
         raise ValidationError(
             "dpo_execution_mode must be 'batched', 'split_backward', or 'auto'"
         )
+    max_gpu_memory_gib = manifest.get("max_gpu_memory_gib", 110.0)
+    if (
+        isinstance(max_gpu_memory_gib, bool)
+        or not isinstance(max_gpu_memory_gib, (int, float))
+        or not math.isfinite(float(max_gpu_memory_gib))
+        or float(max_gpu_memory_gib) < 0.0
+    ):
+        raise ValidationError(
+            "max_gpu_memory_gib must be a finite non-negative number"
+        )
 
     sft_input = (
         validate_input(
@@ -948,6 +959,7 @@ def validate_manifest(job_dir: Path) -> ValidatedJob:
         served_model_name=served_model_name,
         assistant_reasoning=assistant_reasoning,
         thinking_max_chars=thinking_max_chars,
+        max_gpu_memory_gib=float(max_gpu_memory_gib),
         dpo_execution_mode=dpo_execution_mode,
         rl_enabled=rl_enabled,
         rl_input=rl_input,
@@ -1217,7 +1229,7 @@ def build_sft_command(config: RunnerConfig, job: ValidatedJob, session_dir: Path
         "--save-total-limit",
         "4",
         "--max-gpu-memory-gib",
-        "110",
+        str(job.max_gpu_memory_gib),
         "--cuda-memory-fraction",
         "0.88",
         "--cuda-alloc-conf",
@@ -1366,7 +1378,7 @@ def build_dpo_command(
         "--torch-dtype",
         "bfloat16",
         "--max-gpu-memory-gib",
-        "110",
+        str(job.max_gpu_memory_gib),
         "--cuda-memory-fraction",
         "0.88",
         "--cuda-alloc-conf",
@@ -1451,7 +1463,7 @@ def build_rl_command(
         "--torch-dtype",
         "bfloat16",
         "--max-gpu-memory-gib",
-        "110",
+        str(job.max_gpu_memory_gib),
         "--cuda-memory-fraction",
         "0.88",
         "--cuda-alloc-conf",
@@ -1525,7 +1537,7 @@ def build_awr_command(
         "--torch-dtype",
         "bfloat16",
         "--max-gpu-memory-gib",
-        "110",
+        str(job.max_gpu_memory_gib),
         "--cuda-memory-fraction",
         "0.88",
         "--cuda-alloc-conf",

@@ -162,6 +162,7 @@ def make_job(
     assistant_reasoning: bool = False,
     thinking_max_chars: int = 1800,
     dpo_execution_mode: str | None = None,
+    max_gpu_memory_gib: float = 110.0,
     rl_enabled: bool = False,
     custom_rl_rows: list[dict] | None = None,
     awr_enabled: bool = False,
@@ -197,6 +198,7 @@ def make_job(
         "output_checkpoint": f"hayabusa-9b-{job_id}",
         "max_sequence_length": 32768,
         "training_profile": "micro_contract_validation",
+        "max_gpu_memory_gib": max_gpu_memory_gib,
         "assistant_reasoning": {
             "mode": "required" if assistant_reasoning else "disabled",
             "field": "thinking",
@@ -299,6 +301,7 @@ class TrainJobRunnerTests(unittest.TestCase):
                 served_model_name="output",
                 assistant_reasoning="disabled",
                 thinking_max_chars=1800,
+                max_gpu_memory_gib=0.0,
             )
             config = runner.RunnerConfig(
                 jobs_root=root / "jobs",
@@ -313,6 +316,26 @@ class TrainJobRunnerTests(unittest.TestCase):
                 save_index = command.index("--save-steps")
                 self.assertEqual(command[save_index + 1], "20")
                 self.assertNotIn("--extra-save-steps", command)
+                memory_index = command.index("--max-gpu-memory-gib")
+                self.assertEqual(command[memory_index + 1], "0.0")
+
+            for command in (
+                runner.build_rl_command(config, job, root / "rl", "base"),
+                runner.build_awr_command(config, job, root / "awr", "base"),
+            ):
+                memory_index = command.index("--max-gpu-memory-gib")
+                self.assertEqual(command[memory_index + 1], "0.0")
+
+    def test_invalid_gpu_memory_guard_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            config = self.make_config(tmp)
+            make_job(config.jobs_root, max_gpu_memory_gib=-1.0)
+            rc = runner.run_once(config)
+            self.assertEqual(rc, 1)
+            failed = config.jobs_root / "failed" / "simplec-s0_2-micro-001"
+            result = read_json(failed / "result.json")
+            self.assertEqual(result["failed_stage"], "validating")
+            self.assertIn("max_gpu_memory_gib", result["error"])
 
     def test_dpo_execution_modes_control_effective_context(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
