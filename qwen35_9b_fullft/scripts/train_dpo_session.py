@@ -134,6 +134,24 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--dataset-num-proc", type=int, default=1)
     parser.add_argument("--max-samples", type=int, default=0)
+    parser.add_argument(
+        "--reasoning-effort",
+        default="medium",
+        choices=["xhigh", "medium", "low"],
+        help="Reasoning-effort contract passed to tokenizer.apply_chat_template.",
+    )
+    parser.add_argument(
+        "--preserve-thinking-history",
+        dest="preserve_thinking_history",
+        action="store_true",
+        default=False,
+        help="Render reasoning from assistant turns preceding the latest user query.",
+    )
+    parser.add_argument(
+        "--no-preserve-thinking-history",
+        dest="preserve_thinking_history",
+        action="store_false",
+    )
     parser.add_argument("--precision", default="auto", choices=["auto", "bf16", "fp16", "float32"])
     parser.add_argument("--torch-dtype", default="auto", choices=["auto", "bfloat16", "float16", "float32"])
     parser.add_argument("--max-gpu-memory-gib", type=float, default=110.0)
@@ -458,6 +476,9 @@ def normalize_dpo_messages_for_chat_template(value: Any) -> Any:
 def render_dpo_row_for_tokenization(
     row: dict[str, Any],
     tokenizer: Any,
+    *,
+    reasoning_effort: str = "medium",
+    preserve_thinking_history: bool = False,
 ) -> dict[str, str]:
     """Render conversational DPO fields exactly as TRL would before tokenization."""
     from trl.data_utils import maybe_apply_chat_template
@@ -466,7 +487,13 @@ def render_dpo_row_for_tokenization(
         key: normalize_dpo_messages_for_chat_template(row[key])
         for key in ("prompt", "chosen", "rejected")
     }
-    rendered = maybe_apply_chat_template(fields, tokenizer)
+    rendered = maybe_apply_chat_template(
+        fields,
+        tokenizer,
+        enable_thinking=True,
+        preserve_thinking=preserve_thinking_history,
+        reasoning_effort=reasoning_effort,
+    )
     for key in fields:
         value = rendered.get(key)
         if not isinstance(value, str) or not value:
@@ -549,10 +576,18 @@ def render_prompt_ids(
     row: dict[str, Any],
     prompt_messages: list[dict[str, Any]],
     tokenizer: Any,
+    *,
+    reasoning_effort: str,
+    preserve_thinking_history: bool,
 ) -> list[int]:
     candidate = dict(row)
     candidate["prompt"] = prompt_messages
-    rendered = render_dpo_row_for_tokenization(candidate, tokenizer)["prompt"]
+    rendered = render_dpo_row_for_tokenization(
+        candidate,
+        tokenizer,
+        reasoning_effort=reasoning_effort,
+        preserve_thinking_history=preserve_thinking_history,
+    )["prompt"]
     return tokenizer(rendered, add_special_tokens=False)["input_ids"]
 
 
@@ -561,6 +596,9 @@ def truncate_prompt_keep_end(
     prompt_ids: list[int],
     tokenizer: Any,
     max_prompt_length: int,
+    *,
+    reasoning_effort: str,
+    preserve_thinking_history: bool,
 ) -> tuple[list[int], str]:
     """Preserve chat-role boundaries while retaining the newest prompt evidence."""
     if len(prompt_ids) <= max_prompt_length:
@@ -589,7 +627,13 @@ def truncate_prompt_keep_end(
             continue
         user_starts.append(start)
         candidate = system_prefix + messages[start:]
-        candidate_ids = render_prompt_ids(row, candidate, tokenizer)
+        candidate_ids = render_prompt_ids(
+            row,
+            candidate,
+            tokenizer,
+            reasoning_effort=reasoning_effort,
+            preserve_thinking_history=preserve_thinking_history,
+        )
         if len(candidate_ids) <= max_prompt_length:
             return candidate_ids, "drop_messages"
 
@@ -623,7 +667,13 @@ def truncate_prompt_keep_end(
             skip_special_tokens=False,
             clean_up_tokenization_spaces=False,
         )
-        candidate_ids = render_prompt_ids(row, trimmed, tokenizer)
+        candidate_ids = render_prompt_ids(
+            row,
+            trimmed,
+            tokenizer,
+            reasoning_effort=reasoning_effort,
+            preserve_thinking_history=preserve_thinking_history,
+        )
         if len(candidate_ids) <= max_prompt_length:
             best_ids = candidate_ids
             low = keep + 1
@@ -642,6 +692,9 @@ def build_tokenized_rows(
     tokenizer: Any,
     max_prompt_length: int,
     max_completion_length: int,
+    *,
+    reasoning_effort: str = "medium",
+    preserve_thinking_history: bool = False,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     prompt_original_lengths: list[int] = []
     chosen_original_lengths: list[int] = []
@@ -656,7 +709,12 @@ def build_tokenized_rows(
     tokenized_rows: list[dict[str, Any]] = []
 
     for row in rows:
-        rendered = render_dpo_row_for_tokenization(row, tokenizer)
+        rendered = render_dpo_row_for_tokenization(
+            row,
+            tokenizer,
+            reasoning_effort=reasoning_effort,
+            preserve_thinking_history=preserve_thinking_history,
+        )
         prompt_ids = tokenizer(rendered["prompt"], add_special_tokens=False)["input_ids"]
         chosen_ids = tokenizer(rendered["chosen"], add_special_tokens=False)["input_ids"]
         rejected_ids = tokenizer(rendered["rejected"], add_special_tokens=False)["input_ids"]
@@ -673,6 +731,8 @@ def build_tokenized_rows(
             prompt_ids,
             tokenizer,
             max_prompt_length,
+            reasoning_effort=reasoning_effort,
+            preserve_thinking_history=preserve_thinking_history,
         )
         prompt_truncation_modes[prompt_mode] = prompt_truncation_modes.get(prompt_mode, 0) + 1
         final_chosen_ids = chosen_ids[:max_completion_length]
@@ -893,6 +953,8 @@ def main() -> None:
         tokenizer=tokenizer,
         max_prompt_length=args.max_prompt_length,
         max_completion_length=args.max_completion_length,
+        reasoning_effort=args.reasoning_effort,
+        preserve_thinking_history=args.preserve_thinking_history,
     )
     frozen_eval_indices = select_frozen_dpo_indices(tokenized_rows, maximum=8)
     frozen_eval_contract = {
@@ -971,6 +1033,8 @@ def main() -> None:
             "precision": args.precision,
             "torch_dtype": args.torch_dtype,
             "optim": args.optim,
+            "reasoning_effort": args.reasoning_effort,
+            "preserve_thinking_history": args.preserve_thinking_history,
             "tokenization_stats": tokenization_stats,
         }
         save_json(metadata_dir / "run_config.json", run_config)
@@ -1226,6 +1290,8 @@ def main() -> None:
         "hf_cache_dir": str(cache_root),
         "precision": args.precision,
         "torch_dtype": args.torch_dtype,
+        "reasoning_effort": args.reasoning_effort,
+        "preserve_thinking_history": args.preserve_thinking_history,
         "resolved_precision": {
             "bf16": bf16_flag,
             "fp16": fp16_flag,

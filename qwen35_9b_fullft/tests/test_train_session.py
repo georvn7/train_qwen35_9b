@@ -15,14 +15,21 @@ SPEC.loader.exec_module(TRAIN)
 
 
 class FakeTokenizer:
+    def __init__(self):
+        self.calls = []
+
     def apply_chat_template(
         self,
         messages,
         *,
         tokenize,
         add_generation_prompt,
-        **_kwargs,
+        **kwargs,
     ):
+        self.calls.append({
+            "add_generation_prompt": add_generation_prompt,
+            **kwargs,
+        })
         text = ""
         for message in messages:
             text += f"<{message['role']}>"
@@ -49,10 +56,12 @@ class ThinkingTokenOrderTests(unittest.TestCase):
         ]
 
         normalized = TRAIN.normalize_messages_for_chat_template(messages)
+        tokenizer = FakeTokenizer()
         token_ids = TRAIN.apply_chat_template_token_ids(
             normalized,
-            FakeTokenizer(),
-            reasoning_effort="",
+            tokenizer,
+            reasoning_effort="medium",
+            preserve_thinking_history=False,
             add_generation_prompt=False,
         )
         rendered = "".join(chr(token_id) for token_id in token_ids)
@@ -62,6 +71,9 @@ class ThinkingTokenOrderTests(unittest.TestCase):
             rendered.index("fix the producer"),
         )
         self.assertNotIn("reasoning_content", messages[-1])
+        self.assertEqual(tokenizer.calls[-1]["reasoning_effort"], "medium")
+        self.assertTrue(tokenizer.calls[-1]["enable_thinking"])
+        self.assertFalse(tokenizer.calls[-1]["preserve_thinking"])
 
 
 if __name__ == "__main__":

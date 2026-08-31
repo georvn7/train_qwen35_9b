@@ -25,6 +25,9 @@ class FakeTokenizer:
     eos_token_id = 999
     eos_token = "<eos>"
 
+    def __init__(self):
+        self.calls = []
+
     def apply_chat_template(
         self,
         messages,
@@ -32,9 +35,10 @@ class FakeTokenizer:
         tokenize=False,
         add_generation_prompt=False,
         continue_final_message=False,
-        **_kwargs,
+        **kwargs,
     ):
         assert tokenize is False
+        self.calls.append(dict(kwargs))
         parts = []
         for message in messages:
             parts.append(f"<{message['role']}>")
@@ -214,8 +218,9 @@ class BuildTokenizedRowsTests(unittest.TestCase):
             ],
         }
 
+        tokenizer = FakeTokenizer()
         rendered = TRAIN_DPO_SESSION.render_dpo_row_for_tokenization(
-            row, FakeTokenizer()
+            row, tokenizer
         )
 
         self.assertIn("<think>inspect the observed value flow</think>", rendered["chosen"])
@@ -229,6 +234,14 @@ class BuildTokenizedRowsTests(unittest.TestCase):
             rendered["rejected"].index("rejected action"),
         )
         self.assertNotIn("reasoning_content", row["chosen"][0])
+        self.assertTrue(tokenizer.calls)
+        self.assertTrue(all(call["enable_thinking"] for call in tokenizer.calls))
+        self.assertTrue(
+            all(call["reasoning_effort"] == "medium" for call in tokenizer.calls)
+        )
+        self.assertTrue(
+            all(call["preserve_thinking"] is False for call in tokenizer.calls)
+        )
 
 
 class TinyCausalLM(torch.nn.Module):

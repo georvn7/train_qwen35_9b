@@ -163,6 +163,7 @@ def make_job(
     thinking_max_chars: int = 1800,
     dpo_execution_mode: str | None = None,
     max_gpu_memory_gib: float = 110.0,
+    cuda_memory_fraction: float = 0.88,
     rl_enabled: bool = False,
     custom_rl_rows: list[dict] | None = None,
     awr_enabled: bool = False,
@@ -199,6 +200,7 @@ def make_job(
         "max_sequence_length": 32768,
         "training_profile": "micro_contract_validation",
         "max_gpu_memory_gib": max_gpu_memory_gib,
+        "cuda_memory_fraction": cuda_memory_fraction,
         "assistant_reasoning": {
             "mode": "required" if assistant_reasoning else "disabled",
             "field": "thinking",
@@ -318,6 +320,8 @@ class TrainJobRunnerTests(unittest.TestCase):
                 self.assertNotIn("--extra-save-steps", command)
                 memory_index = command.index("--max-gpu-memory-gib")
                 self.assertEqual(command[memory_index + 1], "0.0")
+                fraction_index = command.index("--cuda-memory-fraction")
+                self.assertEqual(command[fraction_index + 1], "0.88")
 
             for command in (
                 runner.build_rl_command(config, job, root / "rl", "base"),
@@ -325,6 +329,8 @@ class TrainJobRunnerTests(unittest.TestCase):
             ):
                 memory_index = command.index("--max-gpu-memory-gib")
                 self.assertEqual(command[memory_index + 1], "0.0")
+                fraction_index = command.index("--cuda-memory-fraction")
+                self.assertEqual(command[fraction_index + 1], "0.88")
 
     def test_invalid_gpu_memory_guard_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -336,6 +342,54 @@ class TrainJobRunnerTests(unittest.TestCase):
             result = read_json(failed / "result.json")
             self.assertEqual(result["failed_stage"], "validating")
             self.assertIn("max_gpu_memory_gib", result["error"])
+
+    def test_cuda_memory_fraction_is_validated_and_forwarded(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            config = self.make_config(tmp)
+            make_job(config.jobs_root, cuda_memory_fraction=1.0)
+            self.assertEqual(runner.run_once(config), 1)
+            failed = config.jobs_root / "failed" / "simplec-s0_2-micro-001"
+            self.assertIn(
+                "cuda_memory_fraction",
+                read_json(failed / "result.json")["error"],
+            )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            input_data = runner.ValidatedInput(
+                path=root / "train.jsonl", rows=1, sha256="0" * 64
+            )
+            job = runner.ValidatedJob(
+                manifest={},
+                job_id="b300-profile",
+                base_checkpoint="base",
+                output_checkpoint="output",
+                max_sequence_length=32768,
+                training_profile="micro_contract_validation",
+                sft_enabled=True,
+                dpo_enabled=False,
+                sft_input=input_data,
+                dpo_input=None,
+                deployment_enabled=False,
+                served_model_name="output",
+                assistant_reasoning="required",
+                thinking_max_chars=1800,
+                max_gpu_memory_gib=267.0,
+                cuda_memory_fraction=0.96,
+            )
+            command = runner.build_sft_command(
+                runner.RunnerConfig(
+                    jobs_root=root / "jobs",
+                    workspace_root=root / "workspace",
+                    mode="real",
+                ),
+                job,
+                root / "sft",
+            )
+            index = command.index("--cuda-memory-fraction")
+            self.assertEqual(command[index + 1], "0.96")
+            self.assertIn("forward_active_chunked_no_upcast", command)
+            self.assertIn("--no-preserve-thinking-history", command)
 
     def test_dpo_execution_modes_control_effective_context(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

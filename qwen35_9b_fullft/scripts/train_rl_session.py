@@ -113,6 +113,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--checkpoint-safe-serialization", choices=["true", "false"], default="true")
     parser.add_argument("--frozen-eval-max-sequences", type=int, default=16)
     parser.add_argument(
+        "--reasoning-effort",
+        default="medium",
+        choices=["xhigh", "medium", "low"],
+    )
+    parser.add_argument(
+        "--preserve-thinking-history",
+        dest="preserve_thinking_history",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
+        "--no-preserve-thinking-history",
+        dest="preserve_thinking_history",
+        action="store_false",
+    )
+    parser.add_argument(
         "--smoke-optimizer-steps",
         type=int,
         default=0,
@@ -168,11 +184,16 @@ def apply_chat_template_ids(
     messages: list[dict[str, Any]],
     *,
     add_generation_prompt: bool,
+    reasoning_effort: str = "medium",
+    preserve_thinking_history: bool = False,
 ) -> list[int]:
     output = tokenizer.apply_chat_template(
         messages,
         tokenize=True,
         add_generation_prompt=add_generation_prompt,
+        enable_thinking=True,
+        preserve_thinking=preserve_thinking_history,
+        reasoning_effort=reasoning_effort,
     )
     if isinstance(output, dict) or (hasattr(output, "keys") and "input_ids" in output):
         output = output["input_ids"]
@@ -191,7 +212,12 @@ def common_prefix_length(left: list[int], right: list[int]) -> int:
 
 
 def tokenize_policy_step(
-    policy_step: dict[str, Any], tokenizer: Any, max_length: int
+    policy_step: dict[str, Any],
+    tokenizer: Any,
+    max_length: int,
+    *,
+    reasoning_effort: str = "medium",
+    preserve_thinking_history: bool = False,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     prompt = policy_step.get("prompt")
     completion = policy_step.get("completion")
@@ -207,12 +233,18 @@ def tokenize_policy_step(
     normalized_prompt = normalize_messages(prompt)
     normalized_completion = normalize_messages(completion)
     prefix_ids = apply_chat_template_ids(
-        tokenizer, normalized_prompt, add_generation_prompt=True
+        tokenizer,
+        normalized_prompt,
+        add_generation_prompt=True,
+        reasoning_effort=reasoning_effort,
+        preserve_thinking_history=preserve_thinking_history,
     )
     full_ids = apply_chat_template_ids(
         tokenizer,
         normalized_prompt + normalized_completion,
         add_generation_prompt=False,
+        reasoning_effort=reasoning_effort,
+        preserve_thinking_history=preserve_thinking_history,
     )
     target_start = len(prefix_ids)
     boundary_adjustment = 0
@@ -261,7 +293,12 @@ def tokenize_policy_step(
 
 
 def flatten_rollouts(
-    rows: Iterable[dict[str, Any]], tokenizer: Any, max_length: int
+    rows: Iterable[dict[str, Any]],
+    tokenizer: Any,
+    max_length: int,
+    *,
+    reasoning_effort: str = "medium",
+    preserve_thinking_history: bool = False,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     records: list[dict[str, Any]] = []
     stats: list[dict[str, Any]] = []
@@ -281,7 +318,11 @@ def flatten_rollouts(
             )
         for step_index, policy_step in enumerate(steps):
             tokenized, token_stats = tokenize_policy_step(
-                policy_step, tokenizer, max_length
+                policy_step,
+                tokenizer,
+                max_length,
+                reasoning_effort=reasoning_effort,
+                preserve_thinking_history=preserve_thinking_history,
             )
             record_id = f"{group_id}/{rollout_id}/{step_index}"
             records.append(
@@ -654,7 +695,13 @@ def main() -> None:
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     tokenizer.truncation_side = "left"
-    records, tokenization_stats = flatten_rollouts(rows, tokenizer, args.max_length)
+    records, tokenization_stats = flatten_rollouts(
+        rows,
+        tokenizer,
+        args.max_length,
+        reasoning_effort=args.reasoning_effort,
+        preserve_thinking_history=args.preserve_thinking_history,
+    )
     full_training_steps = len(records) * args.num_train_epochs
     optimizer_step_limit, smoke_mode = resolve_optimizer_step_limit(
         full_training_steps, args.smoke_optimizer_steps
@@ -680,6 +727,8 @@ def main() -> None:
         "clip_epsilon": args.clip_epsilon,
         "kl_beta": args.kl_beta,
         "completion_loss": "thinking_and_final_content",
+        "reasoning_effort": args.reasoning_effort,
+        "preserve_thinking_history": args.preserve_thinking_history,
         "prompt_loss": "masked",
         "old_policy": "exact_base_checkpoint_precomputed_before_updates",
         "save_steps": save_steps,

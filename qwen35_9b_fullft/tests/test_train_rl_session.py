@@ -22,7 +22,13 @@ class FakeTokenizer:
     pad_token = "<pad>"
     eos_token = "<eos>"
 
-    def apply_chat_template(self, messages, *, tokenize, add_generation_prompt):
+    def __init__(self):
+        self.calls = []
+
+    def apply_chat_template(
+        self, messages, *, tokenize, add_generation_prompt, **kwargs
+    ):
+        self.calls.append(dict(kwargs))
         text = ""
         for message in messages:
             text += f"<{message['role']}>"
@@ -68,8 +74,9 @@ def policy_step(thinking="inspect evidence", answer="fix parser"):
 
 class TokenizationTests(unittest.TestCase):
     def test_completion_mask_contains_thinking_and_final_answer(self):
+        tokenizer = FakeTokenizer()
         tokenized, stats = RL.tokenize_policy_step(
-            policy_step(), FakeTokenizer(), max_length=4096
+            policy_step(), tokenizer, max_length=4096
         )
         completion = FakeTokenizer().decode(
             tokenized["input_ids"][tokenized["target_start"] :]
@@ -79,6 +86,14 @@ class TokenizationTests(unittest.TestCase):
         self.assertLess(completion.index("<think>inspect evidence</think>"), completion.index("fix parser"))
         self.assertTrue(stats["thinking_present"])
         self.assertGreater(stats["completion_tokens"], len("fix parser"))
+        self.assertTrue(tokenizer.calls)
+        self.assertTrue(all(call["enable_thinking"] for call in tokenizer.calls))
+        self.assertTrue(
+            all(call["reasoning_effort"] == "medium" for call in tokenizer.calls)
+        )
+        self.assertTrue(
+            all(call["preserve_thinking"] is False for call in tokenizer.calls)
+        )
 
     def test_left_truncation_preserves_entire_completion(self):
         step = policy_step(answer="DECISIVE_ANSWER")

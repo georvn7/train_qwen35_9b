@@ -104,6 +104,7 @@ class ValidatedJob:
     assistant_reasoning: str
     thinking_max_chars: int
     max_gpu_memory_gib: float = 110.0
+    cuda_memory_fraction: float = 0.88
     dpo_execution_mode: str = "batched"
     rl_enabled: bool = False
     rl_input: ValidatedInput | None = None
@@ -888,6 +889,14 @@ def validate_manifest(job_dir: Path) -> ValidatedJob:
         raise ValidationError(
             "max_gpu_memory_gib must be a finite non-negative number"
         )
+    cuda_memory_fraction = manifest.get("cuda_memory_fraction", 0.88)
+    if (
+        isinstance(cuda_memory_fraction, bool)
+        or not isinstance(cuda_memory_fraction, (int, float))
+        or not math.isfinite(float(cuda_memory_fraction))
+        or not 0.0 < float(cuda_memory_fraction) < 1.0
+    ):
+        raise ValidationError("cuda_memory_fraction must be a finite number in (0, 1)")
 
     sft_input = (
         validate_input(
@@ -960,6 +969,7 @@ def validate_manifest(job_dir: Path) -> ValidatedJob:
         assistant_reasoning=assistant_reasoning,
         thinking_max_chars=thinking_max_chars,
         max_gpu_memory_gib=float(max_gpu_memory_gib),
+        cuda_memory_fraction=float(cuda_memory_fraction),
         dpo_execution_mode=dpo_execution_mode,
         rl_enabled=rl_enabled,
         rl_input=rl_input,
@@ -1231,11 +1241,11 @@ def build_sft_command(config: RunnerConfig, job: ValidatedJob, session_dir: Path
         "--max-gpu-memory-gib",
         str(job.max_gpu_memory_gib),
         "--cuda-memory-fraction",
-        "0.88",
+        str(job.cuda_memory_fraction),
         "--cuda-alloc-conf",
         "expandable_segments:True,max_split_size_mb:256",
         "--causal-loss-mode",
-        "active_chunked_no_upcast",
+        "forward_active_chunked_no_upcast",
         "--causal-loss-chunk-tokens",
         "2048",
         "--checkpoint-max-shard-size",
@@ -1252,6 +1262,9 @@ def build_sft_command(config: RunnerConfig, job: ValidatedJob, session_dir: Path
         "--assistant-only-loss",
         "--loss-target",
         "final_assistant",
+        "--reasoning-effort",
+        "medium",
+        "--no-preserve-thinking-history",
         "--final-assistant-preview-rows",
         "8",
         "--final-assistant-preview-max-chars",
@@ -1380,7 +1393,7 @@ def build_dpo_command(
         "--max-gpu-memory-gib",
         str(job.max_gpu_memory_gib),
         "--cuda-memory-fraction",
-        "0.88",
+        str(job.cuda_memory_fraction),
         "--cuda-alloc-conf",
         "expandable_segments:True,max_split_size_mb:256",
         "--checkpoint-max-shard-size",
@@ -1389,6 +1402,9 @@ def build_dpo_command(
         "true",
         "--precompute-ref-log-probs",
         "--use-logits-to-keep",
+        "--reasoning-effort",
+        "medium",
+        "--no-preserve-thinking-history",
         "--resume-warm-marker-path",
         str(session_dir / "metadata" / "resume_warm_marker.json"),
         "--checkpoint-save-marker-path",
@@ -1465,7 +1481,7 @@ def build_rl_command(
         "--max-gpu-memory-gib",
         str(job.max_gpu_memory_gib),
         "--cuda-memory-fraction",
-        "0.88",
+        str(job.cuda_memory_fraction),
         "--cuda-alloc-conf",
         "expandable_segments:True,max_split_size_mb:256",
         "--checkpoint-max-shard-size",
@@ -1474,6 +1490,9 @@ def build_rl_command(
         "true",
         "--frozen-eval-max-sequences",
         "16",
+        "--reasoning-effort",
+        "medium",
+        "--no-preserve-thinking-history",
     ]
 
 
@@ -1539,7 +1558,7 @@ def build_awr_command(
         "--max-gpu-memory-gib",
         str(job.max_gpu_memory_gib),
         "--cuda-memory-fraction",
-        "0.88",
+        str(job.cuda_memory_fraction),
         "--cuda-alloc-conf",
         "expandable_segments:True,max_split_size_mb:256",
         "--checkpoint-max-shard-size",
@@ -1548,6 +1567,9 @@ def build_awr_command(
         "true",
         "--frozen-eval-max-sequences",
         "16",
+        "--reasoning-effort",
+        "medium",
+        "--no-preserve-thinking-history",
     ]
 
 

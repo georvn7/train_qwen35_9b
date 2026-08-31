@@ -23,7 +23,13 @@ class FakeTokenizer:
     pad_token = "<pad>"
     eos_token = "<eos>"
 
-    def apply_chat_template(self, messages, *, tokenize, add_generation_prompt):
+    def __init__(self):
+        self.calls = []
+
+    def apply_chat_template(
+        self, messages, *, tokenize, add_generation_prompt, **kwargs
+    ):
+        self.calls.append(dict(kwargs))
         text = ""
         for message in messages:
             text += f"<{message['role']}>"

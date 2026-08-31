@@ -302,8 +302,21 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-samples", type=int, default=0)
     parser.add_argument(
         "--reasoning-effort",
-        default="",
-        help="Optional: low, medium, or high for tokenizer.apply_chat_template.",
+        default="medium",
+        choices=["xhigh", "medium", "low"],
+        help="Reasoning-effort contract passed to tokenizer.apply_chat_template.",
+    )
+    parser.add_argument(
+        "--preserve-thinking-history",
+        dest="preserve_thinking_history",
+        action="store_true",
+        default=False,
+        help="Render reasoning from assistant turns preceding the latest user query.",
+    )
+    parser.add_argument(
+        "--no-preserve-thinking-history",
+        dest="preserve_thinking_history",
+        action="store_false",
     )
     parser.add_argument("--resume-from-checkpoint", default=None)
     parser.add_argument("--gguf-quantization", default="q4_k_m")
@@ -880,7 +893,10 @@ def dump_cuda_debug_artifacts(metadata_dir: Path, error_kind: str) -> dict[str, 
 
 
 def render_messages_as_text(
-    examples: dict[str, Any], tokenizer: Any, reasoning_effort: str
+    examples: dict[str, Any],
+    tokenizer: Any,
+    reasoning_effort: str,
+    preserve_thinking_history: bool,
 ) -> dict[str, list[str]]:
     def should_fallback(exc: ValueError) -> bool:
         message = str(exc).lower()
@@ -909,6 +925,8 @@ def render_messages_as_text(
         kwargs = {
             "tokenize": False,
             "add_generation_prompt": False,
+            "enable_thinking": True,
+            "preserve_thinking": preserve_thinking_history,
         }
         if reasoning_effort:
             kwargs["reasoning_effort"] = reasoning_effort
@@ -1031,11 +1049,14 @@ def apply_chat_template_token_ids(
     messages: list[dict[str, Any]],
     tokenizer: Any,
     reasoning_effort: str,
+    preserve_thinking_history: bool,
     add_generation_prompt: bool,
 ) -> list[int]:
     kwargs: dict[str, Any] = {
         "tokenize": True,
         "add_generation_prompt": add_generation_prompt,
+        "enable_thinking": True,
+        "preserve_thinking": preserve_thinking_history,
     }
     if reasoning_effort:
         kwargs["reasoning_effort"] = reasoning_effort
@@ -1072,6 +1093,7 @@ def build_final_assistant_only_dataset(
     max_seq_length: int,
     truncation_side: str,
     reasoning_effort: str,
+    preserve_thinking_history: bool,
     metadata_dir: Path,
     preview_rows: int,
     preview_max_chars: int,
@@ -1114,12 +1136,14 @@ def build_final_assistant_only_dataset(
             context_messages,
             template_tokenizer,
             reasoning_effort=reasoning_effort,
+            preserve_thinking_history=preserve_thinking_history,
             add_generation_prompt=True,
         )
         full_ids = apply_chat_template_token_ids(
             full_messages,
             template_tokenizer,
             reasoning_effort=reasoning_effort,
+            preserve_thinking_history=preserve_thinking_history,
             add_generation_prompt=False,
         )
         target_start = len(prefix_ids)
@@ -1640,6 +1664,7 @@ def main() -> None:
             "dataset_columns": dataset.column_names,
             "dry_run": True,
             "reasoning_effort": args.reasoning_effort,
+            "preserve_thinking_history": args.preserve_thinking_history,
             "device_map": args.device_map,
             "hf_cache_dir": str(cache_root),
             "python_headers_root": str(headers_root),
@@ -1860,6 +1885,7 @@ def main() -> None:
             max_seq_length=args.max_seq_length,
             truncation_side=args.truncation_side,
             reasoning_effort=args.reasoning_effort,
+            preserve_thinking_history=args.preserve_thinking_history,
             metadata_dir=metadata_dir,
             preview_rows=args.final_assistant_preview_rows,
             preview_max_chars=args.final_assistant_preview_max_chars,
@@ -1882,7 +1908,12 @@ def main() -> None:
     else:
         if "messages" in dataset.column_names:
             dataset = dataset.map(
-                lambda batch: render_messages_as_text(batch, tokenizer, args.reasoning_effort),
+                lambda batch: render_messages_as_text(
+                    batch,
+                    tokenizer,
+                    args.reasoning_effort,
+                    args.preserve_thinking_history,
+                ),
                 batched=True,
                 desc="Rendering chat template",
             )
@@ -2157,6 +2188,7 @@ def main() -> None:
         "train_args": sft_kwargs,
         "dry_run": False,
         "reasoning_effort": args.reasoning_effort,
+        "preserve_thinking_history": args.preserve_thinking_history,
         "device_map": args.device_map,
         "hf_cache_dir": str(cache_root),
         "python_headers_root": str(headers_root),
