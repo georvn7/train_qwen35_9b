@@ -273,6 +273,15 @@ def read_json(path: Path) -> dict:
 
 
 class TrainJobRunnerTests(unittest.TestCase):
+    def test_training_commands_retain_at_most_two_checkpoints(self) -> None:
+        self.assertEqual(2, runner.CHECKPOINT_SAVE_TOTAL_LIMIT)
+        source = Path(runner.__file__).read_text(encoding="utf-8")
+        self.assertEqual(4, source.count('"--save-total-limit"'))
+        self.assertEqual(
+            4,
+            source.count("str(CHECKPOINT_SAVE_TOTAL_LIMIT)"),
+        )
+
     def make_config(self, tmp: str, fail_stage: str = "", sleep_seconds: float = 0.0) -> runner.RunnerConfig:
         root = Path(tmp)
         return runner.RunnerConfig(
