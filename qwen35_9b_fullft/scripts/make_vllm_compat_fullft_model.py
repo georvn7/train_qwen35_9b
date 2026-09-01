@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Create a vLLM-compatible Qwen3.5 full-FT model copy by rewriting config only."""
+"""Create a vLLM-compatible Qwen3.x full-FT view by rewriting config only."""
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import shutil
@@ -30,6 +31,7 @@ def build_config(full_cfg: dict, base_cfg: dict) -> dict:
     }
     text_cfg = {k: v for k, v in full_cfg.items() if k not in top_skip}
     text_cfg["model_type"] = "qwen3_5_text"
+    text_cfg["use_cache"] = True
 
     out = dict(base_cfg)
     out["model_type"] = "qwen3_5"
@@ -37,6 +39,14 @@ def build_config(full_cfg: dict, base_cfg: dict) -> dict:
     out["tie_word_embeddings"] = full_cfg.get("tie_word_embeddings", False)
     out["text_config"] = text_cfg
     return out
+
+
+def sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def main() -> None:
@@ -57,6 +67,10 @@ def main() -> None:
     base_config_path = Path(hf_hub_download(args.base_model_id, "config.json"))
     full_cfg = json.loads(full_config_path.read_text())
     base_cfg = json.loads(base_config_path.read_text())
+    if full_cfg.get("model_type") != "qwen3_5_text":
+        raise ValueError("Full-training export must use model_type=qwen3_5_text")
+    if base_cfg.get("model_type") != "qwen3_5":
+        raise ValueError("Serving base config must use model_type=qwen3_5")
     out_cfg = build_config(full_cfg, base_cfg)
 
     for src in full_dir.iterdir():
@@ -70,7 +84,18 @@ def main() -> None:
                 continue
             shutil.copytree(src, dst, copy_function=shutil.copy2)
 
-    (out_dir / "config.json").write_text(json.dumps(out_cfg, indent=2) + "\n")
+    output_config = out_dir / "config.json"
+    output_config.write_text(json.dumps(out_cfg, indent=2) + "\n")
+    manifest = {
+        "format_version": 1,
+        "base_model_id": args.base_model_id,
+        "source_model_dir": str(full_dir),
+        "source_config_sha256": sha256(full_config_path),
+        "output_config_sha256": sha256(output_config),
+    }
+    (out_dir / "vllm_compat_manifest.json").write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n"
+    )
     print(f"Wrote vLLM-compatible model dir: {out_dir}")
 
 

@@ -103,6 +103,15 @@ class ValidatedJob:
     served_model_name: str
     assistant_reasoning: str
     thinking_max_chars: int
+    serving_base_model_id: str = "Qwen/Qwen3.5-9B"
+    serving_enable_thinking: bool = True
+    serving_reasoning_effort: str = "medium"
+    serving_preserve_thinking: bool = False
+    serving_max_model_length: int = 65536
+    serving_gpu_memory_utilization: float = 0.70
+    serving_max_num_seqs: int = 1
+    serving_max_num_batched_tokens: int = 32768
+    serving_enforce_eager: bool = False
     max_gpu_memory_gib: float = 110.0
     cuda_memory_fraction: float = 0.88
     dpo_execution_mode: str = "batched"
@@ -952,6 +961,51 @@ def validate_manifest(job_dir: Path) -> ValidatedJob:
     served_model_name = deployment.get("served_model_name") or output_checkpoint
     if not isinstance(served_model_name, str) or not served_model_name:
         raise ValidationError("deployment.served_model_name must be a non-empty string when provided")
+    serving_base_model_id = deployment.get("base_model_id", "Qwen/Qwen3.5-9B")
+    if not isinstance(serving_base_model_id, str) or not serving_base_model_id.strip():
+        raise ValidationError("deployment.base_model_id must be a non-empty string")
+    serving_enable_thinking = deployment.get(
+        "enable_thinking", assistant_reasoning == "required"
+    )
+    if not isinstance(serving_enable_thinking, bool):
+        raise ValidationError("deployment.enable_thinking must be boolean")
+    if serving_enable_thinking != (assistant_reasoning == "required"):
+        raise ValidationError(
+            "deployment.enable_thinking must match assistant_reasoning mode"
+        )
+    serving_reasoning_effort = deployment.get("reasoning_effort", "medium")
+    if serving_reasoning_effort not in {"low", "medium", "xhigh"}:
+        raise ValidationError(
+            "deployment.reasoning_effort must be low, medium, or xhigh"
+        )
+    serving_preserve_thinking = deployment.get("preserve_thinking", False)
+    if not isinstance(serving_preserve_thinking, bool):
+        raise ValidationError("deployment.preserve_thinking must be boolean")
+    serving_max_model_length = deployment.get("max_model_length", 65536)
+    serving_gpu_memory_utilization = deployment.get("gpu_memory_utilization", 0.70)
+    serving_max_num_seqs = deployment.get("max_num_seqs", 1)
+    serving_max_num_batched_tokens = deployment.get("max_num_batched_tokens", 32768)
+    serving_enforce_eager = deployment.get("enforce_eager", False)
+    if (
+        not isinstance(serving_max_model_length, int)
+        or isinstance(serving_max_model_length, bool)
+        or serving_max_model_length <= 0
+    ):
+        raise ValidationError("deployment.max_model_length must be a positive integer")
+    if (
+        not isinstance(serving_gpu_memory_utilization, (int, float))
+        or isinstance(serving_gpu_memory_utilization, bool)
+        or not 0.0 < float(serving_gpu_memory_utilization) < 1.0
+    ):
+        raise ValidationError("deployment.gpu_memory_utilization must be in (0, 1)")
+    for name, value in (
+        ("max_num_seqs", serving_max_num_seqs),
+        ("max_num_batched_tokens", serving_max_num_batched_tokens),
+    ):
+        if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
+            raise ValidationError(f"deployment.{name} must be a positive integer")
+    if not isinstance(serving_enforce_eager, bool):
+        raise ValidationError("deployment.enforce_eager must be boolean")
 
     return ValidatedJob(
         manifest=manifest,
@@ -968,6 +1022,15 @@ def validate_manifest(job_dir: Path) -> ValidatedJob:
         served_model_name=served_model_name,
         assistant_reasoning=assistant_reasoning,
         thinking_max_chars=thinking_max_chars,
+        serving_base_model_id=serving_base_model_id,
+        serving_enable_thinking=serving_enable_thinking,
+        serving_reasoning_effort=serving_reasoning_effort,
+        serving_preserve_thinking=serving_preserve_thinking,
+        serving_max_model_length=serving_max_model_length,
+        serving_gpu_memory_utilization=float(serving_gpu_memory_utilization),
+        serving_max_num_seqs=serving_max_num_seqs,
+        serving_max_num_batched_tokens=serving_max_num_batched_tokens,
+        serving_enforce_eager=serving_enforce_eager,
         max_gpu_memory_gib=float(max_gpu_memory_gib),
         cuda_memory_fraction=float(cuda_memory_fraction),
         dpo_execution_mode=dpo_execution_mode,
@@ -1788,6 +1851,15 @@ def deploy_fixture(job_dir: Path, job: ValidatedJob, final_checkpoint: Path, con
         "endpoint": DEFAULT_ENDPOINT,
         "mode": "fixture",
         "assistant_reasoning": job.assistant_reasoning,
+        "base_model_id": job.serving_base_model_id,
+        "enable_thinking": job.serving_enable_thinking,
+        "preserve_thinking": job.serving_preserve_thinking,
+        "reasoning_effort": job.serving_reasoning_effort,
+        "max_model_length": job.serving_max_model_length,
+        "gpu_memory_utilization": job.serving_gpu_memory_utilization,
+        "max_num_seqs": job.serving_max_num_seqs,
+        "max_num_batched_tokens": job.serving_max_num_batched_tokens,
+        "enforce_eager": job.serving_enforce_eager,
     }
     atomic_write_json(job_dir / "deployment.json", payload)
     return DEFAULT_ENDPOINT
@@ -1807,14 +1879,22 @@ def deploy_real(config: RunnerConfig, job_dir: Path, job: ValidatedJob, final_ch
         {
             "MODEL_PATH": str(final_checkpoint),
             "SERVED_MODEL_NAME": job.served_model_name,
-            "MAX_MODEL_LEN": "65536",
-            "GPU_MEMORY_UTILIZATION": "0.70",
-            "MAX_NUM_SEQS": "1",
-            "MAX_NUM_BATCHED_TOKENS": "32768",
+            "BASE_MODEL_ID": job.serving_base_model_id,
+            "MAX_MODEL_LEN": str(job.serving_max_model_length),
+            "GPU_MEMORY_UTILIZATION": str(job.serving_gpu_memory_utilization),
+            "MAX_NUM_SEQS": str(job.serving_max_num_seqs),
+            "MAX_NUM_BATCHED_TOKENS": str(job.serving_max_num_batched_tokens),
             "PORT": "8002",
             "READY_WAIT_SEC": "900",
             "ENABLE_THINKING": (
-                "true" if job.assistant_reasoning == "required" else "false"
+                "true" if job.serving_enable_thinking else "false"
+            ),
+            "PRESERVE_THINKING": (
+                "true" if job.serving_preserve_thinking else "false"
+            ),
+            "REASONING_EFFORT": job.serving_reasoning_effort,
+            "VLLM_ENFORCE_EAGER": (
+                "true" if job.serving_enforce_eager else "false"
             ),
         }
     )
@@ -1822,6 +1902,25 @@ def deploy_real(config: RunnerConfig, job_dir: Path, job: ValidatedJob, final_ch
     rc = run_streamed_command(start_command, log_path, env=env)
     if rc != 0:
         raise StageError("deploying", f"vLLM start command failed with exit code {rc}; see {log_path}")
+    atomic_write_json(
+        job_dir / "deployment.json",
+        {
+            "served_model_name": job.served_model_name,
+            "checkpoint": str(final_checkpoint),
+            "endpoint": DEFAULT_ENDPOINT,
+            "mode": "real",
+            "assistant_reasoning": job.assistant_reasoning,
+            "base_model_id": job.serving_base_model_id,
+            "enable_thinking": job.serving_enable_thinking,
+            "preserve_thinking": job.serving_preserve_thinking,
+            "reasoning_effort": job.serving_reasoning_effort,
+            "max_model_length": job.serving_max_model_length,
+            "gpu_memory_utilization": job.serving_gpu_memory_utilization,
+            "max_num_seqs": job.serving_max_num_seqs,
+            "max_num_batched_tokens": job.serving_max_num_batched_tokens,
+            "enforce_eager": job.serving_enforce_eager,
+        },
+    )
     return DEFAULT_ENDPOINT
 
 

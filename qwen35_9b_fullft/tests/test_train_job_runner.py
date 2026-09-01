@@ -168,6 +168,7 @@ def make_job(
     custom_rl_rows: list[dict] | None = None,
     awr_enabled: bool = False,
     custom_awr_rows: list[dict] | None = None,
+    deployment_profile: dict | None = None,
 ) -> Path:
     job_dir = jobs_root / "incoming" / job_id
     job_dir.mkdir(parents=True, exist_ok=True)
@@ -228,6 +229,8 @@ def make_job(
         },
         "deployment": {"enabled": True, "served_model_name": f"hayabusa-9b-{job_id}"},
     }
+    if deployment_profile:
+        manifest["deployment"].update(deployment_profile)
     if dpo_execution_mode is not None:
         manifest["dpo_execution_mode"] = dpo_execution_mode
     if awr_enabled:
@@ -279,6 +282,53 @@ class TrainJobRunnerTests(unittest.TestCase):
             once=True,
             fixture=runner.FixtureConfig(fail_stage=fail_stage, sleep_seconds=sleep_seconds),
         )
+
+    def test_qwen38_deployment_contract_is_explicit_and_validated(self) -> None:
+        profile = {
+            "base_model_id": "Qwen/Qwen3.8-27B",
+            "enable_thinking": True,
+            "preserve_thinking": False,
+            "reasoning_effort": "medium",
+            "max_model_length": 65536,
+            "gpu_memory_utilization": 0.70,
+            "max_num_seqs": 8,
+            "max_num_batched_tokens": 65536,
+            "enforce_eager": False,
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            config = self.make_config(tmp)
+            job_dir = make_job(
+                config.jobs_root,
+                custom_sft_rows=thinking_sft_rows(),
+                custom_dpo_rows=thinking_dpo_rows(),
+                assistant_reasoning=True,
+                deployment_profile=profile,
+            )
+            job = runner.validate_manifest(job_dir)
+            self.assertEqual("Qwen/Qwen3.8-27B", job.serving_base_model_id)
+            self.assertTrue(job.serving_enable_thinking)
+            self.assertFalse(job.serving_preserve_thinking)
+            self.assertEqual("medium", job.serving_reasoning_effort)
+            self.assertEqual(65536, job.serving_max_model_length)
+            self.assertEqual(8, job.serving_max_num_seqs)
+            self.assertEqual(65536, job.serving_max_num_batched_tokens)
+            self.assertFalse(job.serving_enforce_eager)
+            endpoint = runner.deploy_fixture(
+                job_dir, job, Path("/models/eagle-27b-step0-r0-c1"), config
+            )
+            self.assertEqual(runner.DEFAULT_ENDPOINT, endpoint)
+            deployment = read_json(job_dir / "deployment.json")
+            self.assertEqual("Qwen/Qwen3.8-27B", deployment["base_model_id"])
+            self.assertTrue(deployment["enable_thinking"])
+            self.assertFalse(deployment["preserve_thinking"])
+            self.assertEqual("medium", deployment["reasoning_effort"])
+            self.assertEqual(8, deployment["max_num_seqs"])
+
+            manifest = read_json(job_dir / "job.json")
+            manifest["deployment"]["reasoning_effort"] = "high"
+            (job_dir / "job.json").write_text(json.dumps(manifest), encoding="utf-8")
+            with self.assertRaisesRegex(runner.ValidationError, "xhigh"):
+                runner.validate_manifest(job_dir)
 
     def test_real_commands_use_twenty_step_checkpoint_interval(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

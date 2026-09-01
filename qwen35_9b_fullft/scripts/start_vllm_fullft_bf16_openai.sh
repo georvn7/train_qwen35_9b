@@ -21,6 +21,9 @@ MAX_NUM_BATCHED_TOKENS="${MAX_NUM_BATCHED_TOKENS:-32768}"
 API_KEY="${API_KEY:-}"
 READY_WAIT_SEC="${READY_WAIT_SEC:-900}"
 ENABLE_THINKING="${ENABLE_THINKING:-false}"
+PRESERVE_THINKING="${PRESERVE_THINKING:-false}"
+REASONING_EFFORT="${REASONING_EFFORT:-medium}"
+BASE_MODEL_ID="${BASE_MODEL_ID:-Qwen/Qwen3.5-9B}"
 VLLM_ENFORCE_EAGER="${VLLM_ENFORCE_EAGER:-false}"
 PY_HEADERS_ROOT="${PY_HEADERS_ROOT:-${WORKSPACE_ROOT}/.local_py312dev/usr/include}"
 
@@ -61,7 +64,7 @@ PY
     "${PY_BIN}" "${PROJECT_DIR}/scripts/make_vllm_compat_fullft_model.py" \
       --full-model-dir "${MODEL_PATH}" \
       --out-dir "${COMPAT_DIR}" \
-      --base-model-id "Qwen/Qwen3.5-9B"
+      --base-model-id "${BASE_MODEL_ID}"
     MODEL_PATH="${COMPAT_DIR}"
   fi
 fi
@@ -75,20 +78,48 @@ if [[ -f "${PID_FILE}" ]]; then
   fi
 fi
 
-case "${ENABLE_THINKING,,}" in
-  true|1|yes)
-    CHAT_KWARGS='{"enable_thinking":true}'
-    REASONING_ARGS=(--reasoning-parser qwen3)
-    ;;
-  false|0|no)
-    CHAT_KWARGS='{"enable_thinking":false}'
-    REASONING_ARGS=()
-    ;;
+normalize_bool() {
+  case "${1,,}" in
+    true|1|yes) echo true ;;
+    false|0|no) echo false ;;
+    *) return 1 ;;
+  esac
+}
+
+ENABLE_THINKING_JSON="$(normalize_bool "${ENABLE_THINKING}")" || {
+  echo "ERROR: ENABLE_THINKING must be true or false"
+  exit 1
+}
+PRESERVE_THINKING_JSON="$(normalize_bool "${PRESERVE_THINKING}")" || {
+  echo "ERROR: PRESERVE_THINKING must be true or false"
+  exit 1
+}
+case "${REASONING_EFFORT}" in
+  low|medium|xhigh) ;;
   *)
-    echo "ERROR: ENABLE_THINKING must be true or false"
+    echo "ERROR: REASONING_EFFORT must be low, medium, or xhigh"
     exit 1
     ;;
 esac
+
+if [[ "${ENABLE_THINKING_JSON}" == "true" ]]; then
+  CHAT_KWARGS="$(
+    "${PY_BIN}" - "${PRESERVE_THINKING_JSON}" "${REASONING_EFFORT}" <<'PY'
+import json
+import sys
+
+print(json.dumps({
+    "enable_thinking": True,
+    "preserve_thinking": sys.argv[1] == "true",
+    "reasoning_effort": sys.argv[2],
+}, separators=(",", ":")))
+PY
+  )"
+  REASONING_ARGS=(--reasoning-parser qwen3)
+else
+  CHAT_KWARGS='{"enable_thinking":false}'
+  REASONING_ARGS=()
+fi
 
 case "${VLLM_ENFORCE_EAGER,,}" in
   true|1|yes)
@@ -129,6 +160,8 @@ fi
 echo "Starting vLLM bf16 server..."
 echo "Model path: ${MODEL_PATH}"
 echo "Model name: ${SERVED_MODEL_NAME}"
+echo "Base model config: ${BASE_MODEL_ID}"
+echo "Thinking: enabled=${ENABLE_THINKING_JSON}, preserve=${PRESERVE_THINKING_JSON}, effort=${REASONING_EFFORT}"
 echo "Execution mode: ${EXECUTION_MODE}"
 echo "Endpoint: http://${HOST}:${PORT}/v1"
 echo "Log file: ${LOG_FILE}"
