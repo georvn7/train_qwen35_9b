@@ -338,11 +338,12 @@ def validate_thinking(
     label: str,
     message: dict[str, Any],
     thinking_max_chars: int,
+    allow_oversized: bool = False,
 ) -> None:
     thinking = message.get("thinking")
     if not isinstance(thinking, str) or not thinking.strip():
         raise ValidationError(f"{path.name}:{line_no}: {label}.thinking is required")
-    if len(thinking) > thinking_max_chars:
+    if len(thinking) > thinking_max_chars and not allow_oversized:
         raise ValidationError(
             f"{path.name}:{line_no}: {label}.thinking exceeds "
             f"{thinking_max_chars} characters"
@@ -397,6 +398,8 @@ def validate_dpo_value(
     value: Any,
     assistant_reasoning: str = "disabled",
     thinking_max_chars: int = 1800,
+    allow_reasoning_only_final: bool = False,
+    allow_oversized_final_reasoning: bool = False,
 ) -> None:
     if isinstance(value, str) and value:
         if assistant_reasoning == "required" and key in {"chosen", "rejected"}:
@@ -415,7 +418,19 @@ def validate_dpo_value(
                     f"{path.name}:{line_no}: DPO field {key}[{idx}].role must be a non-empty string"
                 )
             content = message.get("content")
-            if not isinstance(content, str) or not content:
+            reasoning_only_final = (
+                allow_reasoning_only_final
+                and idx == len(value) - 1
+                and role == "assistant"
+                and isinstance(content, str)
+                and not content
+                and isinstance(message.get("thinking"), str)
+                and bool(message["thinking"].strip())
+            )
+            if (
+                not isinstance(content, str)
+                or (not content and not reasoning_only_final)
+            ):
                 raise ValidationError(
                     f"{path.name}:{line_no}: DPO field {key}[{idx}].content must be a non-empty string"
                 )
@@ -431,6 +446,7 @@ def validate_dpo_value(
                 f"DPO field {key}[{len(value) - 1}]",
                 final,
                 thinking_max_chars,
+                allow_oversized=allow_oversized_final_reasoning,
             )
         return
     raise ValidationError(
@@ -449,6 +465,17 @@ def validate_dpo_jsonl(
         rows += 1
         if not isinstance(obj, dict):
             raise ValidationError(f"{path.name}:{line_no}: DPO row must be an object")
+        meta = obj.get("meta")
+        reject_reasons = (
+            meta.get("reject_reasons", []) if isinstance(meta, dict) else []
+        )
+        oversized_reasoning_negative = (
+            isinstance(meta, dict)
+            and meta.get("reject_kind")
+            in {"structure_negative", "analysis_structure_negative"}
+            and isinstance(reject_reasons, list)
+            and "thinking_too_long" in reject_reasons
+        )
         for key in ("prompt", "chosen", "rejected"):
             validate_dpo_value(
                 path,
@@ -457,6 +484,10 @@ def validate_dpo_jsonl(
                 obj.get(key),
                 assistant_reasoning,
                 thinking_max_chars,
+                allow_reasoning_only_final=(key == "rejected"),
+                allow_oversized_final_reasoning=(
+                    key == "rejected" and oversized_reasoning_negative
+                ),
             )
         if "meta" in obj and not isinstance(obj["meta"], (dict, list, str, int, float, bool, type(None))):
             raise ValidationError(f"{path.name}:{line_no}: DPO meta must be JSON-serializable")

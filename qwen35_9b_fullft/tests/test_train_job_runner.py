@@ -806,6 +806,61 @@ class TrainJobRunnerTests(unittest.TestCase):
                 self.assertEqual(result["failed_stage"], "validating")
                 self.assertIn(expected, result["error"])
 
+    def test_dpo_accepts_labeled_reasoning_only_structure_negative(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "train_dpo.jsonl"
+            path.write_text(
+                jsonl(
+                    [
+                        {
+                            "prompt": [{"role": "user", "content": "debug"}],
+                            "chosen": [
+                                {
+                                    "role": "assistant",
+                                    "thinking": "choose grounded evidence",
+                                    "content": "selected action",
+                                }
+                            ],
+                            "rejected": [
+                                {
+                                    "role": "assistant",
+                                    "thinking": "x" * 1801,
+                                    "content": "",
+                                }
+                            ],
+                            "meta": {
+                                "reject_kind": "structure_negative",
+                                "reject_reasons": [
+                                    "invalid_json",
+                                    "thinking_too_long",
+                                ],
+                            },
+                        }
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                1,
+                runner.validate_dpo_jsonl(
+                    path,
+                    assistant_reasoning="required",
+                    thinking_max_chars=1800,
+                ),
+            )
+
+            row = json.loads(path.read_text(encoding="utf-8"))
+            row["meta"]["reject_reasons"] = ["invalid_json"]
+            path.write_text(jsonl([row]), encoding="utf-8")
+            with self.assertRaisesRegex(
+                runner.ValidationError, "thinking exceeds 1800 characters"
+            ):
+                runner.validate_dpo_jsonl(
+                    path,
+                    assistant_reasoning="required",
+                    thinking_max_chars=1800,
+                )
+
     def test_invalid_checksum_fails_during_validating(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             config = self.make_config(tmp)
