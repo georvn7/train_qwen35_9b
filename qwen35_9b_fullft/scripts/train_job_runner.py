@@ -38,6 +38,7 @@ DEFAULT_ENDPOINT = "http://127.0.0.1:8002/v1"
 DEFAULT_LAN_ENDPOINT = "http://10.0.0.34:8002/v1"
 SUPPORTED_PROFILES = {"micro_contract_validation"}
 TERMINAL_STATES = {"complete", "failed"}
+OUTPUT_BUDGET_EXHAUSTED_REASON = "output_budget_exhausted_before_json"
 NON_TERMINAL_STATES = {
     "pending",
     "validating",
@@ -572,6 +573,87 @@ def validate_rl_reasoning_structure_negative(
     return True
 
 
+def validate_rl_output_budget_exhausted_negative(
+    path: Path,
+    line_no: int,
+    obj: dict[str, Any],
+    policy_steps: list[Any],
+    thinking_max_chars: int,
+) -> bool:
+    marked_steps = [
+        step
+        for step in policy_steps
+        if isinstance(step, dict)
+        and step.get("response_failure_class") == OUTPUT_BUDGET_EXHAUSTED_REASON
+    ]
+    if not marked_steps:
+        return False
+    evidence = obj.get("reward_evidence")
+    if (
+        float(obj.get("reward", 0.0)) != -1.0
+        or len(policy_steps) != 1
+        or len(marked_steps) != 1
+        or not isinstance(evidence, dict)
+        or evidence.get("kind") != "content_structure_negative"
+    ):
+        raise ValidationError(
+            f"{path.name}:{line_no}: output-budget negative must isolate one "
+            "-1 content response"
+        )
+    step = marked_steps[0]
+    content_reasons = step.get("content_structure_reasons")
+    if (
+        step.get("response_disposition") != "schema_rejected"
+        or step.get("content_structure_valid") is not False
+        or not isinstance(content_reasons, list)
+        or not content_reasons
+        or evidence.get("reason") != content_reasons[0]
+        or evidence.get("response_kind") != step.get("response_kind")
+        or step.get("reasoning_structure_valid") is not False
+        or step.get("reasoning_structure_reasons") != ["thinking_too_long"]
+    ):
+        raise ValidationError(
+            f"{path.name}:{line_no}: output-budget structural evidence is inconsistent"
+        )
+    failure = step.get("inference_failure_event")
+    if (
+        not isinstance(failure, dict)
+        or failure.get("failure_kind") != "structured_response"
+        or failure.get("reason") != "request_exhausted"
+    ):
+        raise ValidationError(
+            f"{path.name}:{line_no}: output-budget inference failure evidence "
+            "is inconsistent"
+        )
+    completion = step.get("completion")
+    if not isinstance(completion, list) or len(completion) != 1:
+        raise ValidationError(
+            f"{path.name}:{line_no}: output-budget completion must contain one response"
+        )
+    message = completion[0]
+    if (
+        not isinstance(message, dict)
+        or message.get("role") != "assistant"
+        or message.get("content") != ""
+    ):
+        raise ValidationError(
+            f"{path.name}:{line_no}: output-budget completion must be reasoning-only"
+        )
+    thinking = message.get("thinking")
+    if not isinstance(thinking, str) or len(thinking) <= thinking_max_chars:
+        raise ValidationError(
+            f"{path.name}:{line_no}: output-budget completion has no oversized reasoning"
+        )
+    if (
+        int(step.get("thinking_chars", -1)) != len(thinking)
+        or int(step.get("thinking_max_chars", 0)) != thinking_max_chars
+    ):
+        raise ValidationError(
+            f"{path.name}:{line_no}: output-budget thinking length evidence is inconsistent"
+        )
+    return True
+
+
 def validate_rl_jsonl(
     path: Path,
     assistant_reasoning: str = "required",
@@ -625,6 +707,15 @@ def validate_rl_jsonl(
             policy_steps,
             thinking_max_chars,
         )
+        output_budget_exhausted_negative = (
+            validate_rl_output_budget_exhausted_negative(
+                path,
+                line_no,
+                obj,
+                policy_steps,
+                thinking_max_chars,
+            )
+        )
         for step_index, policy_step in enumerate(policy_steps):
             label = f"RL policy_steps[{step_index}]"
             if not isinstance(policy_step, dict):
@@ -637,7 +728,9 @@ def validate_rl_jsonl(
                 "disabled",
                 thinking_max_chars,
             )
-            if not reasoning_structure_negative:
+            if not (
+                reasoning_structure_negative or output_budget_exhausted_negative
+            ):
                 validate_dpo_value(
                     path,
                     line_no,

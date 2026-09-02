@@ -95,6 +95,20 @@ class TokenizationTests(unittest.TestCase):
             all(call["preserve_thinking"] is False for call in tokenizer.calls)
         )
 
+    def test_reasoning_only_negative_produces_completion_tokens(self):
+        tokenizer = FakeTokenizer()
+        tokenized, stats = RL.tokenize_policy_step(
+            policy_step(thinking="x" * 1801, answer=""),
+            tokenizer,
+            max_length=4096,
+        )
+        completion = FakeTokenizer().decode(
+            tokenized["input_ids"][tokenized["target_start"] :]
+        )
+        self.assertIn("<think>" + "x" * 1801 + "</think>", completion)
+        self.assertTrue(stats["thinking_present"])
+        self.assertGreater(stats["completion_tokens"], 1801)
+
     def test_left_truncation_preserves_entire_completion(self):
         step = policy_step(answer="DECISIVE_ANSWER")
         step["prompt"][1]["content"] = "old evidence " * 100
