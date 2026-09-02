@@ -33,6 +33,7 @@ FORMAT_VERSION = 1
 MAX_TRAINING_SEQUENCE_LENGTH = 32768
 CHECKPOINT_INTERVAL_STEPS = 20
 CHECKPOINT_SAVE_TOTAL_LIMIT = 2
+GIB = 1024**3
 DEFAULT_ENDPOINT = "http://127.0.0.1:8002/v1"
 DEFAULT_LAN_ENDPOINT = "http://10.0.0.34:8002/v1"
 SUPPORTED_PROFILES = {"micro_contract_validation"}
@@ -114,6 +115,7 @@ class ValidatedJob:
     serving_max_num_batched_tokens: int = 32768
     serving_enforce_eager: bool = False
     max_gpu_memory_gib: float = 110.0
+    minimum_free_gib: int = 0
     cuda_memory_fraction: float = 0.88
     dpo_execution_mode: str = "batched"
     rl_enabled: bool = False
@@ -133,6 +135,7 @@ class StageOutput:
     command: list[str]
     log_path: Path
     metrics: dict[str, Any]
+    checkpoint_retention: dict[str, Any] | None = None
 
 
 def utc_now() -> str:
@@ -930,6 +933,13 @@ def validate_manifest(job_dir: Path) -> ValidatedJob:
         raise ValidationError(
             "max_gpu_memory_gib must be a finite non-negative number"
         )
+    minimum_free_gib = manifest.get("minimum_free_gib", 0)
+    if (
+        not isinstance(minimum_free_gib, int)
+        or isinstance(minimum_free_gib, bool)
+        or minimum_free_gib < 0
+    ):
+        raise ValidationError("minimum_free_gib must be a non-negative integer")
     cuda_memory_fraction = manifest.get("cuda_memory_fraction", 0.88)
     if (
         isinstance(cuda_memory_fraction, bool)
@@ -1064,6 +1074,7 @@ def validate_manifest(job_dir: Path) -> ValidatedJob:
         serving_max_num_batched_tokens=serving_max_num_batched_tokens,
         serving_enforce_eager=serving_enforce_eager,
         max_gpu_memory_gib=float(max_gpu_memory_gib),
+        minimum_free_gib=minimum_free_gib,
         cuda_memory_fraction=float(cuda_memory_fraction),
         dpo_execution_mode=dpo_execution_mode,
         rl_enabled=rl_enabled,
@@ -1720,6 +1731,143 @@ def load_stage_metrics(session_dir: Path, stage: str) -> dict[str, Any]:
     return metrics
 
 
+def storage_snapshot(path: Path) -> dict[str, int]:
+    usage = shutil.disk_usage(path)
+    return {
+        "total_bytes": int(usage.total),
+        "used_bytes": int(usage.used),
+        "free_bytes": int(usage.free),
+    }
+
+
+def append_storage_lifecycle(
+    job_dir: Path,
+    workspace_root: Path,
+    stage: str,
+    phase: str,
+    minimum_free_gib: int = 0,
+) -> dict[str, Any]:
+    workspace_root.mkdir(parents=True, exist_ok=True)
+    payload: dict[str, Any] = {
+        "timestamp": utc_now(),
+        "stage": stage,
+        "phase": phase,
+        "path": str(workspace_root.resolve()),
+        "minimum_free_gib": minimum_free_gib,
+        "required_free_bytes": minimum_free_gib * GIB,
+        **storage_snapshot(workspace_root),
+    }
+    lifecycle = job_dir / "storage_lifecycle.jsonl"
+    with lifecycle.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(payload, sort_keys=True) + "\n")
+        handle.flush()
+        os.fsync(handle.fileno())
+    return payload
+
+
+def require_stage_capacity(
+    config: RunnerConfig,
+    job_dir: Path,
+    job: ValidatedJob,
+    stage: str,
+) -> dict[str, Any]:
+    snapshot = append_storage_lifecycle(
+        job_dir,
+        config.workspace_root,
+        stage,
+        "before_training",
+        job.minimum_free_gib,
+    )
+    if (
+        job.minimum_free_gib > 0
+        and snapshot["free_bytes"] < snapshot["required_free_bytes"]
+    ):
+        available = snapshot["free_bytes"] / GIB
+        raise StageError(
+            stage,
+            "training storage reserve is not satisfied: "
+            f"{available:.1f} GiB available, {job.minimum_free_gib} GiB required",
+        )
+    return snapshot
+
+
+def allocated_tree_bytes(path: Path) -> int:
+    if not path.exists():
+        return 0
+    return sum(
+        int(item.lstat().st_blocks) * 512
+        for item in (path, *path.rglob("*"))
+    )
+
+
+def prune_verified_stage_checkpoints(
+    config: RunnerConfig,
+    job_dir: Path,
+    job: ValidatedJob,
+    output: StageOutput,
+    stage: str,
+) -> dict[str, Any]:
+    """Retire optimizer checkpoints only after the exported stage model is verified."""
+    session_dir = output.session_dir
+    if session_dir.is_symlink() or not session_dir.is_dir():
+        raise StageError(stage, f"invalid stage session directory: {session_dir}")
+    expected_checkpoint = session_dir / "artifacts" / "full_model"
+    if output.checkpoint != expected_checkpoint or not expected_checkpoint.is_dir():
+        raise StageError(
+            stage,
+            f"stage checkpoint is outside the verified export boundary: {output.checkpoint}",
+        )
+    if not output.metrics:
+        raise StageError(stage, "refusing checkpoint cleanup without verified metrics")
+
+    report_path = session_dir / "metadata" / "checkpoint_retention.json"
+    checkpoints = session_dir / "checkpoints"
+    if report_path.is_file():
+        if checkpoints.exists():
+            raise StageError(stage, "checkpoint retention report conflicts with live checkpoints")
+        report = read_json(report_path)
+        if report.get("final_checkpoint") != str(output.checkpoint):
+            raise StageError(stage, "checkpoint retention report targets another export")
+        output.checkpoint_retention = report
+        return report
+
+    if checkpoints.is_symlink():
+        raise StageError(stage, f"refusing to prune symlinked checkpoints: {checkpoints}")
+    if checkpoints.exists() and (
+        not checkpoints.is_dir() or checkpoints.parent != session_dir
+    ):
+        raise StageError(stage, f"invalid checkpoints directory: {checkpoints}")
+
+    before = storage_snapshot(config.workspace_root)
+    allocated = allocated_tree_bytes(checkpoints)
+    removed = checkpoints.exists()
+    if removed:
+        shutil.rmtree(checkpoints)
+    after = storage_snapshot(config.workspace_root)
+    report = {
+        "format_version": FORMAT_VERSION,
+        "stage": stage,
+        "status": "pruned" if removed else "already_absent",
+        "final_checkpoint": str(output.checkpoint),
+        "checkpoints_path": str(checkpoints),
+        "allocated_bytes": allocated,
+        "free_before_bytes": before["free_bytes"],
+        "free_after_bytes": after["free_bytes"],
+        "reclaimed_bytes": max(0, after["free_bytes"] - before["free_bytes"]),
+        "recorded_at": utc_now(),
+    }
+    atomic_write_json(report_path, report)
+    output.checkpoint_retention = report
+    append_storage_lifecycle(
+        job_dir,
+        config.workspace_root,
+        stage,
+        "after_checkpoint_prune",
+        job.minimum_free_gib,
+    )
+    return report
+
+
 def run_sft_stage(config: RunnerConfig, job_dir: Path, job: ValidatedJob) -> StageOutput:
     if job.sft_input is None:
         raise StageError("sft", "SFT input is unavailable for a DPO-only job")
@@ -1729,6 +1877,7 @@ def run_sft_stage(config: RunnerConfig, job_dir: Path, job: ValidatedJob) -> Sta
     log_path = logs_dir / "sft.log"
     session_dir = create_stage_session(config, job_dir, stage, job.sft_input.path, label, log_path)
     command = build_sft_command(config, job, session_dir)
+    require_stage_capacity(config, job_dir, job, stage)
     write_status(job_dir, "sft_running", "SFT training started", stage=stage)
     rc = run_streamed_command(command, log_path)
     if rc != 0:
@@ -1757,6 +1906,7 @@ def run_dpo_stage(
     log_path = logs_dir / "dpo.log"
     session_dir = create_stage_session(config, job_dir, stage, job.dpo_input.path, label, log_path)
     command = build_dpo_command(config, job, session_dir, model_checkpoint)
+    require_stage_capacity(config, job_dir, job, stage)
     write_status(job_dir, "dpo_running", "DPO training started", stage=stage)
     rc = run_streamed_command(command, log_path)
     if rc != 0:
@@ -1789,6 +1939,7 @@ def run_rl_stage(
         config, job_dir, stage, job.rl_input.path, label, log_path
     )
     command = build_rl_command(config, job, session_dir, model_checkpoint)
+    require_stage_capacity(config, job_dir, job, stage)
     write_status(job_dir, "rl_running", "Serialized RL training started", stage=stage)
     rc = run_streamed_command(command, log_path)
     if rc != 0:
@@ -1821,6 +1972,7 @@ def run_awr_stage(
         config, job_dir, stage, job.awr_input.path, label, log_path
     )
     command = build_awr_command(config, job, session_dir, model_checkpoint)
+    require_stage_capacity(config, job_dir, job, stage)
     write_status(
         job_dir,
         "awr_running",
@@ -2068,6 +2220,7 @@ def write_stage_summary(
             "log_path": str(sft.log_path),
             "command": sft.command,
             "metrics": sft.metrics,
+            "checkpoint_retention": sft.checkpoint_retention,
         }
     if dpo is not None:
         payload["dpo"] = {
@@ -2076,6 +2229,7 @@ def write_stage_summary(
             "log_path": str(dpo.log_path),
             "command": dpo.command,
             "metrics": dpo.metrics,
+            "checkpoint_retention": dpo.checkpoint_retention,
         }
     if rl is not None:
         payload["rl"] = {
@@ -2084,6 +2238,7 @@ def write_stage_summary(
             "log_path": str(rl.log_path),
             "command": rl.command,
             "metrics": rl.metrics,
+            "checkpoint_retention": rl.checkpoint_retention,
         }
     if awr is not None:
         payload["awr"] = {
@@ -2092,6 +2247,7 @@ def write_stage_summary(
             "log_path": str(awr.log_path),
             "command": awr.command,
             "metrics": awr.metrics,
+            "checkpoint_retention": awr.checkpoint_retention,
         }
     atomic_write_json(job_dir / "stage_sessions.json", payload)
 
@@ -2143,6 +2299,8 @@ def process_job(config: RunnerConfig, job_dir: Path, resumed_running: bool = Fal
             # Persist the verified checkpoint before DPO so a failed bootstrap
             # can be resumed as an immutable DPO-only replacement job.
             write_stage_summary(job_dir, sft, None)
+            prune_verified_stage_checkpoints(config, job_dir, job, sft, "sft")
+            write_stage_summary(job_dir, sft, None)
         dpo_model_checkpoint: Path | str = (
             sft.checkpoint if sft is not None else job.base_checkpoint
         )
@@ -2151,6 +2309,14 @@ def process_job(config: RunnerConfig, job_dir: Path, resumed_running: bool = Fal
     final_checkpoint = (awr or rl or dpo).checkpoint
     endpoint = deploy(config, job_dir, job, final_checkpoint)
     health = health_check(config, job_dir, job, endpoint)
+    terminal = awr or rl or dpo
+    if terminal is None:
+        raise RunnerError("terminal training stage is unavailable")
+    terminal_stage = "awr" if awr is not None else "rl" if rl is not None else "dpo"
+    prune_verified_stage_checkpoints(
+        config, job_dir, job, terminal, terminal_stage
+    )
+    write_stage_summary(job_dir, sft, dpo, rl, awr)
     write_success_result(job_dir, job, sft, dpo, rl, awr, endpoint, health)
     write_status(job_dir, "complete", "Job complete", stage=None)
     return move_terminal(config.jobs_root, job_dir, "complete")

@@ -79,7 +79,7 @@ qwen35_9b_fullft/scripts/run_train_qwen35_9b_full1109_resume_safe.sh
   - `gradient_checkpointing=unsloth`
   - `learning_rate=1e-5`, `warmup_steps=50`
   - `gradient_accumulation_steps=1`
-  - `save_steps=50`, `save_total_limit=4` (large full-FT checkpoints)
+  - stage-specific save interval, `save_total_limit=2` (large full-FT checkpoints)
   - `precision=bf16`, `optim=adamw_8bit`
 
 ## Autonomous Curriculum Training
@@ -93,6 +93,13 @@ checkpoint chain:
    checkpoint.
 3. Successful jobs validate the checkpoint, deploy it through vLLM, and require
    an OpenAI-compatible health response before reporting completion.
+
+Each immutable job records `storage_lifecycle.jsonl`. When
+`minimum_free_gib` is configured, the runner enforces that reserve before every
+internal stage. A stage's optimizer checkpoints are deleted only after its
+exported full model and metrics are verified; terminal-stage checkpoints remain
+available until deployment health succeeds. Cross-cycle model retention is
+owned by the curriculum orchestrator rather than this runner.
 
 Thinking-aware jobs require a bounded `thinking` field in the final assistant
 message. Semantic judging is performed on final content only, while both SFT and

@@ -527,6 +527,43 @@ class TrainJobRunnerTests(unittest.TestCase):
             self.assertEqual(
                 result["dpo_execution"]["effective_max_sequence_length"], 16384
             )
+            for stage in ("sft", "dpo"):
+                session = Path(stages[stage]["session_dir"])
+                self.assertFalse((session / "checkpoints").exists())
+                retention = stages[stage]["checkpoint_retention"]
+                self.assertEqual(retention["status"], "pruned")
+                self.assertEqual(retention["stage"], stage)
+            lifecycle = completed / "storage_lifecycle.jsonl"
+            events = [json.loads(line) for line in lifecycle.read_text().splitlines()]
+            self.assertEqual(
+                [
+                    ("sft", "before_training"),
+                    ("sft", "after_checkpoint_prune"),
+                    ("dpo", "before_training"),
+                    ("dpo", "after_checkpoint_prune"),
+                ],
+                [(event["stage"], event["phase"]) for event in events],
+            )
+
+    def test_stage_storage_reserve_is_enforced_and_recorded(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            config = self.make_config(tmp)
+            job_dir = make_job(config.jobs_root)
+            manifest_path = job_dir / "job.json"
+            manifest = read_json(manifest_path)
+            manifest["minimum_free_gib"] = 1_000_000
+            runner.atomic_write_json(manifest_path, manifest)
+
+            self.assertEqual(runner.run_once(config), 1)
+            failed = config.jobs_root / "failed" / "simplec-s0_2-micro-001"
+            result = read_json(failed / "result.json")
+            self.assertEqual(result["failed_stage"], "sft")
+            self.assertIn("storage reserve", result["error"])
+            event = json.loads(
+                (failed / "storage_lifecycle.jsonl").read_text().splitlines()[0]
+            )
+            self.assertEqual(event["minimum_free_gib"], 1_000_000)
+            self.assertLess(event["free_bytes"], event["required_free_bytes"])
 
     def test_stage_metrics_must_exist_and_be_nonempty(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -963,6 +1000,14 @@ class TrainJobRunnerTests(unittest.TestCase):
             failed = config.jobs_root / "failed" / "simplec-s0_2-micro-001"
             result = read_json(failed / "result.json")
             self.assertEqual(result["failed_stage"], "health_check")
+            stages = read_json(failed / "stage_sessions.json")
+            self.assertFalse(
+                (Path(stages["sft"]["session_dir"]) / "checkpoints").exists()
+            )
+            self.assertTrue(
+                (Path(stages["dpo"]["session_dir"]) / "checkpoints").is_dir()
+            )
+            self.assertIsNone(stages["dpo"]["checkpoint_retention"])
 
     def test_status_and_result_are_valid_json_after_failure(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
