@@ -602,6 +602,14 @@ def validate_rl_output_budget_exhausted_negative(
         )
     step = marked_steps[0]
     content_reasons = step.get("content_structure_reasons")
+    reasoning_reasons = step.get("reasoning_structure_reasons")
+    reasoning_valid = step.get("reasoning_structure_valid")
+    reasoning_evidence_valid = (
+        reasoning_valid is True and reasoning_reasons == []
+    ) or (
+        reasoning_valid is False
+        and reasoning_reasons == ["thinking_too_long"]
+    )
     if (
         step.get("response_disposition") != "schema_rejected"
         or step.get("content_structure_valid") is not False
@@ -609,8 +617,7 @@ def validate_rl_output_budget_exhausted_negative(
         or not content_reasons
         or evidence.get("reason") != content_reasons[0]
         or evidence.get("response_kind") != step.get("response_kind")
-        or step.get("reasoning_structure_valid") is not False
-        or step.get("reasoning_structure_reasons") != ["thinking_too_long"]
+        or not reasoning_evidence_valid
     ):
         raise ValidationError(
             f"{path.name}:{line_no}: output-budget structural evidence is inconsistent"
@@ -640,7 +647,16 @@ def validate_rl_output_budget_exhausted_negative(
             f"{path.name}:{line_no}: output-budget completion must be reasoning-only"
         )
     thinking = message.get("thinking")
-    if not isinstance(thinking, str) or len(thinking) <= thinking_max_chars:
+    if not isinstance(thinking, str) or not thinking:
+        raise ValidationError(
+            f"{path.name}:{line_no}: output-budget completion has no reasoning"
+        )
+    if reasoning_valid is True and len(thinking) > thinking_max_chars:
+        raise ValidationError(
+            f"{path.name}:{line_no}: output-budget completion contradicts valid "
+            "reasoning evidence"
+        )
+    if reasoning_valid is False and len(thinking) <= thinking_max_chars:
         raise ValidationError(
             f"{path.name}:{line_no}: output-budget completion has no oversized reasoning"
         )

@@ -787,6 +787,53 @@ class TrainJobRunnerTests(unittest.TestCase):
                 read_json(failed / "result.json")["error"],
             )
 
+    def test_rl_accepts_token_exhaustion_within_reasoning_char_limit(self) -> None:
+        rows = rl_rows()[:2]
+        negative = rows[0]
+        step = negative["policy_steps"][0]
+        step["completion"][0].update(
+            {"content": "", "thinking": "!" * 1024}
+        )
+        step.update(
+            {
+                "response_kind": "NextStep",
+                "response_disposition": "schema_rejected",
+                "response_failure_class": "output_budget_exhausted_before_json",
+                "content_structure_valid": False,
+                "content_structure_reasons": [
+                    "schema_rejected_by_runtime:Output budget exhausted before structured JSON content."
+                ],
+                "reasoning_structure_valid": True,
+                "reasoning_structure_reasons": [],
+                "thinking_chars": 1024,
+                "thinking_max_chars": 1800,
+                "inference_failure_event": {
+                    "failure_kind": "structured_response",
+                    "reason": "request_exhausted",
+                },
+            }
+        )
+        negative["policy_steps"] = [step]
+        negative["policy_step_weight"] = 1.0
+        negative["reward"] = -1.0
+        negative["advantage"] = -1.0
+        negative["reward_evidence"] = {
+            "kind": "content_structure_negative",
+            "reason": step["content_structure_reasons"][0],
+            "response_kind": "NextStep",
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            config = self.make_config(tmp)
+            make_job(
+                config.jobs_root,
+                sft_enabled=False,
+                dpo_enabled=False,
+                rl_enabled=True,
+                assistant_reasoning=True,
+                custom_rl_rows=rows,
+            )
+            self.assertEqual(runner.run_once(config), 0)
+
     def test_rl_group_without_advantage_diversity_is_rejected(self) -> None:
         rows = rl_rows()
         for row in rows:
